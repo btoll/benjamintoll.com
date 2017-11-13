@@ -7,7 +7,7 @@ languageCode = "en-US"
 layoutdir = "layouts"
 publishdir = "public"
 author = "Alexis Tacnet"
-title = "You Are Here"
+title = "benjamintoll.com"
 disqusshortname = ""
 pluralizelisttitles = false
 
@@ -25,7 +25,7 @@ highlightjs = true
 progressively = true
 align_left = false
 lang = "en"
-github = "https://github.com/btoll"
+github = "btoll"
 email = "benjam72@yahoo.com"
 social_banner = "img/banner.png"
 posts_navigation = true

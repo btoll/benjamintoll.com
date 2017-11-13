@@ -9,9 +9,7 @@ hacker_news_id = ""
 lobsters_id = ""
 +++
 
-You are exactly where you should be.
-
-I code Golang, Elm, JavaScript, PHP, Python, Bash.
+I code in Golang, Elm, JavaScript, PHP, Python, Bash.
 
 Check out my [GitHub] for code samples and projects.
 
