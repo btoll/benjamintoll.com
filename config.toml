@@ -1,0 +1,33 @@
+baseurl = "https://www.benjamintoll.com/"
+theme = "cocoa-eh"
+builddrafts = true
+canonifyurls = true
+contentdir = "content"
+languageCode = "en-US"
+layoutdir = "layouts"
+publishdir = "public"
+author = "Alexis Tacnet"
+title = "You Are Here"
+disqusshortname = ""
+pluralizelisttitles = false
+
+[permalinks]
+blog = "blog/:slug/"
+
+[params]
+dateform = "Jan 2, 2006"
+dateformfull = "Mon Jan 2 2006 15:04:05 MST"
+description = "Derp"
+copyright = "Copyright © 2017 Benjamin Toll"
+logofile = "img/pete.jpeg"
+faviconfile = "img/pete.jpeg"
+highlightjs = true
+progressively = true
+align_left = false
+lang = "en"
+github = "https://github.com/btoll"
+email = "benjam72@yahoo.com"
+social_banner = "img/banner.png"
+posts_navigation = true
+small_banner_logo = false
+
