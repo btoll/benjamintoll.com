@@ -1,13 +1,9 @@
-+++
-title = 'About'
-date = 2017-11-12T17:57:42-05:00
-draft = true
-meta_img = "/images/image.jpg"
-tags = ["tags"]
-description = "Desc"
-hacker_news_id = ""
-lobsters_id = ""
-+++
+---
+title: "About"
+background_color_class: "bg-blue"
+featured_image: "foo.jpg"
+description: ""
+---
 
 I only use the best: i3/tmux/vim.
 

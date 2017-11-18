@@ -1,33 +1,30 @@
-baseurl = "https://www.benjamintoll.com/"
-theme = "cocoa-eh"
-builddrafts = true
-canonifyurls = true
-contentdir = "content"
-languageCode = "en-US"
-layoutdir = "layouts"
-publishdir = "public"
-author = "Alexis Tacnet"
 title = "benjamintoll.com"
-disqusshortname = ""
-pluralizelisttitles = false
+baseURL = "https://www.benjamintoll.com"
+languageCode = "en-us"
+theme = "gohugo-theme-ananke"
 
-[permalinks]
-blog = "blog/:slug/"
+MetaDataFormat = "yaml"
+DefaultContentLanguage = "en"
+SectionPagesMenu = "main"
+Paginate = 3 # this is set low for demonstrating with dummy content. Set to a higher number
+googleAnalytics = ""
+enableRobotsTXT = true
+
+[sitemap]
+  changefreq = "monthly"
+  priority = 0.5
+  filename = "sitemap.xml"
 
 [params]
-dateform = "Jan 2, 2006"
-dateformfull = "Mon Jan 2 2006 15:04:05 MST"
-description = "Derp"
-copyright = "Copyright © 2017 Benjamin Toll"
-logofile = "img/pete.jpeg"
-faviconfile = "img/pete.jpeg"
-highlightjs = true
-progressively = true
-align_left = false
-lang = "en"
-github = "btoll"
-email = "benjam72@yahoo.com"
-social_banner = "img/banner.png"
-posts_navigation = true
-small_banner_logo = false
+  favicon = ""
+  description = ""
+  facebook = ""
+  twitter = ""
+  instagram = ""
+  youtube = ""
+  github = "https://github.com/btoll"
+  linkedin = ""
+#  background_color_class = "bg-blue"
+#  featured_image = "/images/foo.jpg"
+  recent_posts_number = 2
 
