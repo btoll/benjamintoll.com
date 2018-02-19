@@ -1,30 +1,28 @@
-title = "benjamintoll.com"
-baseURL = "https://www.benjamintoll.com"
+baseurl = "/"
 languageCode = "en-us"
-theme = "gohugo-theme-ananke"
+title = "benjamintoll.com"
+theme = "hugo-lithium-theme"
 
-MetaDataFormat = "yaml"
-DefaultContentLanguage = "en"
-SectionPagesMenu = "main"
-Paginate = 3 # this is set low for demonstrating with dummy content. Set to a higher number
-googleAnalytics = ""
-enableRobotsTXT = true
+[permalinks]
+    post = "/:year/:month/:day/:title/"
+    page = "/:title/"
 
-[sitemap]
-  changefreq = "monthly"
-  priority = 0.5
-  filename = "sitemap.xml"
+[[menu.main]]
+    name = "About"
+    url = "/about"
+[[menu.main]]
+    name = "Links"
+    url = "/links"
+[[menu.main]]
+    name = "GitHub"
+    url = "https://github.com/btoll"
 
 [params]
-  favicon = ""
-  description = ""
-  facebook = ""
-  twitter = ""
-  instagram = ""
-  youtube = ""
-  github = "https://github.com/btoll"
-  linkedin = ""
-#  background_color_class = "bg-blue"
-#  featured_image = "/images/foo.jpg"
-  recent_posts_number = 2
+    description = "benjamintoll.com"
+
+    [params.logo]
+    url = "pete.jpeg"
+    width = 50
+    height = 50
+    alt = "I am Pete"
 

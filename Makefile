@@ -1,11 +1,11 @@
 CC = /snap/hugo/current/bin/hugo
 
-.PHONY: all archive build clean nuke
+.PHONY: all archive build clean copy deploy
 
 all: clean build
 
 archive:
-	( cd .. ; rm benjamintoll.com.bz2 > /dev/null && tar cjvf benjamintoll.com.bz2 dev/content dev/config.toml dev/Makefile )
+	( cd .. ; rm -f benjamintoll.com.bz2 && tar cjvf benjamintoll.com.bz2 dev/content dev/config.toml dev/Makefile )
 
 build:
 	$(CC)
@@ -13,11 +13,9 @@ build:
 clean:
 	rm -rf public
 
-nuke:
-	rm -rf ../public
-
+#cp -r ../benjamintoll.com-old ../public/archive
 copy:
-	cp -r public ../public
-	cp -r ../benjamintoll.com-old ../public/archive
-#	cp ../img/pete.jpeg ../public/img
+	rsync -avz --progress public/ /var/www/public
+
+deploy: build copy
 
