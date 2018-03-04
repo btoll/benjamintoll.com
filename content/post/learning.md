@@ -4,10 +4,11 @@ date = "2018-02-20T16:37:48-05:00"
 
 +++
 
+Of course, this is a work in progress...
+
 ### Life lessions, mostly from my dad.
 
 - Do the things that are hard.
-- Do the things that most people don't want to.
 - Do what scares you.
 - Read books.
 - Question everything.
@@ -15,9 +16,11 @@ date = "2018-02-20T16:37:48-05:00"
 ### About computers and programming.
 
 - Remember your ABCs (Always Be Coding)!
+- Read source code and man pages and docs.
 - Use the command line.
-- Learn a systems programming language.
+- Learn a systems programming language (if a frontend developer).
 - Get to know your tools intimately.
+- Know Unix.
 - Know TCP/IP.
 - Use Vim :)
 
