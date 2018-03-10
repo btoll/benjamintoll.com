@@ -53,6 +53,8 @@ will fail with a giant error, which serves as a good reminder to be mindful of y
 
 It will not use `/etc/hosts` or any local resolvers, but instead will [pass the hostname to Tor] to be transported along a circuit to be resolved by an exit relay.  At this point, the IP will be passed back along the circuit.  Importantly, no UDP packets are ever sent from the local machine.  This is the same way that DNS is resolved when using the Tor browser.
 
+Reverse lookups are also supported and use the same flag as `dig`.  See the man page.
+
 Although some will complain that this is an extra step and an inconvenience, I believe it is well worth it and, frankly, have never believed that the "convenience" argument is very compelling.  It is trivial to write a shell helper script that would resolve any DNS query using `tor-resolve`, which could then pass/pipe the result to another program.
 
 
