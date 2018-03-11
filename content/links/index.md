@@ -7,7 +7,7 @@ title = "Links"
 
 ### Talks
 
-- [Classes vs Simple Object Delegation][js-delegation]
+- [Classes vs Simple Object Delegation in JavaScript][js-delegation]
 - [Introduction to Elm][elm-intro]
 
 [owlsnestfarm]: https://www.theowlsnestfarm.com/

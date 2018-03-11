@@ -55,7 +55,7 @@ It will not use `/etc/hosts` or any local resolvers, but instead will [pass the 
 
 Reverse lookups are also supported and use the same flag as `dig`.  See the man page.
 
-Although some will complain that this is an extra step and an inconvenience, I believe it is well worth it and, frankly, have never believed that the "convenience" argument is very compelling.  It is trivial to write a shell helper script that would resolve any DNS query using `tor-resolve`, which could then pass/pipe the result to another program.
+Although some will complain that this is an extra step and an inconvenience, I believe it is well worth it and, frankly, have never felt that the "convenience" argument is very compelling.  It is trivial to write a shell helper script that would resolve any DNS query using `tor-resolve`, which could then pass/pipe the result to another program.
 
 
 [Tor onion services]: https://bits.debian.org/2016/08/debian-and-tor-services-available-as-onion-services.html

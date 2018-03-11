@@ -22,6 +22,7 @@ Of course, this is a work in progress...
 - Get to know your tools intimately.
 - Know Unix.
 - Know TCP/IP.
+- Know public key cryptography.
 - Use Vim :)
 
 The End.
