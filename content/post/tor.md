@@ -21,6 +21,10 @@ There are only two steps to set this up:
 		deb tor+http://vwakviie2ienjx6t.onion/debian          stretch-updates    main
 		deb tor+http://sgvtcaew4bxjd7ln.onion/debian-security stretch/updates    main
 
+## Create an Onion Service
+
+See [my post where I discuss this] at some length.  You'll want to do this :)
+
 ## Use torsocks
 
 [torsocks] is a great program provided by the Tor team to prevent DNS leaks and other nefarious things, and it has replaced `proxychains` in my regular use because [it is far safer].  Its purpose is to enable the safe use of most applications by routing any network traffic they generate through the Tor network.  This is accomplished by wrapping the Berkeley internet sockets layer API and other functions such as `gethostbyname` and `gethostbyaddr`.
@@ -66,4 +70,5 @@ Although some will complain that this is an extra step and an inconvenience, I b
 [LD_PRELOAD]: https://linux.die.net/man/8/ld.so
 [tor-resolve]: https://linux.die.net/man/1/tor-resolve
 [pass the hostname to Tor]: https://tor.stackexchange.com/a/26
+[my post where I discuss this]: /2018/04/06/on-running-a-tor-onion-service-in-a-chroot/
 
