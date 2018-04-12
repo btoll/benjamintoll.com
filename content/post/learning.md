@@ -16,7 +16,7 @@ Of course, this is a work in progress...
 ### About computers and programming.
 
 - Remember your ABCs (Always Be Coding)!
-- Read source code and man pages and docs.
+- Read source code and man pages and RFCs and docs.
 - Use the command line.
 - Learn a systems programming language (if a frontend developer).
 - Get to know your tools intimately.
