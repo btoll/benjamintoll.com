@@ -2,16 +2,29 @@
 title = "Links"
 +++
 
-- [The Owl's Nest Farm][owlsnestfarm]
-- [Old website][old-website]
+## Code / Projects
 
-### Talks
+- [GitHub]
+- [npm]
+
+## Talks
 
 - [Classes vs Simple Object Delegation in JavaScript][js-delegation]
 - [Introduction to Elm][elm-intro]
 
-[owlsnestfarm]: https://www.theowlsnestfarm.com/
-[old-website]: http://www.benjamintoll.com/archive/
+## Misc
+
+- [CV]
+- [Old website]
+- [The Owl's Nest Farm]
+
+[GitHub]: https://github.com/btoll
+[npm]: https://www.npmjs.com/~benjam72
+
 [js-delegation]: http://bit.ly/2eUOLrh
 [elm-intro]: http://bit.ly/2okgrt2
+
+[The Owl's Nest Farm]: https://www.theowlsnestfarm.com/
+[Old website]: http://www.benjamintoll.com/archive/
+[CV]: https://bit.ly/2JD4ms5
 
