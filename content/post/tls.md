@@ -21,7 +21,7 @@ The TLS protocol provides:
 
 	- A [message authentication code] ensures that none of the bits have been fiddled with in transit by a third-party and prevents undetected data loss.
 
-As for the handshake itself, the description below can serve as a condensed and simplified version of the negotiation between client and server.  Note that this has been simplified for clarity and understanding.  For example, depending upon the cipher suite selected by the server, the handshake could look greatly different, i.e., the client also providing authentication by sending the server its own signed certificate, among other things.
+Let's look at an example of HTTPS.  As for the handshake itself, the description below can serve as a condensed and simplified version of the negotiation between client and server.  Note that this has been simplified for clarity and understanding.  For example, depending upon the cipher suite selected by the server, the handshake could look greatly different, i.e., the client also providing authentication by sending the server its own signed certificate, among other things.
 
 1. Negotiation phase:
 
@@ -37,7 +37,23 @@ As for the handshake itself, the description below can serve as a condensed and 
 
 	+ The secure channel has been established and encrypted communication commences.
 
-One of the interesting points to me is the end of the negotiation phase (Step 1).  The emphasis notes where DHM comes into play during the TLS handshake, and this shows how the symmetric key is agreed upon over a public channel in which an eavesdropper cannot determine the shared key even though some bits can be known.  I'll have a future post in which I'll outline that key exchange algorithm.
+You can see this in action by using [curl] to fetch a page from a site that has a certificate installed (if the certificate is self-signed, use the `--insecure` flag with the following command):
+
+		curl -v https://www.theowlsnestfarm.com
+
+		* TLSv1.2 (OUT), TLS header, Certificate Status (22):
+		* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+		* TLSv1.2 (IN), TLS handshake, Server hello (2):
+		* TLSv1.2 (IN), TLS handshake, Certificate (11):
+		* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+		* TLSv1.2 (IN), TLS handshake, Server finished (14):
+		* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+		* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+		* TLSv1.2 (OUT), TLS handshake, Finished (20):
+		* TLSv1.2 (IN), TLS change cipher, Client hello (1):
+		* TLSv1.2 (IN), TLS handshake, Finished (20):
+
+One of the interesting points to me is the end of the negotiation phase (Step 1).  The emphasis notes where DHM comes into play during the TLS handshake, and this shows how the symmetric key is agreed upon over a public channel in which an eavesdropper cannot determine the shared key even though some bits can be known.  I'll have [a future post] in which I'll outline that key exchange algorithm.
 
 TLS uses asymmetric (public key) cryptography for authentication and symmetric cryptography for privacy.  The reason for this is that the former is expensive and the latter is very fast.  In other words, once the handshake has been negotiated and the connection established, the generated symmetric key is the only crypto that is used for the rest of the session.
 
@@ -47,6 +63,7 @@ Lastly, since DHM establishes an ephemeral shared symmetric key during the hands
 [X.509]: https://en.wikipedia.org/wiki/X.509
 [Diffie-Hellman-Merkle]: https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange
 [message authentication code]: https://en.wikipedia.org/wiki/Message_authentication_code
+[curl]: https://curl.haxx.se/
 [a future post]: /2018/04/27/on-diffie-hellman-merkle/
 [forward secrecy]: https://en.wikipedia.org/wiki/Forward_secrecy
 
