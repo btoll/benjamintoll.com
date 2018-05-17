@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     if (!fork()) {
         close(fd[0]);
 
-        if (dup2(fd[1], 1) == -1) {
+        if (dup2(fd[1], STDOUT_FILENO) == -1) {
             perror("dup2");
             _exit(1);
         }
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         wait(NULL);
         close(fd[1]);
 
-        if (dup2(fd[0], 0) == -1) {
+        if (dup2(fd[0], STDIN_FILENO) == -1) {
             perror("dup2");
             exit(1);
         }
