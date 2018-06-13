@@ -11,6 +11,8 @@ title = "Links"
 
 - Classes vs Simple Object Delegation in JavaScript [\[odp\]](/talks/classes_vs_simple_object_delegation_in_javascript.odp) [\[pdf\]](/talks/classes_vs_simple_object_delegation_in_javascript.pdf)
 - Introduction to Elm [\[odp\]](/talks/introduction_to_elm.odp) [\[pdf\]](/talks/introduction_to_elm.pdf)
+- Protect Yourself on Public Networks [\[odp\]](/talks/protect_yourself_on_public_networks.odp) [\[pdf\]](/talks/protect_yourself_on_public_networks.pdf)
+- Tor [\[odp\]](/talks/tor.odp) [\[pdf\]](/talks/tor.pdf)
 
 ## Misc
 
