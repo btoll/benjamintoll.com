@@ -12,6 +12,7 @@ Of course, this is a work in progress...
 - Do what scares you.
 - Read books.
 - Question everything.
+- Be skeptical of authority.
 
 ### About computers and programming.
 
