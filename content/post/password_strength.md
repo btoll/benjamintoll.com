@@ -36,6 +36,45 @@ Diceware\* passphrase (one word):
 
 As you'd expect, the larger the symbol set (key space), the greater the bit strength for an individual character of a password.  Armed with this information, we now can reason about our passwords and calculate their strength with great precision.  Depending upon the threat model, a long password may not be needed, especially when employing [key stretching].  However, generally, the more entropy the better, and so recommendations can vary between 29 bits and 96 bits.  I favor a six word Diceware passphrase, so my passphrases clock in at roughly 77.549 entopy bits.  Of course, all bets are off when [quantum computers are mainstream], which will be much sooner than you think.  Time to learn [lattice-based cryptography]!
 
+> ### More Fun!
+>
+> Incidentally, the statement:
+>
+>       	(log2)(10) = 3.3219280949
+>
+> tells us how many bits we need to store a base-10 number.
+>
+> For example, take the number 91.  Since the number is two digits long, we can calculate the bits needed to store the number thusly:
+>
+>       	2 * (log2)(10)
+>       	2 * 3.3219280949
+>       	6.6438561898
+>       	7 bits
+>
+> That looks right, after all 7 bits is decimal 128 which encompasses the number 91.
+>
+> Let's try another one! For instance, decimal 9119.  The number is 4 digits long, so:
+>
+>       	4 * (log2)(10)
+>       	4 * 3.3219280949
+>       	13.2877123796
+>       	14 bits
+>
+> Is that right?  Let's ask our trusty little friend [asbits]!
+>
+>       	~:$ asbits 9119
+>       	0010 0011 1001 1111
+>
+> Yes, it's 14 bits long!  Also, we can see that 14 bits is decimal 16,384, which encompasses our number 9119 (13 bits is less).
+>
+>       	~:$ echo "2^14" | bc
+>       	16384
+>       	~:$ echo "2^13" | bc
+>       	8192
+>
+> Weeeeeeeeeeeeeeeeee
+
+
 \* I'm a fan of the [Diceware] method for generating strong and memorable passphrases.  I've written two implementations, [one in JavaScript] and [one in Go], and I use it as a plugin in [my password manager].
 
 [password strength]: https://en.wikipedia.org/wiki/Password_strength
@@ -46,6 +85,7 @@ As you'd expect, the larger the symbol set (key space), the greater the bit stre
 [key stretching]: https://en.wikipedia.org/wiki/Key_stretching
 [quantum computers are mainstream]: https://www.cnbc.com/2018/03/30/ibm-sees-quantum-computing-going-mainstream-within-five-years.html
 [lattice-based cryptography]: https://en.wikipedia.org/wiki/Lattice-based_cryptography
+[asbits]: https://github.com/btoll/tools/tree/master/c/asbits
 [Diceware]: http://world.std.com/%7Ereinhold/diceware.html
 [one in JavaScript]: https://github.com/btoll/onf-diceware
 [one in Go]: https://github.com/btoll/diceware
