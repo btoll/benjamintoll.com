@@ -47,9 +47,7 @@ Its strength relies upon the infeasibility of determining the prime factors of a
 > So, if `n` is the product of two distinct prime numbers `p` and `q`, this can be written as:
 >
 >		ϕ(n) = ϕ(p) * ϕ(q)
->
 >		or
->
 >		ϕ(n) = (p-1) * (q-1)
 >
 > Needless to say, the phi function is very important in the field of cryptography and for implementing RSA, specifically.
@@ -69,9 +67,7 @@ Steps to implement RSA:
 	Recall:
 
 			ϕ(n) ≡ ϕ(p) * ϕ(q)
-
 			or
-
 			ϕ(n) ≡ (p - 1)(q - 1)
 
 	Note that this is easy to do **only** if the prime factorization of `n` is known, since determining the prime factors of some very large composite number `n` is a very difficult problem, even when `n` is publicly known (as it is).  For example:
@@ -85,13 +81,21 @@ Steps to implement RSA:
 
 	For example, given ϕ(10) = 6, `e` can only be 7, since 1, 2, 3, 4 are factors of either `n` or ϕ(n).
 
-5. Determine the private key `d` from the public key `e`.  This is a one-way [trapdoor function] to reverse the public key `(e, n)`.  It is the [modular multiplicative inverse] of the public key:
+5. Determine the private key `d` from the public key `e`.  This is a one-way [trapdoor function] to reverse the public key `(e, n)`.  It is the [modular multiplicative inverse] of the public key, which says that for an integer `a`, the  product of that number with an integer `x` is congruent to 1 modulus `m`:
+
+		ax ≡ 1 mod (m)
+
+	Another way of thinking of this is that `ax - 1` divides equally by the modulus `m`.
+
+	So, in the context of ϕ(n), if we start with:
 
 		d ≡ e^-1 mod ϕ(n)
 
-		or
+	we can mulitply both sides by the inverse of `e^-1` to get the statement:
 
 		d*e ≡ 1 mod ϕ(n)
+
+	This statement will determine the modular multiplicative inverse of the number `e` that was chosen from the previous step.  In essence, we need to find a value for `d` that equals 1.
 
 Again, take notice that the calculation depends on knowing `ϕ(n)`, which in turn requires knowledge of the primes:
 
@@ -144,16 +148,20 @@ Now that ϕ(323) has been calculated, it's time to choose a public key `e`.  Rec
 	- 1 < e < ϕ(323)
 	- Coprime to ϕ(323), that is, gcd(e, ϕ(323)) = 1
 
-So, in the range 1..287 (remember, one less than ϕ(n)), I'll choose 5.  But is 5 coprime with 288?  
+So, in the range 1..287 (remember, one less than ϕ(n)), I'll choose 5.  But is 5 coprime with 288?
 
 	~:$ echo "288%5" | bc
 	3
 
 Yes, it is.  If 5 were a factor of 288, the result would be 0.
 
-Now, there is the very important step of calculating the private key `d`, which **must** be the modular multiplicative inverse of `e`.  In other words, it's necessary to find a multiple `d` by public key `e` modulo `n` where the result is 1:
+Now, there is the very important step of calculating the private key `d`, which **must** be the modular multiplicative inverse of `e`.  In other words, it's necessary to find a multiple `d` by public key `e` modulo `n` where the result is 1.
 
-	d*e ≡ 1 mod ϕ(n)
+Recall:
+
+		d ≡ e^-1 mod ϕ(n)
+		or
+		d*e ≡ 1 mod ϕ(n)
 
 So, in the context of the variables that have already been determined, the equation will look like this:
 
@@ -187,7 +195,7 @@ Note that in this example there was only one number whose result satisfied the e
 
 > Or, using Bash:
 >
-> 
+>
 >		~:$ for i in {1..288}
 >		> do
 >		> if [[ $(echo "5*$i%288" | bc) -eq 1 ]]
