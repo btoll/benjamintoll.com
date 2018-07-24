@@ -18,17 +18,17 @@ date = "2018-07-15T15:49:38-04:00"
 	}
 
 	if (N < 2) {
-	    console.log(false);
+	    console.log(0);
 	    return;
 	}
 
 	console.log(
-	    [...Array(Math.sqrt(N) >> 0).keys()]
+	    ([...Array(Math.sqrt(N) >> 0).keys()]
 	    .map(i => i + 1)
 	    .filter(i =>
 			N % i === 0
 	    )
-	    .length === 1
+	    .length === 1) * 1
 	);
 
 The crux:
