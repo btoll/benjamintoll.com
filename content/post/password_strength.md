@@ -12,25 +12,25 @@ During my reading on passwords (a sometimes boring but quite important topic!), 
 
 Importantly, only randomly-generated passwords can be calculated with precision; human-generated passwords are rarely random and therefore their strength is very difficult to determine.  The algorithm is quite straightforward and easy to understand and is a function of length, complexity and randomness.  A random password's information entropy `H` is determined by the following equation:
 
-		H = (log2)(N^L)
+H = log<sub>2</sub>(N<sup>L</sup>)
 
 I find it useful to think of the symbol set(s) used for a given password as analogous to its key space.  For example, an Arabic numeral password has a key space of 10, the lowercase Latin alphabet has a key space of 26 characters, as does its uppercase counterpart, and the mixed-case Latin alphabet has a key space of 52.  It follows, then, that a case insensitive alphanumeric password has a key space of 62 (`[a-z][A-Z][0-9]`).
 
 So, for instance, if we wanted to see how many entropy bits a single character password would have given an Arabic numeral character set, the answer would be calculated thusly:
 
-		H = (log2)(10) = 3.3219280949
+H = log<sub>2</sub>(10) = 3.3219280949
 
 For a single character, case insensitive Latin alphabet:
 
-		H = (log2)(52) = 5.7004397181
+H = log<sub>2</sub>(52) = 5.7004397181
 
 Single character, all printable ascii characters except space:
 
-		H = (log2)(94) = 6.5545888517
+H = log<sub>2</sub>(94) = 6.5545888517
 
 Diceware\* passphrase (one word):
 
-		H = (log2)(7776) = 12.924812504
+H = log<sub>2</sub>(7776) = 12.924812504
 
 > The Diceware method for generating passphrases is a list of 7776 words, hence calculating the base-2 logarithm of 7776.
 
