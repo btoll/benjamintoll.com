@@ -82,7 +82,7 @@ A user’s OP constructs circuits incrementally, negotiating a symmetric key wit
 
 4. Bob copies the half-handshake into a `create` cell and passes it to Carol to extend the circuit.
 	- Bob chooses a new `circID` C<sub>BC</sub> not currently used on the connection between him and Carol.
-	- Alice never needs to know this `circID`; only Bob associates C<sub>AB</sub> on his connection with Alice to C<sub>BC</sub> on his connection with Carol.  
+	- Alice never needs to know this `circID`; only Bob associates C<sub>AB</sub> on his connection with Alice to C<sub>BC</sub> on his connection with Carol.
 
 5. Carol responds with a `created` cell, and Bob wraps the payload into a `relay extended` cell and passes it back to Alice.
 	- Now the circuit is extended to Carol.
@@ -121,7 +121,7 @@ This circuit-level handshake protocol achieves several important properties:
 Now that Alice has established a circuit, she now has shared keys with each OR in the circuit and can relays cells:
 
 - Upon receiving a relay cell, an OR looks up the corresponding circuit, and decrypts the relay header and payload with the session key for that circuit.
-- If the cell is heading away from Alice, the OR, having decrypted the cell using its shared key with Alice, checks if the decrypted cell has a valid digest. 
+- If the cell is heading away from Alice, the OR, having decrypted the cell using its shared key with Alice, checks if the decrypted cell has a valid digest.
 - As an optimization, the first two bytes of the integrity check are zero, so in most cases we can avoid computing the hash.
 - If valid:
 	+ It accepts the relay cell and processes it.
@@ -136,13 +136,13 @@ Incoming cells (to Alice, the OP):
 
 ----
 
-To construct a relay cell addressed to a given OR, Alice assigns the digest, and then iteratively encrypts the cell payload (that is, the relay header and payload) with the symmetric key of each hop up to that OR.  
+To construct a relay cell addressed to a given OR, Alice assigns the digest, and then iteratively encrypts the cell payload (that is, the relay header and payload) with the symmetric key of each hop up to that OR.
 
 Because the digest is encrypted to a different value at each step, only at the targeted OR will it have a meaningful value.
 
 This *leaky pipe* circuit topology allows Alice’s streams to exit at different ORs on a single circuit. Alice may choose different exit points because of their exit policies, or to keep the ORs from knowing that two streams originate from the same person.
 
-When an OR later replies to Alice with a relay cell, it encrypts the cell’s relay header and payload with the single key it shares with Alice, and sends the cell back toward Alice along the circuit. Subsequent ORs add further layers of encryption as they relay the cell back to Alice.  
+When an OR later replies to Alice with a relay cell, it encrypts the cell’s relay header and payload with the single key it shares with Alice, and sends the cell back toward Alice along the circuit. Subsequent ORs add further layers of encryption as they relay the cell back to Alice.
 
 ---
 

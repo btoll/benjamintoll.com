@@ -158,6 +158,12 @@ Help!
 >		~:$ openssl rsautl -verify -pubin -inkey pub-key.pem -in foo.sig -out verified.dgst
 >
 >	> You'd then want to verify the hash if you signed using the first method above.
+>
+>	Get the fingerprint of a public key:
+>
+>		ssh-keygen -lf <(ssh-keygen -yf private_key)
+>
+>	> Note that this method avoids having to create a temporary file by using [process substitution].
 
 # Fun
 >
@@ -263,11 +269,12 @@ Here's a [free book] promoted by OpenSSL.
 [OpenSSL]: https://www.openssl.org/
 [Gallic Wars]: https://en.wikipedia.org/wiki/Gallic_Wars
 [shift cipher]: https://en.wikipedia.org/wiki/Caesar_cipher
-[free book]: https://www.feistyduck.com/books/openssl-cookbook/
 [RSA]: /2018/07/09/on-rsa/
 [Triple DES]: https://en.wikipedia.org/wiki/Triple_DES
+[process substitution]: http://www.tldp.org/LDP/abs/html/process-sub.html
 [RSA algorithm]: /2018/07/09/on-rsa/
 [gsed]: https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
+[free book]: https://www.feistyduck.com/books/openssl-cookbook/
 [An Introduction to the OpenSSL Command Line Tool]: https://users.dcc.uchile.cl/~pcamacho/tutorial/crypto/openssl/openssl_intro.html
 [Wikipedia article on OpenSSL]: https://en.wikipedia.org/wiki/OpenSSL
 
