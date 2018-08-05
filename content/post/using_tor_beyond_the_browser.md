@@ -21,6 +21,8 @@ There are only two steps to set this up:
 		deb tor+http://vwakviie2ienjx6t.onion/debian          stretch-updates    main
 		deb tor+http://sgvtcaew4bxjd7ln.onion/debian-security stretch/updates    main
 
+[View all the onion services] run by the Debian project.
+
 ## Create an Onion Service
 
 See [my post where I discuss this] at some length.  You'll want to do this :)
@@ -65,6 +67,7 @@ Although some will complain that this is an extra step and an inconvenience, I b
 [Tor onion services]: https://bits.debian.org/2016/08/debian-and-tor-services-available-as-onion-services.html
 [Tor onion service protocol]: https://www.torproject.org/docs/onion-services.html.en
 [apt-transport-tor]: https://packages.debian.org/search?keywords=apt-transport-tor
+[View all the onion services]: https://onion.debian.org/
 [torsocks]: https://github.com/dgoulet/torsocks
 [it is far safer]: https://tor.stackexchange.com/a/13521
 [LD_PRELOAD]: https://linux.die.net/man/8/ld.so
