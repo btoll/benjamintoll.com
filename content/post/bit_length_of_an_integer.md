@@ -58,10 +58,10 @@ Is that right?  Let's ask our trusty little friend [asbits]!
 
 Yes, it's 14 bits long!  Also, we can see that 14 bits is decimal 16,384, which encompasses our number 9119 (13 bits is less).
 
-      	~:$ echo "2^14" | bc
-      	16384
-      	~:$ echo "2^13" | bc
-      	8192
+	~:$ bc <<< 2^14
+	16384
+	~:$ bc <<< 2^13
+	8192
 
 [ASCII] is a good example for encoding both numerical and alphabetical characters from bits.  Recall that ASCII is a character encoding that can fit in 7 bits, and the eighth bit was used by many, many other encoding schemes to add additional characters and symbols that were incompatible with each other.  This was a true nightmare before [Unicode] came to the rescue and solved all of our problems.
 

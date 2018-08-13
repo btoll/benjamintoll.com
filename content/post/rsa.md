@@ -122,11 +122,13 @@ Or, using Bash:
 
 	~:$ for i in {2..4}
 	> do
-	> if [[ $(echo "17%$i" | bc) && $(echo "19%$i" | bc) -eq 0 ]]
+	> if [[ $(bc <<< 17%$i) -eq 0 || $(bc <<< 19%$i) -eq 0 ]]
 	> then
 	> echo $i
 	> fi
 	> done
+
+If nothing printed to `stdout`, then both numbers are prime!
 
 > Note the range `{2..4}`.  This is because we only need to test to the square root of the number `n`, floored.  In addition, we can exclude 1 since it factors into every number.
 
@@ -139,7 +141,7 @@ Calculate the ϕ function:
 
 Or, using Bash:
 
-	echo "17*19" | bc && echo "16*18" | bc
+	bc <<< 17*19 && bc <<< 16*18
 	323
 	288
 
@@ -198,7 +200,7 @@ Note that in this example there was only one number whose result satisfied the e
 >
 >		~:$ for i in {1..288}
 >		> do
->		> if [[ $(echo "5*$i%288" | bc) -eq 1 ]]
+>		> if [[ $(bc <<< 5*$i%288) -eq 1 ]]
 >		> then
 >		> echo $i
 >		> fi
@@ -206,7 +208,7 @@ Note that in this example there was only one number whose result satisfied the e
 >		173
 >
 >		for i in {1..288}; do
->			if [[ $(echo "5*$i%288" | bc) -eq 1 ]]; then
+>			if [[ $(bc <<< 5*$i%288) -eq 1 ]]; then
 >				echo $i
 >			fi
 >		done
@@ -223,7 +225,7 @@ we're calculating the cipher text `c` given the plain text message `m`:
 
 		c ≡ m^e mod n
 
->		~:$ echo "10^5%323" | bc
+>		~:$ bc <<< 10^5%323
 >		193
 
 Given the private key:
@@ -234,14 +236,14 @@ we're calculating the message `m` given the cipher text `c`:
 
 	m ≡ c^d mod n
 
->		~:$ echo "193^173%323" | bc
+>		~:$ bc <<< 193^173%323
 >		10
 
 Again, the operations are inverses of each other, which satisfy the equation
 
 	d*e = 1 mod ϕ(n)
 
-	echo "5*173%288" | bc
+	bc <<< 5*173%288
 
 It's also worth noting that the following are true:
 

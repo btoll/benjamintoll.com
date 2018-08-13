@@ -68,7 +68,7 @@ Let's see some examples of substituting some values that are coprime into the st
 	13^ϕ(307) ≡ 1 mod 307
 	3^306 ≡ 1 mod 17
 	# The number is too big to print, we'll use `bc`:
-	~:$ echo "13^306%307" | bc
+	~:$ bc <<< 13^306%307
 	1
 
 ## Euler's Theorem in Action
@@ -109,7 +109,7 @@ For example:
 
 Of course, this can be verified easily using `bc`:
 
-	echo "13^5921%19" | bc
+	bc <<< 13^5921%19
 
 ## Euler's Theorem and Public Key Cryptography
 
