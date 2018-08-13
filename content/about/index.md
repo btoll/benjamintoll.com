@@ -8,6 +8,8 @@ Vegetarian.
 
 Consultant and remote worker.
 
+Love crypto.
+
 Dev environment: Debian, [i3], tmux, [vim].
 
 Enjoy programming in different languages, both on the server and the client, but have a preference for statically-typed and compiled languages.
