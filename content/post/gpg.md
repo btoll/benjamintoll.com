@@ -55,6 +55,10 @@ GitHub added the nice feature of [commit signing] with your GPG key.  Here is a 
 > Decrypt:
 >
 > 		cat | gpg -d
+>
+> Sign and paste into web mail:
+>
+>		cat << eof | gpg --clear-sign | xsel -b
 
 \* I just chortled.
 
