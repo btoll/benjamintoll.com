@@ -7,6 +7,12 @@ title = "Links"
 - [GitHub]
 - [npm]
 
+## Games
+
+- [Hangman]
+- [Memory Game]
+- [Music Theory]
+
 ## Talks
 
 - Classes vs Simple Object Delegation in JavaScript [\[odp\]](/talks/classes_vs_simple_object_delegation_in_javascript.odp) [\[pdf\]](/talks/classes_vs_simple_object_delegation_in_javascript.pdf)
@@ -22,6 +28,10 @@ title = "Links"
 
 [GitHub]: https://github.com/btoll
 [npm]: https://www.npmjs.com/~benjam72
+
+[Hangman]: https://github.com/btoll/games/tree/master/python3/hangman
+[Memory Game]: http://www.benjamintoll.com/memory-game/
+[Music Theory]: http://www.benjamintoll.com/music-theory/
 
 [The Owl's Nest Farm]: https://www.theowlsnestfarm.com/
 [Old website]: http://www.benjamintoll.com/archive/
