@@ -24,7 +24,8 @@ title = "Links"
 
 - CV [\[odt\]](/docs/BenjaminToll.odt) [\[pdf\]](/docs/BenjaminToll.pdf)
 - [Old website]
-- [The Owl's Nest Farm]
+- The Owl's Nest Farm [\[Internet\]](https://www.theowlsnestfarm.com/) [\[Tor onion service\]](http://lgewyajrjxytj4z6.onion)
+- benjamintoll.com Tor onion service: [http://2pxszt6mnu35mreo.onion]
 
 [GitHub]: https://github.com/btoll
 [npm]: https://www.npmjs.com/~benjam72
@@ -33,6 +34,6 @@ title = "Links"
 [Memory Game]: http://www.benjamintoll.com/memory-game/
 [Music Theory]: http://www.benjamintoll.com/music-theory/
 
-[The Owl's Nest Farm]: https://www.theowlsnestfarm.com/
 [Old website]: http://www.benjamintoll.com/archive/
+[http://2pxszt6mnu35mreo.onion]: http://2pxszt6mnu35mreo.onion
 
