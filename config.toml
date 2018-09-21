@@ -9,16 +9,16 @@ theme = "hugo-lithium-theme"
 
 [[menu.main]]
     name = "About"
-    url = "/about"
+    url = "/about/"
 [[menu.main]]
     name = "Links"
-    url = "/links"
+    url = "/links/"
 [[menu.main]]
     name = "GitHub"
     url = "https://github.com/btoll"
 [[menu.main]]
     name = "Contact"
-    url = "/contact"
+    url = "/contact/"
 
 [params]
     description = "benjamintoll.com"
