@@ -10,35 +10,38 @@ First, let's take a look at Fermat's little theorem.
 
 > **[Fermat's little theorem]**
 >
->	If `p` is a prime number, then for any integer `a`, the number `a^p - a` is an integer multiple of `p`.\*
+>	If `p` is a prime number, then for any integer `a`, the number <code>a<sup>p</sup></code> - a is an integer multiple of `p`.\*
 >
-> 		a^p ≡ a mod p
+> <pre class="math">
+> a<sup>p</sup> ≡ a mod p
 >
->		For example:
->			a = 2
->			p = 7
+> For example:
+>	a = 2
+>	p = 7
 >
->			2^7 = 128
->			128 - 2 = 126 = 7 * 18
+>	2<sup>7</sup> = 128
+>	128 - 2 = 126 = 7 * 18
 >
->	If `a` is not divisible by `p`, Fermat's little theorem is equivalent to the statement that `a^(p−1) − 1` is an integer multiple of `p`.
+> If `a` is not divisible by `p`, Fermat's little theorem is equivalent
+> to the statement that `a<sup>(p−1)</sup> − 1` is an integer multiple of `p`.
 >
->		a^(p - 1) ≡ 1 mod p
+> a<sup>(p - 1)</sup> ≡ 1 mod p
 >
->		For example:
->			a = 2
->			p = 7
+> For example:
+>	a = 2
+>	p = 7
 >
->			2^(7-1) - 1
->			2^6 - 1
->			64 - 1
->			63 = 7 * 9
+>	2<sup>(7-1)</sup> - 1
+>	2<sup>6</sup> - 1
+>	64 - 1
+>	63 = 7 * 9
+> </pre>
 
 Next, let's take a look at Euler's theorem.
 
 > **[Euler's theorem]**
 >
-> 		a^ϕ(n) ≡ 1 mod n
+>	a<sup>ϕ(n)</sup> ≡ 1 mod n
 >
 >	- It crucially connects two principles, the phi function and [modular exponentiation].
 >	- `a` and `n` **must** be coprime!
@@ -50,26 +53,28 @@ Next, let's take a look at Euler's theorem.
 
 Let's see some examples of substituting some values that are coprime into the statement.  To make calculating the phi function simple, we'll use prime numbers for `n`.
 
-	a = 3
-	n = 17
+<pre class="math">
+a = 3
+n = 17
 
-	a^ϕ(n) ≡ 1 mod n
-	3^ϕ(17) ≡ 1 mod 17
-	3^16 ≡ 1 mod 17
-	43046721 ≡ 1 mod 17
-	1 ≡ 1 mod 17
+a<sup>ϕ(n)</sup> ≡ 1 mod n
+3<sup>ϕ(17)</sup> ≡ 1 mod 17
+3<sup>16</sup> ≡ 1 mod 17
+43046721 ≡ 1 mod 17
+1 ≡ 1 mod 17
 
 ---
 
-	a = 13
-	n = 307
+a = 13
+n = 307
 
-	a^ϕ(n) ≡ 1 mod n
-	13^ϕ(307) ≡ 1 mod 307
-	3^306 ≡ 1 mod 17
-	# The number is too big to print, we'll use `bc`:
-	~:$ bc <<< 13^306%307
-	1
+a<sup>ϕ(n)</sup> ≡ 1 mod n
+13<sup>ϕ(307)</sup> ≡ 1 mod 307
+3<sup>306</sup> ≡ 1 mod 17
+# The number is too big to print, we'll use `bc`:
+~:$ bc <<< 13^306%307
+1
+</pre>
 
 ## Euler's Theorem in Action
 
@@ -77,37 +82,53 @@ So, what's the point of this?  Well, Euler's theorem can be used to easily reduc
 
 For example:
 
-	13^5921 mod 19
+13<sup>5921</sup> mod 19
 
 1. Substitute ϕ(n) for the large exponent.  Recall that `a` and `n` must be coprime!
 
-		13^ϕ(19) ≡ 1 mod 19
-		13^18 ≡ 1 mod 19
+	<pre class="math">
+	13<sup>ϕ(19)</sup> ≡ 1 mod 19
+	13<sup>18</sup> ≡ 1 mod 19
+	</pre>
 
 2. Use ϕ(19) to reduce the large exponent 5921 into its component parts.
 
-		5921 / 18 = 328 r17
-		Divisor   = 18
-		Quotient  = 328
-		Remainder = 17
+	<pre class="math">
+	5921 = 18(328) + 17
+	Divisor   = 18
+	Quotient  = 328
+	Remainder = 17
+	</pre>
 
 3. Use the component parts to rewrite the statement.
 
-		# Recall that n^(a*b) = (n^a)^b.
-		13^(18*328+17) mod 19
-		or
-		((13^18)^328 + 13^17) mod 19
+	<pre class="math">
+	# Recall that n<sup>(a*b)</sup> = n<sup>a<sup>b</sup></sup>.
+	13<sup>(18*328+17)</sup> mod 19 = 13<sup>18<sup>328</sup></sup> * 13<sup>17</sup> mod 19
+	</pre>
 
 4. Calculate!
 
-		// Since 1^k=1, the large exponent 328 is essentially "removed" from
-		// the equation, which greatly simplifies the computation!
-		1^328 * 13^17 mod 19
-		1 * 13^17 mod 19
-		13^17 mod 19
-		3
+	<pre class="math">
+	13<sup>18<sup>328</sup></sup> * 13<sup>17</sup> mod 19
 
-Of course, this can be verified easily using `bc`:
+	# Recall Euler's theorem, i.e., a<sup>ϕ(n)</sup> ≡ 1 mod n:
+	13<sup>ϕ(19)</sup> ≡ 1 mod 19
+	13<sup>18</sup> ≡ 1 mod 19
+
+	# So, we can simply replace 13<sup>18</sup> with 1!
+	13<sup>18<sup>328</sup></sup> mod 19 = 1<sup>328</sup> mod 19
+	13<sup>18<sup>328</sup></sup> ≡ 1<sup>328</sup> mod 19
+	1<sup>328</sup> * 13<sup>17</sup> mod 19
+
+	# And since 1<sup>k</sup>=1, the large exponent 328 can then
+	# be reduced to 1.
+	1 * 13<sup>17</sup> mod 19
+	13<sup>17</sup> mod 19
+	3
+	</pre>
+
+Of course, this can be easily verified using `bc`:
 
 	bc <<< 13^5921%19
 
