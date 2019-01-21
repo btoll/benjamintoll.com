@@ -8,17 +8,14 @@ theme = "hugo-lithium-theme"
     page = "/:title/"
 
 [[menu.main]]
-    name = "About"
-    url = "/about/"
-[[menu.main]]
-    name = "Links"
-    url = "/links/"
-[[menu.main]]
-    name = "GitHub"
-    url = "https://github.com/btoll"
+    name = "Blog"
+    url = "/"
 [[menu.main]]
     name = "Contact"
     url = "/contact/"
+[[menu.main]]
+    name = "Links"
+    url = "/links/"
 
 [params]
     description = "benjamintoll.com"

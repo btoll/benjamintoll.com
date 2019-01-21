@@ -13,6 +13,10 @@ title = "Links"
 - [Memory Game]
 - [Music Theory]
 
+## Online Tools
+- [CSSCompress]
+- [HTMLify]
+
 ## Talks
 
 - Classes vs Simple Object Delegation in JavaScript [\[odp\]](/talks/classes_vs_simple_object_delegation_in_javascript.odp) [\[pdf\]](/talks/classes_vs_simple_object_delegation_in_javascript.pdf)
@@ -23,9 +27,8 @@ title = "Links"
 ## Misc
 
 - CV [\[odt\]](/docs/BenjaminToll.odt) [\[pdf\]](/docs/BenjaminToll.pdf)
-- [Old website]
-- The Owl's Nest Farm [\[Internet\]](https://www.theowlsnestfarm.com/) [\[Tor onion service\]](http://lgewyajrjxytj4z6.onion)
-- benjamintoll.com Tor onion service: [http://2pxszt6mnu35mreo.onion]
+- The Owl's Nest Farm [\[Internet\]](https://www.theowlsnestfarm.com/) [\[Tor\]](http://lgewyajrjxytj4z6.onion)
+- http://2pxszt6mnu35mreo.onion
 
 [GitHub]: https://github.com/btoll
 [npm]: https://www.npmjs.com/~benjam72
@@ -34,6 +37,15 @@ title = "Links"
 [Memory Game]: http://www.benjamintoll.com/memory-game/
 [Music Theory]: http://www.benjamintoll.com/music-theory/
 
-[Old website]: http://www.benjamintoll.com/archive/
+[CSSCompress]: http://www.benjamintoll.com/tools/css_compress.html
+[HTMLify]: http://www.benjamintoll.com/tools/HTMLify.html
+
+[Previous website]: http://www.benjamintoll.com/archive/
+[snapshots]: https://web.archive.org/web/*/benjamintoll.com
 [http://2pxszt6mnu35mreo.onion]: http://2pxszt6mnu35mreo.onion
+
+<!--
+- [Previous website]
+- benjamintoll.com [snapshots] on the Wayback Machine
+-->
 
