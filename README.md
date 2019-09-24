@@ -1,3 +1,5 @@
+https://github.com/jrutheiser/hugo-lithium-theme
+
 In `hugo` directory:
 
 	/snap/hugo/current/bin/hugo new about/index.md

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.58.0" />
+
+
+<title>On Running Multiple Git Hooks For Any Event - benjamintoll.com</title>
+<meta property="og:title" content="On Running Multiple Git Hooks For Any Event - benjamintoll.com">
+
+
+
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" media="all">
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Merriweather:400|Lato:400,400italic,700">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/pete.jpeg" 
+         width="50" 
+         height="50" 
+         alt="I am Pete">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/">Blog</a></li>
+    
+    <li><a href="/contact/">Contact</a></li>
+    
+    <li><a href="/links/">Links</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">5 min read</span>
+    
+
+    <h1 class="article-title">On Running Multiple Git Hooks For Any Event</h1>
+
+    
+    <span class="article-date">September 5, 2019</span>
+    
+
+    <div class="article-content">
+      
+
+<p>You want to know what&rsquo;s cool?  Not running one Git hook when creating a commit, but <code>N</code> number of Git hooks.  Um.</p>
+
+<p>There are many ways to do this, but my preferred way is to add N number of entries for a particular Git lifecycle event in <code>.gitconfig</code> that will be called in order when the event is triggered.</p>
+
+<p>Let&rsquo;s dive in.</p>
+
+<h2 id="git-hooks">Git Hooks</h2>
+
+<p>Hopefully, everyone is familiar with <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">Git hooks</a>, so I&rsquo;m not going to spend time on defining them.  In this post, I&rsquo;ll be talking specifically about a specific client-side hook, the <code>pre-commit</code> hook, although the information here will apply to any of the hooks.</p>
+
+<p>Every time a repository is initialized or cloned, a <code>.git</code> hidden directory is created in the root of the repository that contains information about all of the internals of the project, such as <code>branches</code> and <code>objects</code>.</p>
+
+<p>Another of the directories that is created is the <code>hooks</code> directory, and within it templates for all of Git&rsquo;s client-side lifecycle events.  Here are a few:</p>
+
+<ul>
+<li>pre-commit</li>
+<li>pre-push</li>
+<li>pre-rebase</li>
+</ul>
+
+<p>All of the files are templates with the <code>.sample</code> file extension and can be used as-is by simply removing the <code>.sample</code> extension.  Although they are mostly shell scripts, they can be written in any scripting language that is present on the system.  As long as the files are executable and are properly named, they&rsquo;ll be executed by Git as the same-named event is fired.</p>
+
+<blockquote>
+<p>Note that, for security reasons, client-side hooks are not copied when cloned.  Instead, the directory will be newly-created with the usual hook templates.</p>
+</blockquote>
+
+<h2 id="the-scenario">The Scenario</h2>
+
+<p>From the <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">official site</a>:</p>
+
+<blockquote>
+<p>The <code>pre-commit</code> hook is run first, before you even type in a commit message. It’s used to inspect the snapshot that’s about to be committed, to see if you’ve forgotten something, to make sure tests run, or to examine whatever you need to inspect in the code. Exiting non-zero from this hook aborts the commit, although you can bypass it with <code>git commit --no-verify</code>.</p>
+</blockquote>
+
+<p>Now, if you only have one hook, then simply name it <code>pre-commit</code>, make it executable, and drop it into the <code>hooks</code> directory.  However, if multiple scripts should be invoked when this event occurs, then things can get a bit dicey (ok, not really, as we&rsquo;ll see in a moment).</p>
+
+<p>For example, let&rsquo;s say that I not only want to lint, but I want to ensure that <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline">all text files end with a newline character</a> and that it has the most recent version of the product&rsquo;s license at the top of the file.</p>
+
+<p>For this purpose, I&rsquo;ll want the following three scripts to run every time I commit:</p>
+
+<ul>
+<li>lint.bash</li>
+<li>EOF.bash</li>
+<li>license.bash</li>
+</ul>
+
+<p>Let&rsquo;s look at how to implement this.</p>
+
+<h2 id="the-implementation">The Implementation</h2>
+
+<p>The first thing to do is to update the appropriate Git config file with the hooks to be run.  They will should be defined in either the global config file (usually <code>$HOME/.gitconfig</code>) or a repo&rsquo;s local config file (<code>.git/config</code>) and will be called in the order in which they are defined:</p>
+
+<pre><code>[hooks &quot;pre-commit&quot;]
+        hook = lint.bash
+        hook = EOF.bash
+        hook = license.bash
+</code></pre>
+
+<p>To set them, you can open the config file and edit manually as above, or you can set them at the command line:</p>
+
+<pre><code>$ git config --global --add hooks.pre-commit.hook &quot;lint.bash&quot;
+$ git config --global --add hooks.pre-commit.hook &quot;EOF.bash&quot;
+$ git config --global --add hooks.pre-commit.hook &quot;license.bash&quot;
+</code></pre>
+
+<blockquote>
+<p>For local configs, simply replace <code>global</code> with <code>local</code>.</p>
+</blockquote>
+
+<p>The second thing to do is to replace the <code>pre-commit</code> hook in <code>.git/hooks</code>, if present, with one that will execute each hook against the individual files that make up the snapshot:</p>
+
+<p><code>pre-commit</code></p>
+
+<pre><code>#!/bin/bash
+
+# Try for local hooks first.
+HOOKS=$(git config --get-all --local hooks.pre-commit.hook)
+
+if [ -z &quot;$HOOKS&quot; ]; then
+    HOOKS=$(git config --get-all --global hooks.pre-commit.hook)
+fi
+
+if [ -n &quot;$HOOKS&quot; ]; then
+    for HOOK in $HOOKS; do
+        bash ./.git/hooks/pre-commit.d/&quot;$HOOK&quot;
+
+        if [ &quot;$?&quot; -eq 1 ]; then
+            exit 1
+        else
+            # Separate the hooks by an empty line.
+            echo
+        fi
+    done
+fi
+</code></pre>
+
+<p>The Bash shell script will first look for any locally-defined pre-commit hooks in a repository&rsquo;s <code>.git/config</code> before searching for globally-defined hooks (again, usually in <code>$HOME/.gitconfig</code>).</p>
+
+<p>If it finds any, it will push them into the <code>HOOKS</code> variable that can be iterated over in the <code>for</code> loop, calling each shell script respectively and doing a hard fail on the first script to return a failure value of 1.</p>
+
+<p>Any script to be run <strong>must</strong> be placed within <code>.git/hooks/pre-commit.d/</code> in this example.  Of course, you can name that whatever you&rsquo;d like.</p>
+
+<blockquote>
+<p>Git relies upon your scripts returning the appropriate return value to know how to proceed.</p>
+
+<p>A return value of zero will have Git continue with the commit, while a non-zero return value will abort the commit.</p>
+</blockquote>
+
+<h2 id="other-git-hooks">Other Git Hooks</h2>
+
+<p>As alluded to earlier, this same method can be used for any Git event.</p>
+
+<p>For example, in addition to the <code>pre-commit</code> event, let&rsquo;s also add some hooks for the <code>pre-rebase</code> event:</p>
+
+<pre><code>$ git config --local --add hooks.pre-rebase.hook &quot;foo.bash&quot;
+$ git config --local --add hooks.pre-rebase.hook &quot;bar.bash&quot;
+</code></pre>
+
+<p>From the <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">official site</a>:</p>
+
+<blockquote>
+<p>The <code>pre-rebase</code> hook runs before you rebase anything and can halt the process by exiting non-zero. You can use this hook to disallow rebasing any commits that have already been pushed. The example <code>pre-rebase</code> hook that Git installs does this, although it makes some assumptions that may not match with your workflow.</p>
+</blockquote>
+
+<p>Now, the local config looks like the following:</p>
+
+<pre><code>[hooks &quot;pre-rebase&quot;]
+        hook = foo.bash
+        hook = bar.bash
+[hooks &quot;pre-commit&quot;]
+        hook = lint.bash
+        hook = EOF.bash
+        hook = license.bash
+</code></pre>
+
+<p>Then, simply perform the following:</p>
+
+<ol>
+<li>Copy the current <code>pre-commit</code> hook in <code>.git/hooks</code> to <code>pre-rebase</code>.</li>
+<li>Rename the <code>pre-commit</code> text strings in the new <code>pre-rebase</code> hook script to <code>pre-rebase</code>.</li>
+<li>Create a <code>pre-rebase.d</code> in the <code>.git/hooks</code> directory and put your <code>foo.bash</code> and <code>bar.bash</code> scripts inside it.</li>
+<li>Pet a goat.</li>
+<li>Automate.</li>
+</ol>
+
+<p>You&rsquo;re done-zo.  Sweet.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>That&rsquo;s it!  It&rsquo;s pretty simple, and the implementation leverages Git&rsquo;s own config definitions, which I like.  I found this implementation years ago in a blog post written by one of the authors of Git (I think it was Junio Hamano), but the link now results in a 404, and I can&rsquo;t find another.</p>
+
+<p><a href="https://www.theguardian.com/books/2007/apr/15/fiction.kurtvonnegut">So it goes.</a></p>
+
+    </div>
+  </article>
+
+  
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+
+    
+  </body>
+</html>
+

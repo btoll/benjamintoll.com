@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.58.0" />
+
+
+<title>On dump_describes - benjamintoll.com</title>
+<meta property="og:title" content="On dump_describes - benjamintoll.com">
+
+
+
+  
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" media="all">
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Merriweather:400|Lato:400,400italic,700">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/pete.jpeg" 
+         width="50" 
+         height="50" 
+         alt="I am Pete">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/">Blog</a></li>
+    
+    <li><a href="/contact/">Contact</a></li>
+    
+    <li><a href="/links/">Links</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">4 min read</span>
+    
+
+    <h1 class="article-title">On dump_describes</h1>
+
+    
+    <span class="article-date">June 22, 2019</span>
+    
+
+    <div class="article-content">
+      
+
+<p>This post is about a JavaScript tool I wrote several years ago called <a href="https://github.com/btoll/dump_describes"><code>dump_describes</code></a>.</p>
+
+<hr />
+
+<p>From the <a href="https://github.com/btoll/dump_describes/blob/master/README.md">README</a>:</p>
+
+<blockquote>
+<p><code>dump_describes</code> is a tool that provides a high-level view of all of the <code>describe</code> and <code>it</code> blocks in a test suite. This is useful to quickly gain familiarity with a particular suite and to easily determine where to insert new tests.</p>
+
+<p>Any testing framework that uses describe and it blocks to define a suite is supported, such as Jasmine, Mocha and Jest.</p>
+</blockquote>
+
+<p>So, it is a tool that quickly enables me to get a &ldquo;bird&rsquo;s eye&rdquo; view of the organization of a particular test suite.</p>
+
+<h2 id="why">Why?</h2>
+
+<p>I hate code duplication.  I mean, I really hate it.  Especially when there are only very minor differences.  Refactoring that can sometimes be a nightmare, as well, when trying to understand the need for the differences and the provenance of the code that depends on it.</p>
+
+<p>Admittedly, it&rsquo;s not as much of a problem when it comes to testing, but I do not want to spend time writing tests to only later discover that they already exist.  And this situation would occur more frequently that you might think, especially at companies that (rightfully) prioritize unit testing.</p>
+
+<p>For example, when I worked at <a href="https://www.sencha.com/">Sencha</a> on the <a href="https://en.wikipedia.org/wiki/Ext_JS">Ext</a> team, we wouldn&rsquo;t merge any commits that didn&rsquo;t have at least one test (for very minor fixes), and usually they needed several.  The tests were very comprehensive, and subsequently, it would be very easy to miss existing coverage.  Our test files were regularly thousands of lines long, and, depending on your perspective, the tests and the suites were either well-named or they weren&rsquo;t.</p>
+
+<p>As you can imagine, it was difficult to determine if the code that had been written or fixed had test coverage.  If the suite was over two thousand lines long, with many nested <code>describe</code> blocks, it would be easy to miss existing coverage, especially if it were hastily named.</p>
+
+<h2 id="first-pass">First Pass</h2>
+
+<p>In fact, it was after realizing that I had again duplicated tests that I, frustrated, created a <code>sed</code> command that would list all the <code>describe</code> blocks that would at least give me some basic sense of the structure of the test suite.</p>
+
+<blockquote>
+<p>Interestingly, I still have the original <code>sed</code> script commented-out in my <a href="https://github.com/btoll/dotfiles/">dotfiles</a>.  <a href="https://github.com/btoll/dotfiles/blob/master/bash/.bash_functions">Here it is</a>, nestled in my <code>.bash_functions</code> file:</p>
+
+<pre><code># Deprecating this in favor of https://github.com/btoll/dump_describes node module.
+# I'm leaving it here just for an example of a `sed` command.
+#dump_describes() {
+#    sed -n -E 's/^[[:space:]]{1,7}describe\('\(.*\)'/\1/p' &quot;$1&quot; | cut -d, -f1
+#}
+</code></pre>
+
+<p>Weeeeeeeeeeeeeeeeeeeeeeee</p>
+</blockquote>
+
+<p>This &ldquo;worked&rdquo;, but it was pretty awful.  Ignoring the obvious problems with it, it doesn&rsquo;t print nested <code>describe</code> blocks, and of course, the tests themselves (the <code>it</code> blocks).  What I needed was something that would create an <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">abstract syntax tree</a>, so I could walk the tree and control what to print.</p>
+
+<h2 id="parsing">Parsing</h2>
+
+<p>Luckily for me, I worked with the creator of <a href="http://esprima.org/">Esprima</a>, a popular JavaScript parser, and I decided to use it for this project.  It would be my introduction to tooling, something that has always interested me.</p>
+
+<p>Esprima has a very handy <a href="http://esprima.org/demo/parse.html">online tool</a> that, given some valid JavaScript, will print the AST.  I <a href="https://github.com/btoll/onf-static/blob/master/src/visitor.js">hacked together</a> a <a href="https://en.wikipedia.org/wiki/Visitor_pattern">visitor pattern</a> to visit each node and capture what I needed.</p>
+
+<blockquote>
+<p>I&rsquo;ve since written several tools that rely upon this base code, which I&rsquo;ve now abstracted to its own repository, <a href="https://github.com/btoll/onf-static/"><code>onf-static</code></a>.</p>
+</blockquote>
+
+<p>This is great, but now I needed to write some code that would take those captured node objects and print them in a human-readable way.  The initial goal, of course, would be to print them to <code>stdout</code>.</p>
+
+<h2 id="generating">Generating</h2>
+
+<p><code>dump_describes</code> ships with three generators that will provide different views of the AST:</p>
+
+<ul>
+<li><p><a href="https://github.com/btoll/dump_describes/blob/master/src/generator/log.js">LOG</a></p>
+
+<ul>
+<li>Dumps the results to <code>stdout</code>.  This is the default.</li>
+</ul></li>
+
+<li><p><a href="https://github.com/btoll/dump_describes/blob/master/src/generator/html.js">HTML</a></p>
+
+<ul>
+<li>Creates an <code>.html</code> file that can be viewed in a browser.  There is a minimal amount of JavaScript on the page that will allow for expanding and collapsing of the <code>describe</code> blocks.</li>
+</ul></li>
+
+<li><p><a href="https://github.com/btoll/dump_describes/blob/master/src/generator/markdown.js">MARKDOWN</a></p>
+
+<ul>
+<li>You guessed it :)</li>
+</ul></li>
+</ul>
+
+<p>See the <a href="https://github.com/btoll/dump_describes/blob/master/README.md">README</a> for examples.</p>
+
+<p>I&rsquo;ve tried to make it as straightforward as possible to extend or create your own custom generators if the ones out-of-the-box aren&rsquo;t sufficient for your use case(s).  For instance, as long as your generator defines and exports a <code>print</code> function, it can be plugged into <code>dump_describes</code>.  The <code>print</code> function will be called by the program and passed the results of walking the AST and any programmer-defined options.  The only requirement is that <code>print</code> returns a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise"><code>Promise</code></a>.</p>
+
+<p>Check out the generator examples above to understand how easy it is to work with the passed <code>results</code> to print a view that is suitable to your use case.</p>
+
+    </div>
+  </article>
+
+  
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+
+    
+  </body>
+</html>
+
