@@ -1,21 +1,18 @@
-CC = /snap/hugo/current/bin/hugo
+CC      	= hugo
+FLAGS		= -D
+TARGET		= public
 
-.PHONY: all archive build clean copy deploy
-
-all: clean build
-
-archive:
-	( cd .. ; rm -f benjamintoll.com.bz2 && tar cjvf benjamintoll.com.bz2 dev/content dev/config.toml dev/Makefile )
+.PHONY: build clean deploy serve
 
 build:
 	$(CC)
 
 clean:
-	rm -rf public
+	rm -rf $(TARGET)
 
-#cp -r ../benjamintoll.com-old ../public/archive
-copy:
-	rsync -avz --progress public/ /var/www/public
+deploy: $(TARGET)
+	rsync -azP $(TARGET)/ btoll@onf:/var/www/www.benjamintoll.com/
 
-deploy: build copy
+serve:
+	$(CC) serve $(FLAGS)
 
