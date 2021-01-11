@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: btoll-service
+spec:
+  selector:
+    app: btoll
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: NodePort
+

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: btoll-rs
+  labels:
+    app: btoll
+    version: "1"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: btoll
+  template:
+    metadata:
+      labels:
+        app: btoll
+        version: "1"
+    spec:
+      containers:
+        - name: benjamintoll-com
+          image: "btoll/benjamintoll.com:latest"
