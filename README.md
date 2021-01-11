@@ -1,4 +1,5 @@
 https://github.com/jrutheiser/hugo-lithium-theme
+hugo serve --bind="0.0.0.0"
 
 In `hugo` directory:
 
