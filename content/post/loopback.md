@@ -15,7 +15,7 @@ From the book "TCP/IP Illustrated", chapter 2, section 7:
 
 Check out the illustration below to get a better sense of how it works:
 
-![Loopback] (/images/loopback.gif)
+![Loopback](/images/loopback.gif)
 
 There are three ways a datagram can be addressed that will cause the network layer or the network device driver at the link layer to pass the traffic to the loopback interface and then back up the stack via the network layer:
 

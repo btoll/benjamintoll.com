@@ -54,7 +54,7 @@ Onion routers communicate with one another, and with users' OPs, via TLS connect
 			    + `relay sendme` (used for congestion control)
 			    + `relay drop` (used to implement long-range dummies).
 
-![Tor Cell Structure] (/images/tor-cell-struct.png)
+![Tor Cell Structure](/images/tor-cell-struct.png)
 
 # 4.2 Circuits and Streams
 
@@ -64,7 +64,7 @@ Onion routers communicate with one another, and with users' OPs, via TLS connect
     + only a limited number of requests can be linked to each other through any given exit node
     + since circuits are built in the background, circuits are fault-tolerant
 
-![Tor Two-Hop Circuit] (/images/tor-OR-interaction.png)
+![Tor Two-Hop Circuit](/images/tor-OR-interaction.png)
 Figure 1: Alice builds a two-hop circuit and begins fetching a web page.
 
 ### Constructing a Circuit

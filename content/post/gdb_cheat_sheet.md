@@ -455,7 +455,7 @@ gdb -tui strlen
 
 Here, you can see that I set a breakpoint on line 8 and then ran the program with an argument of "foobar".  GDB then halted execution at that line and is now waiting for further instructions.
 
-![GDB in `TUI` mode] (/images/tui.png)
+![GDB in `TUI` mode](/images/tui.png)
 
 You issue commands as you normally would in the pane below.  Note that if you step through the source, the line where the breakpoint was set will be indicated by a `B+` symbol on the left (at least on my system), and the currently-executing line will be demarcated by a caret (`>`) and visually highlighted.
 
@@ -475,7 +475,7 @@ void main(int argc, char **argv) {
 
 Now, here's the result of viewing it in `TUI` mode after starting GDB with the `-tui` flag and issuing the command `list slen`:
 
-![Viewing source of `slen` function] (/images/slen.png)
+![Viewing source of `slen` function](/images/slen.png)
 
 You can see that GDB's focus when loaded was in the `strlen.c` source file, but that when the `list` command was issued to jump to the other file that the header now shows that the focus is now in the `slen.c` source file.  To get back to the previous file, simple invoke `list main`.
 
