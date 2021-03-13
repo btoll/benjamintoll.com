@@ -14,6 +14,7 @@ title = "Links"
 - [Music Theory]
 
 ## Online Tools
+- [Italian Dictionary]
 - [CSSCompress]
 - [HTMLify]
 
@@ -38,6 +39,7 @@ title = "Links"
 [Memory Game]: http://www.benjamintoll.com/memory-game/
 [Music Theory]: http://www.benjamintoll.com/music-theory/
 
+[Italian Dictionary]: http://italy.benjamintoll.com
 [CSSCompress]: http://www.benjamintoll.com/tools/css_compress.html
 [HTMLify]: http://www.benjamintoll.com/tools/HTMLify.html
 
