@@ -1,16 +1,3 @@
-+++
-title = "Contact"
-+++
-
-### Email
-
-<pre class="unstyled">
-benjam72 (at) yahoo (dot) com
-</pre>
-
-### <a href="key.pub">GPG Public Key</a>
-
-<pre class="unstyled">
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGAcg5QBEAC5pfI4xEBhYc+C3aSGxCBH0XtYjVF07Kj8i40bDXxVtDcPne3U
@@ -76,4 +63,3 @@ gSCQ04QbmjfvimPLtOiqUq7L0Twvcz+LtfjU3QAwlpzR3kLXQkxhjzNRhWWgFlae
 DiWQNJc=
 =QqJN
 -----END PGP PUBLIC KEY BLOCK-----
-</pre>
