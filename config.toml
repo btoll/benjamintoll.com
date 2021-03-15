@@ -3,6 +3,11 @@ languageCode = "en-us"
 title = "benjamintoll.com"
 theme = "lithium"
 
+[markup]
+	[markup.goldmark]
+		[markup.goldmark.renderer]
+			unsafe = true
+
 [permalinks]
     post = "/:year/:month/:day/:title/"
     page = "/:title/"
