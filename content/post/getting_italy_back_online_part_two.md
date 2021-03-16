@@ -198,9 +198,21 @@ Notes:
 1. The website location must be mounted into both the `webserver` and `italy` containers.  This is because the `webserver` must be able to know what files it's serving to be able to know to send the PHP files to the `PHP-FPM` server, and the `PHP-FPM` server needs access to those file to be able to interpret them.  Also, for security reasons, the [bind mounts], where the files are loaded out of the public root directory, are mounted as read-only.
 1. By creating a [named volume], the data will persistence between container restarts (it's only created once when `docker compose up` is invoked). Note that this top-level global object must be defined.
 
-> If you can't log into the database, you may have to change the authentication plugin to `mysql_native_password`.
+> If you can't log into the database, you may have to change the authentication plugin to [`mysql_native_password`].  This can be done like so:
 >
->   `command: --default-authentication-plugin=mysql_native_password`
+>       services:
+>           db:
+>           image: mysql
+>           command: --default-authentication-plugin=mysql_native_password
+>           restart: always
+>           environment:
+>               MYSQL_DATABASE: italy
+>               MYSQL_USER: test
+>               MYSQL_PASSWORD: test
+>               MYSQL_ROOT_PASSWORD: test
+>           volumes:
+>               - ./sql:/docker-entrypoint-initdb.d
+>               - italy_db_data:/var/lib/mysql
 
 One thing you may be wondering is how do I know that the database has been created?  Well, I can see in the startup logs that the `db` service image has indeed automatically imported our SQL file to MySQL:
 
@@ -390,6 +402,7 @@ Next, let's look at improving the security of the application by adding a [Let's
 [`mysqli` extension]: https://www.php.net/manual/en/book.mysqli.php
 [PHP FastCGI Example]: https://www.nginx.com/resources/wiki/start/topics/examples/phpfcgi/
 [named volume]: https://docs.docker.com/storage/volumes/
+[`mysql_native_password`]: https://dba.stackexchange.com/questions/209514/what-is-mysql-native-password
 [Docker secrets]: https://docs.docker.com/engine/swarm/secrets/
 [swarm]: https://docs.docker.com/engine/swarm/
 [`tmpfs`]: https://en.wikipedia.org/wiki/Tmpfs
