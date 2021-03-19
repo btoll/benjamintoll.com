@@ -29,8 +29,10 @@ title = "Links"
 ## Misc
 
 - CV [\[odt\]](/docs/BenjaminToll.odt) [\[pdf\]](/docs/BenjaminToll.pdf)
+<!--
 - The Owl's Nest Farm [\[Internet\]](https://www.theowlsnestfarm.com/) [\[Tor\]](http://lgewyajrjxytj4z6.onion)
 - http://2pxszt6mnu35mreo.onion
+-->
 
 [GitHub]: https://github.com/btoll
 [npm]: https://www.npmjs.com/~benjam72
