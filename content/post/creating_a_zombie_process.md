@@ -28,7 +28,7 @@ int child_pid = wait(&exit_status);
 
 > In addition to `wait`, there are also related `waitpid` and `waitid` system calls.  See the [`wait` man page] for more information.
 
-Incidentally, as soon as the child process terminates it is a zombie process with its entry still in the system process table.  Under normal circumstances, it is immediately waited on by its parent and reaped by the OS and its resource removed from the system process table.
+Incidentally, as soon as the child process terminates it is a zombie process with its entry still in the [system process table].  Under normal circumstances, it is immediately waited on by its parent and reaped by the OS and its resource removed from the system process table.
 
 So, in summation, a zombie process is a child process that wasn't waited on.  As a result, there is still an entry for it in the system process table, thereby introducing a [resource leak].  It's then necessary for a special OS reaper process to locate these zombie processes and deallocate their resources.
 
@@ -256,6 +256,7 @@ $ ps -o ppid= -p 19257
 [process identifier]: https://en.wikipedia.org/wiki/Process_identifier
 [`wait`]: https://en.wikipedia.org/wiki/Wait_(system_call)
 [`wait` man page]: https://man7.org/linux/man-pages/man2/wait.2.html
+[system process table]: https://exposnitc.github.io/os_design-files/process_table.html
 [orphan process]: https://en.wikipedia.org/wiki/Orphan_process
 [`init`]: https://en.wikipedia.org/wiki/Init
 [exit status]: https://en.wikipedia.org/wiki/Exit_status
