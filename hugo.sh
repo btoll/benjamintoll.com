@@ -14,3 +14,5 @@ echo
 
 /usr/local/bin/hugo --source "/src" --theme "$THEME" --destination "$DESTINATION" --baseURL "$BASE_URL"
 
+#docker run --rm -it -v $(pwd):/src -e DESTINATION=public my_hugo
+

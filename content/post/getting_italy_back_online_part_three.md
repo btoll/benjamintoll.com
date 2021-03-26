@@ -492,13 +492,13 @@ $ tree -L 2
 │   ├── tmp
 │   ├── var
 │   └── www
-├── default.conf
 ├── dh-param
 │   └── dhparam-4096.pem
 ├── docker-compose.yml
 ├── dockerfiles
 │   ├── Dockerfile.nginx
-│   └── Dockerfile.php-fpm
+│   ├── Dockerfile.php-fpm
+│   └── default.conf
 ├── projects
 │   └── italy
 ├── secrets
