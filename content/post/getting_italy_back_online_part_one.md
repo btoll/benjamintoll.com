@@ -4,6 +4,17 @@ date = "2021-03-13T00:30:14-05:00"
 
 +++
 
+---
+
+This is a series of articles that describes different methods of deploying my [Italian dictionary website] using different tools and stragies:
+
+1. Vagrant and Ansible (this article)
+1. [Docker and Docker Compose]
+1. [Adding a Let's Encrypt TLS certificate]
+1. Kubernetes
+
+---
+
 Now that I have some time on my hands, I've decided to dust off my old [Italian dictionary website] and get it back online.
 
 The [$64,000 question]: why was it knocked offline?
@@ -13,16 +24,6 @@ Well, friends, that is a long story filled with many twists and turns, replete w
 The truth is much more alarming: my web hoster upgraded PHP from version 5.x to 7.x.  The older MySQL API used in version 5.x was no longer supported and so the whole site broke.
 
 After much contemplation and a change of web hosts, I feel the Internet is ready for its return.
-
----
-
-This is a series of articles that describes different methods of deploying the Italian dictionary website using different tools:
-
-1. Vagrant and Ansible (this article)
-1. [Docker and Docker Compose]
-1. Kubernetes
-
----
 
 # All'inizio...
 
@@ -176,5 +177,6 @@ And that's really it.  As you can see, there's really not much going on here.  I
 [view the docs]: https://galaxy.ansible.com/docs/using/installing.html
 [Docker]: https://docs.docker.com/
 [Docker Compose]: https://docs.docker.com/compose/
+[Adding a Let's Encrypt TLS certificate]: /2021/03/19/on-getting-italy-back-online-part-three/
 [Next]: /2021/03/14/on-getting-italy-back-online-part-two/
 

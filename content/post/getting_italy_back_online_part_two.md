@@ -382,7 +382,7 @@ Donzo.
 
 Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 
-Next, let's look at improving the security of the application by adding a [Let's Encrypt] TLS certificate.
+[Next], let's look at improving the security of the application by adding a [Let's Encrypt] TLS certificate.
 
 [the last article]: /2021/03/13/on-getting-italy-back-online-part-one/
 [my Italian website]: http://italy.benjamintoll.com/
@@ -407,5 +407,6 @@ Next, let's look at improving the security of the application by adding a [Let's
 [swarm]: https://docs.docker.com/engine/swarm/
 [`tmpfs`]: https://en.wikipedia.org/wiki/Tmpfs
 [mutual TLS]: https://en.wikipedia.org/wiki/Mutual_authentication
+[Next]: http://localhost/2021/03/19/on-getting-italy-back-online-part-three/
 [Let's Encrypt]: https://letsencrypt.org/
 
