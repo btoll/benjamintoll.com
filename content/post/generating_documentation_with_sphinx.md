@@ -1,5 +1,5 @@
 +++
-title = "On Generating Documentation With Sphinx"
+title = "On Generating Documentation with Sphinx"
 date = "2021-04-03T20:43:33-04:00"
 
 +++
