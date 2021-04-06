@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Example: ./build_and_deploy.sh --tagname latest --deploy
+
 GREEN_FG=$(tput setaf 2 2>/dev/null)
 RED_FG=$(tput setaf 1 2>/dev/null)
 END_FG_COLOR=$(tput sgr0 2>/dev/null)
@@ -63,6 +65,17 @@ do
         echo -e "\n$GREEN_FG[$0]$END_FG_COLOR Successfully pushed $FULL_IMAGE_NAME to Docker Hub."
     fi
 done
+
+if $DEPLOY
+then
+    if ! ssh onf "docker-compose pull && docker-compose up -d"
+    then
+        echo -e "\n$RED_FG[$0]$END_FG_COLOR Remote command execution failed to pull new image(s)."
+        exit 1
+    else
+        echo -e "\n$GREEN_FG[$0]$END_FG_COLOR Remote command execution successfully pulled new image(s)."
+    fi
+fi
 
 echo "$GREEN_FG[$0]$END_FG_COLOR Operations completed with no failures."
 
