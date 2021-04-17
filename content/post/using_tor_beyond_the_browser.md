@@ -37,17 +37,17 @@ Incidentally, such leaks can de-anonymize you, and because of this it is vitally
 
 To use, simply prepend `torsocks` to the command:
 
-		torsocks wget http://www.example.com
+    $ torsocks wget http://www.example.com
 
 `torsocks` is just a simple shell script that sets the [LD_PRELOAD] environment variable before launching the program in a new shell (open it in your editor and look at it!).  You could, for instance, set that in your shell's startup scripts, although that will not allow you to use DNS lookup tools like `dig` and `host` without a hacky workaround like:
 
-		LD_PRELOAD=\  host www.example.com
+    $ LD_PRELOAD=\  host www.example.com
 
 Note there are two spaces after the backslash!
 
 Because `torsocks` does not allow any traffic that can't go through the Tor network like UDP, it will throw an error when attempting to do so.  This is a good thing.  For example:
 
-		torsocks dig www.example.com
+	$ torsocks dig www.example.com
 
 will fail with a giant error, which serves as a good reminder to be mindful of your network traffic.  This brings me to the next tool.
 
@@ -55,7 +55,7 @@ will fail with a giant error, which serves as a good reminder to be mindful of y
 
 [tor-resolve] is another tool from the Tor team.  It's to be used as a DNS resolver:
 
-		tor-resolve www.example.com
+    $ tor-resolve www.example.com
 
 It will not use `/etc/hosts` or any local resolvers, but instead will [pass the hostname to Tor] to be transported along a circuit to be resolved by an exit relay.  At this point, the IP will be passed back along the circuit.  Importantly, no UDP packets are ever sent from the local machine.  This is the same way that DNS is resolved when using the Tor browser.
 

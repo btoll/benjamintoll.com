@@ -22,14 +22,14 @@ There is a Debian package called [debootstrap] that will download and install a 
 
 I've created a repo that wraps this entire process in a shell script, and you can [download or clone it] from GitHub.  Invoke the script by doing something like the following:
 
-	sudo ./install_chroot.sh -c foo -u btoll -r stretch
+	$ sudo ./install_chroot.sh -c foo -u btoll -r stretch
 
 This will create a chroot called `foo` in `/srv/chroot`, download and install Debian `stretch` into it and create a user  called `btoll` (with root privileges).
 
 In a nutshell, this script does the following things:
 
 1. Installs debootstrap and schroot from your package repository.
-2. Create the following [chroot definition] in `/etc/schroot/chroot.d/$CHROOT_NAME`:
+2. Creates the following [chroot definition] in `/etc/schroot/chroot.d/$CHROOT_NAME`:
 
 		[$CHROOT_NAME]
 		description=Debian ($DEBIAN_RELEASE)
@@ -46,7 +46,7 @@ In a nutshell, this script does the following things:
 
 You can then enter your chroot by issuing the following command:
 
-	schroot -u $CHROOT_USER -c $CHROOT_NAME
+	$ schroot -u $CHROOT_USER -c $CHROOT_NAME
 
 (Of course the variables above map to whatever you entered on the command line when running the `install_chroot.sh` shell script.  See the [README] for more information and read the comments in the shell script.)
 
@@ -56,7 +56,7 @@ You are now ready to create your Tor onion service in the chroot!
 
 ### The Tor Onion Service Protocol
 
-> Feel free to skip this section of the technical details don't interest you.
+> Feel free to skip this section if the technical details don't interest you.
 
 First, it is worth reading for yourself the [Tor onion service protocol].  It is not long.  Do it now, and I'll be here when you get back.
 
@@ -86,9 +86,9 @@ I also highly recommend reading more about [onion services best practices].
 
 Creating the service is very straightforward (it's assumed that Tor is installed and up and running).  The [Tor official docs] on this are short and to the point and easy to follow.  Installing a web server is easy, and I recommend [nginx].  There are plenty of tutorials to be found on installation and setup so I won't cover it here, but don't use the [military-industrial complex] to do your search. Use [these guys] instead.
 
-Now that you've installed ngix in the chroot,  it's time to configure your onion service.  You need only be concerned with two directives, `HiddenServiceDir` and `HiddenServicePort`.  [From the docs]:
+Now that you've installed nginx in the chroot,  it's time to configure your onion service.  You need only be concerned with two directives, `HiddenServiceDir` and `HiddenServicePort`.  [From the docs]:
 
-- *HiddenServiceDir* is a directory where Tor will store information about that onion service. In particular, Tor will create a file here named hostname which will tell you the onion URL. You don't need to add any files to this directory. Make sure this is not the same directory as the hidserv directory you created when setting up thttpd, as your HiddenServiceDir contains secret information!
+- *HiddenServiceDir* is a directory where Tor will store information about that onion service. In particular, Tor will create a file here named `hostname` which will tell you the onion URL. You don't need to add any files to this directory. Make sure this is not the same directory as the `hidserv` directory you created when setting up thttpd, as your HiddenServiceDir contains secret information!
 
 - *HiddenServicePort* lets you specify a virtual port (that is, what port people accessing the onion service will think they're using) and an IP address and port for redirecting connections to this virtual port.
 
@@ -134,11 +134,11 @@ To start the onion service, do the following:
 
 1. Change to the chroot
 
-	schroot -u btoll -c foo
+        $ schroot -u btoll -c foo
 
 2. Start the server
 
-	sudo /etc/init.d/nginx start
+        $ sudo /etc/init.d/nginx start
 
 Now, point your Tor-enabled browser to the listed domain, i.e., `http://wmtpmql2hds4ijcp.onion`, and you should see the contents of your public web directory.  Just for fun, point another non-Tor-enabled browser at the onion domain and watch it timeout, as no DNS resolver in the universe will be able to service the request.  Weeeeeeee!
 
@@ -146,7 +146,7 @@ Stick a fork in yourself, because you're done!
 
 ## Conclusion
 
-It cannot be overstated how important this is.  With the continued assaults on our internet freedom, we have a viable alternative network to the Internet that cannot as easily be bent to serve the interests of corporations, governments and ideologues.
+It cannot be overstated how important this is.  With the continued assaults on our Internet freedoms, we now have a viable alternative network to the Internet that cannot as easily be bent to serve the interests of corporations, governments and ideologues.
 
 \* Fingers crossed!
 
