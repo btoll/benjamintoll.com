@@ -40,13 +40,15 @@ There are three types of port forwarding:
 
 The examples use the following options (consult the [man page]):
 
-		f - Requests `ssh` to go to background just before command execution.
-		C - Requests compression of all data.
-		N - Do not execute a remote command.
-		R - Remote port forwarding.
-		L - Local port forwarding.
-		D - Dynamic port forwarding.
- 
+<pre class="math">
+f - Requests `ssh` to go to background just before command execution.
+C - Requests compression of all data.
+N - Do not execute a remote command.
+R - Remote port forwarding.
+L - Local port forwarding.
+D - Dynamic port forwarding.
+</pre>
+
 > If you get the error:
 >
 >		ssh: connect to host localhost port 22: Connection refused
@@ -59,7 +61,7 @@ The examples use the following options (consult the [man page]):
 
 Note that I'm making several assumptions here:
 
-- You have access to `example.com` and have root access or are in the `sudo` group (to open a port in the firewall).
+- You have access to the domain that is the destination and have root access or are in the `sudo` group (to open a port in the firewall).
 - <strike>You have an account on the remote machine</strike> (not always necessary, depends on how the `SSH` server is configured).
 - `SSH` is installed on both the local and remote machines and is [configured to allow remote port forwarding].
 
@@ -67,16 +69,16 @@ Note that I'm making several assumptions here:
 >
 > Forward a port from the server machine to the client machine.
 >
->		ssh -R port:host:hostport [user@]hostname
+>		$ ssh -R port:host:hostport [user@]hostname
 >
 > #### Scenario
 >
 > I'm starting a blog about JavaScript because I'm a Senior JavaScript Engineer.  While still in the development phase, I'd like to share the home page with a friend who is a designer to get some feedback about fonts.
-> 
+>
 > Unfortunately, I'm tethering to get my internet connection, and I can't make my local web server (on port 80) publicly accessible.  Luckily, I know someone who is tech-savvy, and they give me the following command to run from a terminal:
-> 
-> 		ssh -fCNR 31137:localhost:31337 example.com
-> 
+>
+> 		$ ssh -fCNR 31137:localhost:31337 example.com
+>
 > After doing an Internet search, I'm able to find the Terminal app on my Mac and paste in the command.  I can then tell my friend to point their browser at `www.example.com:31337` to view my site, which is actually running on my local machine.
 
 ---
@@ -85,13 +87,13 @@ Note that I'm making several assumptions here:
 >
 > Forward a port from the client machine to the server machine.
 >
->		ssh -L port:host:hostport [user@]hostname
+>		$ ssh -L port:host:hostport [user@]hostname
 >
 > #### Scenario
 >
 > I'm now working on another post that's going to add tremendous value for my followers and help to promote my brand.  The development server is remote, and I haven't been shown how to install a TLS certificate yet.  So, in order to protect the precious bits from prying eyes, I'm going to tunnel my traffic by locally forwarding a port.  Again pasting in the command I was given, I run:
 >
->		ssh -fCNL 31337:example.com:80 localhost
+>		$ ssh -fCNL 31337:example.com:80 localhost
 >
 > I now point my browser at `localhost:31337` and have an encrypted connection to `example.com`!
 
@@ -107,11 +109,11 @@ Note that I'm making several assumptions here:
 >
 > I'm at a coffee house, and I have my coolest Mac with all the stickers.  I want to protect my traffic, because anyone in here could be a hacker.  I first paste in the command that establishes the SOCKS server:
 >
->		ssh -fCND 1080 example.com
+>		$ ssh -fCND 1080 example.com
 >
 > In the meantime, I've already had my applications configured to dynamically forward all my ports through this SOCKS5 proxy.  My tech-savvy contact showed me how to do this in the [preferences in Firefox], and for browsers that would set the proxy settings globally, I'll type into the Terminal the command I had him write down on a Post-it note:
 >
->		chromium --proxy-server="socks5://localhost:1080" &> /dev/null &
+>		$ chromium --proxy-server="socks5://localhost:1080" &> /dev/null &
 >
 > This seems to be so much better than local port forwarding.  With that, I'm limited to only communicating with a single machine; that which is specified on the command line.  However, with dynamic port forwarding, all my traffic is forwarded, regardless of its destination, as long as the application knows to send it into the `SSH` tunnel (and the browsers do know to do this, since I configured them above).
 >

@@ -6,7 +6,7 @@ date = "2018-09-09T14:15:09-04:00"
 
 It's been irritating me for a little while about the vulnerability of my GPG and SSH keys on my laptop.  For instance, if I'm at a coffee house and need to get in line for a refill, my laptop is exposed.  Or, imagine I need to step outside to take a phone call.  After all, I'm not that guy that annoys you with the boring details of my ultra-important phone conversation, so I go outside.  So, I'll ask some stranger to "keep an eye on it" and take my chances.  Not great.
 
-Well, last night it finally occurred to me to put my home directory on an encrypted flash drive and then mount it.  I'm not sure what took me so long to come around to this, but I'm here now.  Now, when ever I need to get up from my laptop, I'll simply take the USB drive with me.  I'm sticking it to you, man!
+Well, last night it finally occurred to me to put my home directory on an encrypted flash drive and then mount it.  I'm not sure what took me so long to come around to this, but I'm here now.  Now, whenever I need to get up from my laptop, I'll simply take the USB drive with me.  I'm sticking it to you, man!
 
 I have an extra 16GB stick lying around.  They're really cheap nowadays, so it's always feasible to have several on-hand.  Let's look at the steps to do this.
 
@@ -20,62 +20,66 @@ Note that all commands below must be run with root privileges.
 
 	- Determine the device number that [`udev`] assigned to it:
 
-			mesg | tail
+			# mesg | tail
 
-		+ For me, it's `/dev/sdb1`.  
+		+ For me, it's `/dev/sdb1`.
 
 	- Partition it:
 
-			fdisk /dev/sdb
+			# fdisk /dev/sdb
 
 		+ I'll make the entire disk a primary partition.
 
 2. Create the [`LUKS`] encrypted container.
 
-		cryptsetup luksFormat /dev/sdb1 LUKS001
+		# cryptsetup luksFormat /dev/sdb1 LUKS001
 
 	- You'll be asked to set a password/passphrase, make sure it's a good one!
+
 	- `cryptsetup` is a front-end to [`dm-crypt`].
+
 	- `LUKS001` is an arbitrary name, you could use anything.  `udev` will create a mapped device, `/dev/mapper/LUKS001`.
-	- If you don't have it, it's only an `apt-get install cryptsetup` away!
+
+	- If you don't have it, it's only an `apt install cryptsetup` away!
 
 	> To verify that it's a `LUKS` encrypted disk:
 	>
-	>		file /dev/sdb1
+	>		# file /dev/sdb1
 
 3. Open it.  If you skip this step, you'll destroy the encrypted layer that was created in step 2 when formatting!
 
-		cryptsetup luksOpen /dev/mapper/LUKS001
+		# cryptsetup luksOpen /dev/mapper/LUKS001
 
 	- It should ask you for your passphrase.
 
 4. Format that partition like there's no tomorrow.
 
-		mkfs.ext4 /dev/mapper/LUKS001
+		# mkfs.ext4 /dev/mapper/LUKS001
 
 	- The filesystem should be the same type as the host system.
+
 	- If your home directory contains symlinks, the fileystem type must support that.
 
 5. Create a mount point and mount!
 
-		mkdir /media/home
-		chown btoll:btoll home
-		mount /dev/mapper/LUKS001 home
+		# mkdir /media/home
+		# chown btoll:btoll /media/home
+		# mount /dev/mapper/LUKS001 /media/home
 
 6. Copy existing home directory to mount point:
 
-		rsync -aC /home/btoll /media/home
-	
+		# rsync -aC /home/btoll /media/home
+
 7. Close the encrypted drive.
 
-		cryptsetup luksClose /dev/mapper/LUKS001
+		# cryptsetup luksClose /dev/mapper/LUKS001
 
 	- This not only closes (encrypts) the device but will remove the device name from `/dev/mapper`.
 
 8. Unmount and cleanup.
 
-		umount /media/home
-		rmdir /media/home
+		# umount /media/home
+		# rmdir /media/home
 
 	> Why `rmdir` and not just `rm -rf`?  I always use it when a directory I'm to delete is supposed to be empty, because it will error and refuse to do the operation if it isn't.  The latter won't.
 
@@ -90,13 +94,13 @@ Now that I've removed my home directory to an encrypted flash drive, all that's 
 
 ### Mount
 
-	cryptsetup luksOpen /dev/sdb1 LUKS001
-	mount /dev/mapper/LUKS001 /home/btoll
+	# cryptsetup luksOpen /dev/sdb1 LUKS001
+	# mount /dev/mapper/LUKS001 /home/btoll
 
 ### Unmount
 
-	cryptsetup luksClose /dev/mapper/LUKS001
-	umount /home/btoll
+	# cryptsetup luksClose /dev/mapper/LUKS001
+	# umount /home/btoll
 
 Now, you can safely yank that bad boy and go take a leak!
 

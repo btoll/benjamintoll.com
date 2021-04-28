@@ -10,7 +10,7 @@ I realized that I had done the same calculation when I wrote an article [On Pass
 
 ## The Math
 
-So, to determine how many bits is needed for an integer of length 1, i.e, the integers `0 - 9`, take the base-2 logarithm of 10:
+So, to determine how many bits are needed for an integer of length 1, i.e, the integers `0 - 9`, take the base-2 logarithm of 10:
 
 log<sub>2</sub>(10) = 3.3219280949
 
@@ -20,16 +20,18 @@ To store a base-10 number we'll need four bits.  We round up, because obviously 
 
 To see that this is true, let's count to `0 - 9` in binary:
 
-	0000
-	0001
-	0010
-	0011
-	0100
-	0101
-	0110
-	0111
-	1000
-	1001
+<pre class="math">
+0000
+0001
+0010
+0011
+0100
+0101
+0110
+0111
+1000
+1001
+</pre>
 
 This demonstrates that the integers `8` and `9` do indeed need four bits to be stored in memory.
 
@@ -53,19 +55,23 @@ Let's try another one! For instance, decimal 9119.  The number is 4 digits long,
 
 Is that right?  Let's ask our trusty little friend [asbits]!
 
-      	~:$ asbits 9119
-      	0010 0011 1001 1111
+```
+$ asbits 9119
+0010 0011 1001 1111
+```
 
-Yes, it's 14 bits long!  Also, we can see that 14 bits is decimal 16,384, which encompasses our number 9119 (13 bits is less).
+Yes, it's 14 bits long!  Also, we can see that 14 bits is decimal 16,384, which encompasses our number 9119 (13 bits is less than 9119):
 
-	~:$ bc <<< 2^14
-	16384
-	~:$ bc <<< 2^13
-	8192
+```
+$ bc <<< 2^14
+16384
+$ bc <<< 2^13
+8192
+```
 
-[ASCII] is a good example for encoding both numerical and alphabetical characters from bits.  Recall that ASCII is a character encoding that can fit in 7 bits, and the eighth bit was used by many, many other encoding schemes to add additional characters and symbols that were incompatible with each other.  This was a true nightmare before [Unicode] came to the rescue and solved all of our problems.
+[ASCII] is a good example for encoding both numerical and alphabetical characters from bits.  Recall that ASCII is a character encoding that can fit in 7 bits, and the 8<sup>th</sup> bit was used by many, many other encoding schemes to add additional characters and symbols that were incompatible with each other.  This was a true nightmare before [Unicode] came to the rescue and solved all of our problems.
 
-This is a good time to mention [a classic Joel Spolsky article] on the topic that is just as relevant now as it was when it was written in 2003.  Read it if you haven't before!  And if you have, read it again!
+This is a good time to mention [a classic Joel Spolsky article] on the topic that is just as relevant now as it was when it was written in 2003.  Read it, if you haven't before!  And if you have, read it again!
 
 Weeeeeeeeeeeeeeeeee.
 

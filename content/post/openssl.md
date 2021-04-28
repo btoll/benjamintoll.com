@@ -12,12 +12,12 @@ Note that unless a filename is specified, these commands are interactive.  Send 
 
 What version am I using?
 
-	~:$ openssl version
+	$ openssl version
 	OpenSSL 1.1.0f  25 May 2017
 
 Help!
 
-	~:$ openssl help
+	$ openssl help
 
 # Encoding/Encrypting
 >
@@ -25,13 +25,13 @@ Help!
 >
 > 	Encode from `stdin`:
 >
-> 		~:$ openssl enc -base64
+> 		$ openssl enc -base64
 > 		foo
 > 		Zm9vCg==
 >
 > 	Decode from `stdin`:
 >
-> 		~:$ openssl enc -base64 -d
+> 		$ openssl enc -base64 -d
 > 		Zm9vCg==
 > 		foo
 >
@@ -39,14 +39,14 @@ Help!
 >
 > 	Encrypt a file to `encrypted.bin`:
 >
-> 		~:$ openssl enc -aes-256-cbc -out encrypted.bin
+> 		$ openssl enc -aes-256-cbc -out encrypted.bin
 > 		enter aes-256-cbc encryption password:
 > 		Verifying - enter aes-256-cbc encryption password:
 > 		hello, world!
 >
 > 	Decrypt the file `encrypted.bin`:
 >
-> 		~:$ openssl enc -aes-256-cbc -d -in encrypted.bin
+> 		$ openssl enc -aes-256-cbc -d -in encrypted.bin
 > 		enter aes-256-cbc decryption password:
 > 		hello world!
 
@@ -56,38 +56,38 @@ Help!
 >
 > ### MD5
 >
-> 		~:$ echo foo > derp.txt
-> 		~:$ openssl dgst -md5 derp.txt
+> 		$ > derp.txt echo foo
+> 		$ openssl dgst -md5 derp.txt
 > 		MD5(derp.txt)= d3b07384d113edec49eaa6238ad5ff00
 >
 > 		# Change the file to calculate a different hash!
-> 		~:$ echo >> derp.txt
-> 		~:$ openssl dgst -md5 derp.txt
+> 		$ echo >> derp.txt
+> 		$ openssl dgst -md5 derp.txt
 > 		MD5(derp.txt)= dbb53f3699703c028483658773628452
 >
 > ### SHA256
 >
-> 		~:$ echo foo > derp.txt
-> 		~:$ openssl dgst -sha256 derp.txt
+> 		$ > derp.txt echo foo
+> 		$ openssl dgst -sha256 derp.txt
 > 		SHA256(derp.txt)= b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
 >
 > 		# Change the file to calculate a different hash!
-> 		~:$ echo >> derp.txt
-> 		~:$ openssl dgst -sha256 derp.txt
+> 		$ echo >> derp.txt
+> 		$ openssl dgst -sha256 derp.txt
 > 		SHA256(derp.txt)= 37ea8ddde63ad9042aa7f5099db7acd2a880ae3012870c29060d4b12bf2dc2e2
 >
 > ### Hashing Lengths
 >
->		~:$ openssl dgst -md5
+>		$ openssl dgst -md5
 >		foo
 >		(stdin)= d3b07384d113edec49eaa6238ad5ff00
->		~:$ openssl dgst -sha1
+>		$ openssl dgst -sha1
 >		foo
 >		(stdin)= f1d2d2f924e986ac86fdf7b36c94bcdf32beec15
->		~:$ openssl dgst -sha256
+>		$ openssl dgst -sha256
 >		foo
 >		(stdin)= b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
->		~:$ openssl dgst -sha512
+>		$ openssl dgst -sha512
 >		foo
 >		(stdin)= 0cf9180a764aba863a67b6d72f0918bc131c6772642cb2dce5a34f0a702f9470ddc2bf125c12198b1995c233c34b4afd346c54a2334c350a948a51b6e8b4e6b6
 >
@@ -95,8 +95,8 @@ Help!
 >
 > To see how many checksums the computer can calculate, run the following for a particular algorithm (depends on CPU architecture, length of input, etc.):
 >
->		openssl speed sha
->		openssl speed blowfish
+>		$ openssl speed sha
+>		$ openssl speed blowfish
 >		etc.
 
 # Public Key Cryptography
@@ -105,7 +105,7 @@ Help!
 >
 >	Generate a key pair:
 >
-> 		~:$ openssl genrsa -out key.pem 1024
+> 		$ openssl genrsa -out key.pem 1024
 > 		Generating RSA private key, 2048 bit long modulus
 > 		.........+++
 > 		....................+++
@@ -113,32 +113,32 @@ Help!
 >
 >	Encrypt the private key (this example uses [Triple DES], use whatever you want):
 >
->		~:$ openssl rsa -in key.pem -des3 -out enc-key.pem
+>		$ openssl rsa -in key.pem -des3 -out enc-key.pem
 >		writing RSA key
 >		Enter PEM pass phrase:
 >		Verifying - Enter PEM pass phrase:
 >
 >	Extract the public key from the key pair:
 >
->		~:$ openssl rsa -in key.pem -pubout -out pub-key.pem
+>		$ openssl rsa -in key.pem -pubout -out pub-key.pem
 >		writing RSA key
 >
 >	Encrypt a file:
 >
 >		# This uses the key pair.
->		~:$ openssl rsautl -encrypt -inkey key.pem -in data.txt -out encrypted.bin
+>		$ openssl rsautl -encrypt -inkey key.pem -in data.txt -out encrypted.bin
 >
 >		# This uses the public key (note the extra flag `-pubin`).
->		~:$ openssl rsautl -encrypt -pubin -inkey pub-key.pem -in data.txt -out encrypted.bin
+>		$ openssl rsautl -encrypt -pubin -inkey pub-key.pem -in data.txt -out encrypted.bin
 >
 >	> Note that the file to encrypt **must** be less than the block size, minus some extra bits used by the implementation.  In our example, this is 1024 bits (the block size will be the same as what was specified as the key length).  You will get an error if the file is larger than the block size.
->
+>   >
 >	> OpenSSL is a low-level tool, and does not slice up your text into block sizes.  This functionality is left to anything that implements the library.
 >
 >	Decrypt a file:
 >
 >		# This uses the encrypted private key.
->		~:$ openssl rsautl -decrypt -inkey enc-key.pem -in encrypted.bin -out decrypted.txt
+>		$ openssl rsautl -decrypt -inkey enc-key.pem -in encrypted.bin -out decrypted.txt
 >		Enter pass phrase for enc-key.pem:
 >
 >	> You can use the key pair to decrypt, but it won't prompt you for a passphrase, as it's not encrypted.  Use the private key!
@@ -148,28 +148,28 @@ Help!
 >	1. **Hash a digest of the file and sign that.**
 >
 >			# Create the hash.
->			~:$ openssl dgst -sha1 -out foo.dgst foo.txt
+>			$ openssl dgst -sha1 -out foo.dgst foo.txt
 >
 >			# Sign the hash.
->			~:$ openssl rsautl -sign -in foo.dgst -out foo.sig -inkey enc-key.pem
+>			$ openssl rsautl -sign -in foo.dgst -out foo.sig -inkey enc-key.pem
 >			Enter pass phrase for enc-key.pem:
 >
 >	2. **Sign the file itself.**
 >
->			~:$ openssl rsautl -sign -in foo.txt -out foo.sig -inkey enc-key.pem
+>			$ openssl rsautl -sign -in foo.txt -out foo.sig -inkey enc-key.pem
 >			Enter pass phrase for enc-key.pem:
 >
 >	> Again, you can use the key pair to sign, but it won't prompt you for a passphrase, as it's not encrypted.  Use the private key!
 >
 >	Verify the signature:
 >
->		~:$ openssl rsautl -verify -pubin -inkey pub-key.pem -in foo.sig -out verified.dgst
+>		$ openssl rsautl -verify -pubin -inkey pub-key.pem -in foo.sig -out verified.dgst
 >
 >	> You'd then want to verify the hash if you signed using the first method above.
 >
 >	Get the fingerprint of a public key:
 >
->		ssh-keygen -lf <(ssh-keygen -yf private_key)
+>		$ ssh-keygen -lf <(ssh-keygen -yf private_key)
 >
 >	> Note that this method avoids having to create a temporary file by using [process substitution].
 
@@ -177,7 +177,7 @@ Help!
 >
 >	Using the key pair that we generated earlier, let's look at the bits that make up the algorithm (the ellipsis notes where the values were truncated).
 >
-> 		~:$ openssl rsa -in key.pem -text -noout
+> 		$ openssl rsa -in key.pem -text -noout
 > 		Private-Key: (2048 bit)
 > 		modulus:
 >		    00:c0:cd:8b:5b:a0:23:43:09:36:fa:e4:af:98:61:
@@ -206,12 +206,12 @@ Help!
 >
 >	What number did OpenSSL generate for the modulus?:
 >
->		~:$ openssl rsa -in key.pem -modulus -noout
+>		$ openssl rsa -in key.pem -modulus -noout
 >		Modulus=C0CD8B5BA023430936FAE4AF986118F86FD94B40FBFE7F2A57964EDD868F7BFD1351004B056719CFC470F26276570B32D247324F789990EA6CFC24061E377D4B6E6E4C899D0F5703B060EFCFEB9B8B7AEFBFD2ECBE7B75624DD7F9CBD203768B38E8938815D5641F50527D8DACB5F1C695A23DD3B998DE5511A706463D760C13
 >
 >	Let's use our trusted friend `bc` to see what that number is in base 10!
 >
->		~:$ echo "ibase=16; $(openssl rsa -in key.pem -modulus -noout | cut -c9-)" | bc
+>		$ echo "ibase=16; $(openssl rsa -in key.pem -modulus -noout | cut -c9-)" | bc
 >		13539080606374968594676933696507556339553096890269217679724886472005\
 >		08050903637135355760972124160959413478394879173567838846759891805917\
 >		63282125770151505099501724487223049295609224541565594269213996582665\
@@ -225,14 +225,14 @@ Help!
 >	1. **Get the two primes.**
 >
 >			# Set the first prime as a shell variable.
->			PRIME1=$(openssl rsa -in key.pem -text -noout |
+>			$ PRIME1=$(openssl rsa -in key.pem -text -noout |
 >			sed -n '/^prime/,/^prime/{/^prime/!p}' |
 >			xargs echo |
 >			xargs -I % echo "'" % "'.replace(/[\s:]/g, '').replace(/([a-f])/g, (a, b) => b.toUpperCase())" |
 >			node -p)
 >
 >			# Set the second prime as a shell variable.
->			PRIME2=$(openssl rsa -in key.pem -text -noout |
+>			$ PRIME2=$(openssl rsa -in key.pem -text -noout |
 >			sed -n '/^prime2/,/^exponent1/{/^prime2/!{/^exponent1/!p}}' |
 >			xargs echo |
 >			xargs -I % echo "'" % "'.replace(/[\s:]/g, '').replace(/([a-f])/g, (a, b) => b.toUpperCase())" |
@@ -246,12 +246,12 @@ Help!
 >		- `p` means print (the command to execute).
 >
 >		> > Note that this `sed` command won't work on Mac.  The BSD command line tools are different from the GNU/Linux ones in subtle ways, so you'll need to use the [gsed] binary instead (or not, it depends on the presence of the install flag `--with-default-names`).
->
+>       >
 >		> > ( You may need to add semicolons before the closing brackets, but I have not been able to test this. )
 >
 >	2. **Calculate the product of our two primes:**
 >
->			~:$ echo "ibase=16; $PRIME1 * $PRIME2" | bc
+>			$ echo "ibase=16; $PRIME1 * $PRIME2" | bc
 >			13539080606374968594676933696507556339553096890269217679724886472005\
 >			08050903637135355760972124160959413478394879173567838846759891805917\
 >			63282125770151505099501724487223049295609224541565594269213996582665\
@@ -262,7 +262,7 @@ Help!
 >
 >	That looks sneakily like the modulus that `openssl` reported in a prior command.
 >
->		~:$ echo "ibase=16; $(openssl rsa -in key.pem -modulus -noout | cut -c9-) == $PRIME1 * $PRIME2" | bc
+>		$ echo "ibase=16; $(openssl rsa -in key.pem -modulus -noout | cut -c9-) == $PRIME1 * $PRIME2" | bc
 >		1
 >
 >	It is!  So what does that prove?  *Math*!  Weeeeeeeeeeeeeeeeeee.
@@ -272,7 +272,7 @@ Here's a [free book] promoted by OpenSSL.
 # References
 
 - [An Introduction to the OpenSSL Command Line Tool]
-- [Wikipedia article on OpenSSL]
+- [OpenSSL (Wikipedia)]
 
 [OpenSSL]: https://www.openssl.org/
 [Gallic Wars]: https://en.wikipedia.org/wiki/Gallic_Wars
@@ -284,5 +284,5 @@ Here's a [free book] promoted by OpenSSL.
 [gsed]: https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
 [free book]: https://www.feistyduck.com/books/openssl-cookbook/
 [An Introduction to the OpenSSL Command Line Tool]: https://users.dcc.uchile.cl/~pcamacho/tutorial/crypto/openssl/openssl_intro.html
-[Wikipedia article on OpenSSL]: https://en.wikipedia.org/wiki/OpenSSL
+[OpenSSL (Wikipedia)]: https://en.wikipedia.org/wiki/OpenSSL
 

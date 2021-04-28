@@ -4,7 +4,7 @@ date = "2018-07-09T16:11:19-04:00"
 
 +++
 
-The [RSA] cryptosystem, named after Ron Rivest, Adi Shamir, and Leonard Adleman, the MIT professors that first publicly described it in 1978, is the most copied software in history.  It is an asymmetric encryption system, meaning that there are "public" and "private" keys which act as inverse operations and are mathematically related.  Because RSA and other asymmetric cryptographic algorithms are slow, they are generally used to encrypt a shared symmetric key during communication which is then used for all further communication.
+The [RSA] cryptosystem, named after Ron Rivest, Adi Shamir, and Leonard Adleman, the MIT professors that first publicly described it in 1978, is the most copied software in history.  It is an asymmetric encryption system, meaning that there are "public" and "private" keys which act as inverse operations and are mathematically related.  Because RSA and other asymmetric cryptographic algorithms are slow, they are generally used to encrypt a shared symmetric key during initial communication (the handshake) which is then used for all further communication.
 
 > A British mathematician named [Clifford Cocks] actually discovered this in 1973 while working for [Government Communications Headquarters (GCHQ)], although this was not known until 1997 when the information was declassified.
 
@@ -66,13 +66,13 @@ Steps to implement RSA:
 
 	Recall:
 
-			ϕ(n) ≡ ϕ(p) * ϕ(q)
-			or
-			ϕ(n) ≡ (p - 1)(q - 1)
+		ϕ(n) ≡ ϕ(p) * ϕ(q)
+		or
+		ϕ(n) ≡ (p - 1)(q - 1)
 
-	Note that this is easy to do **only** if the prime factorization of `n` is known, since determining the prime factors of some very large composite number `n` is a very difficult problem, even when `n` is publicly known (as it is).  For example:
+	Note that this is easy to do **only** if the prime factorization of `n` is known, since determining the prime factors of some very large composite number `n` is a very difficult problem, even when `n` is publicly known (as it is).
 
-	Remember that determing the phi() of a prime number is very easy...just subtract one!
+	> Remember that determing the `phi()` of a prime number is very easy...just subtract one!
 
 4. Choose an integer as the public key `e` using the result from the previous step. The choice **must** be constrained by the following two rules:
 
@@ -80,6 +80,8 @@ Steps to implement RSA:
 		- Coprime to ϕ(n), that is, gcd(e, ϕ(n)) = 1
 
 	For example, given ϕ(10) = 6, `e` can only be 7, since 1, 2, 3, 4 are factors of either `n` or ϕ(n).
+
+    > Recall that the [gcd] of two or more integers is the greatest number that divides are of them evenly.
 
 5. Determine the private key `d` from the public key `e`.  This is a one-way [trapdoor function] to reverse the public key `(e, n)`.  It is the [modular multiplicative inverse] of the public key, which says that for an integer `a`, the  product of that number with an integer `x` is congruent to 1 modulus `m`:
 
@@ -103,7 +105,7 @@ Again, take notice that the calculation depends on knowing `ϕ(n)`, which in tur
 
 Knowing the prime factorization of the modulo `n` is infeasible for traditional computing (not so with quantum computers!), and this is where the strength of the algorithm lies.
 
-> Also recall that `n`, `e` and the encrypted result are publicly known.  Because of math, this is insufficient for an adversary!
+> Also recall that `n`, `e` and the encrypted result are publicly known.  Because of math, this is still insufficient for an adversary to reverse the prime factorization!
 
 ### Computing the Keys
 
@@ -113,20 +115,24 @@ Knowing the prime factorization of the modulo `n` is infeasible for traditional 
 
 Choose two distinct prime numbers:
 
-	~:$ ./is_prime.js 17
-	true
-	~:$ ./is_prime.js 19
-	true
+```
+$ ./is_prime.js 17
+true
+$ ./is_prime.js 19
+true
+```
 
 Or, using Bash:
 
-	~:$ for i in {2..4}
-	> do
-	> if [[ $(bc <<< 17%$i) -eq 0 || $(bc <<< 19%$i) -eq 0 ]]
-	> then
-	> echo $i
-	> fi
-	> done
+```
+$ for i in {2..4}
+> do
+> if [[ $(bc <<< 17%$i) -eq 0 || $(bc <<< 19%$i) -eq 0 ]]
+> then
+> echo $i
+> fi
+> done
+```
 
 If nothing printed to `stdout`, then both numbers are prime!
 
@@ -134,16 +140,20 @@ If nothing printed to `stdout`, then both numbers are prime!
 
 Calculate the ϕ function:
 
-	ϕ(n) ≡ (p - 1)(q - 1)
+```
+ϕ(n) ≡ (p - 1)(q - 1)
 
-	~:$ ./eulers_totient_func.js 17 19
-	phi(323) = 288
+$ ./eulers_totient_func.js 17 19
+phi(323) = 288
+```
 
 Or, using Bash:
 
-	bc <<< 17*19 && bc <<< 16*18
-	323
-	288
+```
+$ bc <<< 17*19 && bc <<< 16*18
+323
+288
+```
 
 Now that ϕ(323) has been calculated, it's time to choose a public key `e`.  Recall the two conditions:
 
@@ -152,8 +162,10 @@ Now that ϕ(323) has been calculated, it's time to choose a public key `e`.  Rec
 
 So, in the range 1..287 (remember, one less than ϕ(n)), I'll choose 5.  But is 5 coprime with 288?
 
-	~:$ echo "288%5" | bc
-	3
+```
+$ echo "288%5" | bc
+3
+```
 
 Yes, it is.  If 5 were a factor of 288, the result would be 0.
 
@@ -161,36 +173,42 @@ Now, there is the very important step of calculating the private key `d`, which 
 
 Recall:
 
-		d ≡ e^-1 mod ϕ(n)
-		or
-		d*e ≡ 1 mod ϕ(n)
+```
+d ≡ e^-1 mod ϕ(n)
+or
+d*e ≡ 1 mod ϕ(n)
+```
 
 So, in the context of the variables that have already been determined, the equation will look like this:
 
-	5d ≡ 1 mod ϕ(323)
+```
+5d ≡ 1 mod ϕ(323)
+```
 
 In order to find a multiple of 5 that satisfies the equation, i.e., equals 1, substitute for `d` with the range `1..ϕ(323)`.
 
-	5(1) mod 288 = 5
-	5(2) mod 288 = 10
-	5(3) mod 288 = 15
-	5(4) mod 288 = 20
-	5(5) mod 288 = 25
-	...
-	5(172) mod 288 = 284
-	5(173) mod 288 = 1 	<------ # Bingo!
-	5(174) mod 288 = 6
-	...
-	5(287) mod 288 = 283
-	5(288) mod 288 = 0
-	5(289) mod 288 = 5 	<------ # Pattern starts to repeat here!
-	5(290) mod 288 = 10			# If unfamiliar with this,
-	5(291) mod 288 = 15			# research modular arithmetic.
-	5(292) mod 288 = 20
-	5(293) mod 288 = 25
-	...
+<pre class="math">
+5(1) mod 288 = 5
+5(2) mod 288 = 10
+5(3) mod 288 = 15
+5(4) mod 288 = 20
+5(5) mod 288 = 25
+...
+5(172) mod 288 = 284
+5(173) mod 288 = 1 	<------ # Bingo!
+5(174) mod 288 = 6
+...
+5(287) mod 288 = 283
+5(288) mod 288 = 0
+5(289) mod 288 = 5 	<------ # Pattern starts to repeat here!
+5(290) mod 288 = 10		# If unfamiliar with this,
+5(291) mod 288 = 15		# research <a href="https://en.wikipedia.org/wiki/Modular_arithmetic">modular arithmetic</a>.
+5(292) mod 288 = 20
+5(293) mod 288 = 25
+...
+</pre>
 
->		~:$ ./priv_key.js 5 288
+>		$ ./priv_key.js 5 288
 >		173
 
 Note that in this example there was only one number whose result satisfied the equation, but oftentimes there is more than one number from which to choose.
@@ -198,7 +216,7 @@ Note that in this example there was only one number whose result satisfied the e
 > Or, using Bash:
 >
 >
->		~:$ for i in {1..288}
+>		$ for i in {1..288}
 >		> do
 >		> if [[ $(bc <<< 5*$i%288) -eq 1 ]]
 >		> then
@@ -219,24 +237,24 @@ Now that the public/private keys have been computed, it's a snap to use the one-
 
 Given the public key:
 
-		( e = 5, n = 323 )
+    ( e = 5, n = 323 )
 
 we're calculating the cipher text `c` given the plain text message `m`:
 
-		c ≡ m^e mod n
+    c ≡ m^e mod n
 
->		~:$ bc <<< 10^5%323
+>		$ bc <<< 10^5%323
 >		193
 
 Given the private key:
 
-		( d = 173 )
+    ( d = 173 )
 
 we're calculating the message `m` given the cipher text `c`:
 
 	m ≡ c^d mod n
 
->		~:$ bc <<< 193^173%323
+>		$ bc <<< 193^173%323
 >		10
 
 Again, the operations are inverses of each other, which satisfy the equation
@@ -271,5 +289,5 @@ If you've made it this far, here is an [RSA Calculator].
 [JavaScript helper scripts]: /2018/07/15/on-the-rsa-helper-scripts/
 [primality]: https://en.wikipedia.org/wiki/Primality_test
 [bc]: https://fedoramagazine.org/bc-command-line-calculator/
-[RSA calculator]: https://www.cs.drexel.edu/~introcs/Fa11/notes/10.1_Cryptography/RSAWorksheetv4d.html
+[RSA calculator]: https://www.cs.drexel.edu/~jpopyack/IntroCS/HW/RSAWorksheet.html
 

@@ -8,13 +8,13 @@ date = "2018-05-14T20:58:57-04:00"
 
 This is just going to be a short post to serve as a reference for myself.
 
-Having come from the world of higher-level, interpreted languages like PHP and JavaScript, it was highly instructive (and fun!) when I saw my first C program that demonstrated the use of pipes.  I believe the source was either [K & R] or [Beej's Guide to Unix IPC], and it simply coded the Unix pipeline `ls | wc -l`.  The following is a similar example that `cat`s a file and `grep`s for the word "fork" (`cat pipes.c | grep fork`):
+Having come from the world of higher-level, interpreted languages like PHP and JavaScript, it was highly instructive (and fun!) when I saw my first C program that demonstrated the use of pipes.  I believe the source was either [K & R] or [Beej's Guide to Unix IPC], and it simply coded the Unix pipeline `ls | wc -l`.  The following is a similar example that `cat`s a file and `grep`s for the word "fork" (`grep fork pipes.c`):
 
-```
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/wait.h>
+<pre class="math">
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/wait.h&gt;
 
 // cat pipes.c | grep fork
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-```
+</pre>
 
 Compiling and running will output the following to `stdout`:
 

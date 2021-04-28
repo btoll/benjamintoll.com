@@ -22,7 +22,7 @@ Here are some of its use cases:
 
 Since Ncat is a pipeline tool that reads from `stdin` and writes to `stdout`, it can be used in any manner of of I/O redirection with which you're accustomed.  None of the streams are altered unless given the the `-C` flag (adds `CRLF` for `EOL` sequence).
 
-Ncat either operates in connect mode (client) or listen mode (server).  Let's take a look at some use cases
+Ncat either operates in connect mode (client) or listen mode (server).  Let's take a look at some use cases.
 
 ## Connect Mode
 
@@ -94,14 +94,16 @@ Ncat allows a server to respond with the results of a command executed by means 
 + Passing a command string to be interpreted by a shell
 + Invoking a Lua script
 
-For example, the following commands will do the same thing, i.e., list the contents of the directory of the Ncat "server":
+For example, the following commands will do the same thing, i.e., list the contents of the directory of the Ncat "server".  Open two terminals and execute the following command in the first terminal, which will then wait for a client connection:
 
     $ ncat -le "/bin/ls -al"
     $ ncat -l --sh-exec "ls -al"
 
-The client request:
+Then, in the other terminal, make the client request:
 
     $ ncat localhost
+
+Holy zap!
 
 Although I don't use it very frequently, it does come in handy.
 
@@ -129,7 +131,7 @@ Simple two user chat:
 	germanicus$ ncat -kl --max-conns 1
 	      nero$ ncat germanicus
 
-Note that without the access control flag other clients can connect to the listening Ncat but that that will only establish its own channel with the "server".  In other words, none of the other clients will "hear" the conversation.  Use it or don't :)
+Note that without the access control flag other clients can connect to the listening Ncat process but that that will only establish its own channel with the "server".  In other words, none of the other clients will "hear" the conversation.  Use it or don't :)
 
 If multi-user chat is desired, simply start Ncat in listening mode with the `--broker` flag:
 

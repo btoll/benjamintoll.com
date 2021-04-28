@@ -10,10 +10,12 @@ I recently reluctantly added Flow to a React project that I've been doing in my 
 
 Anyhoo, I thought the idea to force the language to do type checks at runtime was pretty nifty.  I worked out an implementation and included it my library, where it augmented the [`Function.prototype`] object.\*  The function was called `assert` and ensured not only that the function was invoked with the correct types but also the correct number of arguments that the function was expecting.  Here is an example:
 
-	const foobar = (a, b) {
-		console.log(a);
-		console.log(b);
-	}.assert(Boolean, Number);
+<pre class="math">
+const foobar = (a, b) {
+    console.log(a);
+    console.log(b);
+}.assert(Boolean, Number);
+</pre>
 
 If `foobar` is called with exactly two arguments, the first being a Boolean type and the second a Number, everything is right with the world.  Otherwise, it will throw.  Let's verify that in the console:
 
@@ -54,25 +56,27 @@ Here are the important bits:
 
 Here is the implementation:
 
-	Function.prototype.assert = function () {
-		const fn = this;
-		const args = arguments;
+<pre class="math">
+Function.prototype.assert = function () {
+    const fn = this;
+    const args = arguments;
 
-		return function () {
-			if (fn.length !== arguments.length) {
-				throw new Error('Function arguments do not equal number of expected arguments.');
-			}
+    return function () {
+        if (fn.length !== arguments.length) {
+            throw new Error('Function arguments do not equal number of expected arguments.');
+        }
 
-			Array.from(arguments).forEach((a, i) => {
-				if (a.constructor !== args[i]) {
-					throw new Error(`Wrong data type for function argument ${++i}.`);
-				}
-			});
+        Array.from(arguments).forEach((a, i) => {
+            if (a.constructor !== args[i]) {
+                throw new Error(`Wrong data type for function argument ${++i}.`);
+            }
+        });
 
-			// Finally, invoke the parent function.
-			return fn.apply(this, arguments);
-		};
-	};
+        // Finally, invoke the parent function.
+        return fn.apply(this, arguments);
+    };
+};
+</pre>
 
 Weeeeeeeeeeeeeeeeeeee
 

@@ -8,7 +8,7 @@ With the advent of [ECMAScript 2015], the JavaScript language finally supported 
 
 Of course, for years developers have gotten around the official syntactical support by using the [logical OR] operator:
 
-	let method = m || 'GET';
+	let method = m || "GET";
 
 This works, but it's really just a workaround.
 
@@ -20,39 +20,41 @@ A little-known but massively popular JavaScript library had come up with another
 
 ## Let's See Some Code
 
-	Function.prototype.defaults = function (obj, name) {
-	    const func = this;
-	    const params = arguments;
+<pre class="math">
+Function.prototype.defaults = function (obj, name) {
+    const func = this;
+    const params = arguments;
 
-	    if (func.length < params.length) {
-			throw new Error('Too many default arguments.');
-	    }   
+    if (func.length < params.length) {
+        throw new Error("Too many default arguments.");
+    }
 
-	    let arr = [...arguments, ...Array(fn.length - params.length)];
+    let arr = [...arguments, ...Array(fn.length - params.length)];
 
-	    return function () {
-			const args = arguments;
+    return function () {
+        const args = arguments;
 
-			return func.apply(
-			    null,
-			    [...args, ...arr.slice(args.length, arr.length)]
-			);
-	    };  
-	};
+        return func.apply(
+            null,
+            [...args, ...arr.slice(args.length, arr.length)]
+        );
+    };
+};
 
-	const foobar = function (a, b) {
-	    console.log(a);
-	    console.log(b);
-	}.defaults('default_a', 'default_b');
+const foobar = function (a, b) {
+    console.log(a);
+    console.log(b);
+}.defaults("default_a", "default_b");
 
-	foobar('marius'); // 'marius'
-					  // 'default_b'
+foobar("marius"); // "marius"
+                  // "default_b"
+</pre>
 
 ## What Is It Doing?
 
 The outer function will make an array from any passed arguments and stuff it into the `arr` variable.  The trick is to check the function length (the number of arguments the function was defined with) by the number of arguments actually passed at runtime.  If `fn.length - params.length` is greater than zero, then the difference will be appended to the new array as `undefined` types.
 
-The inner function (closure) will call the closed-over original function and pass it an array of runtime arguments and any default values that are needed that were captured in the outer function.
+The inner function (a `closure`) will call the closed-over original function and pass it an array of runtime arguments and any default values that are needed that were captured in the outer function.
 
 Weeeeeeeeeeeeeeeee
 
@@ -62,7 +64,7 @@ So how did we concat arrays and work with the array-like `arguments` object befo
 
 So, instead of the sweet, sweet succinctness of:
 
-	    let arr = [...arguments, ...Array(fn.length - params.length)];
+    let arr = [...arguments, ...Array(fn.length - params.length)];
 
 You'd have to do:
 

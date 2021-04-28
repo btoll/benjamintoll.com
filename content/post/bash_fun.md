@@ -14,12 +14,12 @@ These are not in order of any importance, and I'll be continually adding to this
 
 ## Contents
 
-- <a href="#heredocs">Heredocs</a>
-- <a href="#i-o-redirection">I/O Redirection</a>
-- <a href="#subshells">Subshells</a>
-- <a href="#restricted-shell">Restricted Shell</a>
-- <a href="#dev">/dev</a>
-- <a href="#options">Options</a>
+- [Heredocs](#heredocs)
+- [I/O Redirection](#io-redirection)
+- [Subshells](#subshells)
+- [Restricted Shell](#restricted-shell)
+- [/dev](#dev)
+- [Options](#options)
 
 ---
 
@@ -27,47 +27,63 @@ These are not in order of any importance, and I'll be continually adding to this
 
 ### Standard Example
 
-		foo="i am foo"
+```
+$ foo="i am foo"
 
-		cat <<EOF
-		hello
-		$foo
-		goodbye
-		EOF
+$ cat <<EOF
+hello
+$foo
+goodbye
+EOF
+```
 
 Will expand the parameter `$foo` to print "i am foo".
 
-		hello
-		i am foo
-		goodbye
-		~:$
+```
+hello
+i am foo
+goodbye
+```
 
 ### Preventing Parameter Expansion ('LimitString', \LimitString)
 
-		foo="i am foo"
+```
+$ foo="i am foo"
 
-		cat <<\EOF
-		hello
-		$foo
-		goodbye
-		EOF
+$ cat <<\EOF
+hello
+$foo
+goodbye
+EOF
+```
 
 Will print the literal string `$foo`.
 
-		hello
-		$foo
-		goodbye
-		~:$
+```
+hello
+$foo
+goodbye
+```
 
 ### Ignore Leading Tabs (-LimitString)
 
-		cat <<-EOF
-			hello
-			i am foo
-			goodbye
-		EOF
+```
+$ cat <<-EOF
+    hello
+    i am foo
+    goodbye
+EOF
+```
 
-It can be argued that this is more pleasant to read.  The closing limit string still cannot be preceded by any whitespace, though.
+Results in the tabs being preserved:
+
+```
+    hello
+    i am foo
+    goodbye
+```
+
+It can be argued that this is more pleasant to read.  The closing limit string `EOF` still cannot be preceded by any whitespace, though.
 
 ### "Anonymous" heredoc
 
@@ -75,18 +91,20 @@ The anonymous, or placeholder, command `:` can be useful to comment-out whole co
 
 In this example, the `for` loop won't run because it is within the "anonymous" `heredoc`.
 
-		#!/bin/bash
+<pre class="math">
+#!/bin/bash
 
-		echo hello world
+echo hello world
 
-		: <<\EOF
-		for i in {1..10}
-		do
-		    echo $i
-		done
-		EOF
+: <<\EOF
+for i in {1..10}
+do
+    echo $i
+done
+EOF
 
-		echo goodbye cruel world
+echo goodbye cruel world
+</pre>
 
 > The backslash before the limit string `EOF` isn't necessarily needed, but there could be instances where the "anonymous" `heredoc` is wrapping code that contains a bracket (`{}`), which I've read could make Bash barf all over itself.
 >
@@ -100,9 +118,9 @@ I usually comment-out whole code blocks using a Vim macro that I wrote (essentia
 
 Each process gets three default files:
 
-		- stdin
-		- stdout
-		- stderr
+- `stdin`
+- `stdout`
+- `stderr`
 
 They are referenced by their file descriptors, 0, 1 and 2, respectively.
 
@@ -112,17 +130,22 @@ They are referenced by their file descriptors, 0, 1 and 2, respectively.
 
 These all produce a zero-length file:
 
-		touch foo
-		> foo
-		1> foo
-		: > foo
-		<> foo
+```
+$ touch foo.txt
+$ > foo.txt
+$ 1> foo.txt
+$ : > foo.txt
+$ <> foo.txt
+```
 
-When redirecting a directory listing to a file, it's not necessary to explicitly use `stdout`'s file descriptor as it's assumed:
+When redirecting a directory listing to a file, it's not necessary to explicitly use `stdout`'s file descriptor as it's assumed.  For example, the following commands are equivalent:
 
-		ls > foo == ls 1> foo
+```
+$ ls > foo.txt
+$ ls 1> foo.txt
+```
 
-To append, use `>>`.
+> To append, use `>>`.
 
 Weeeeeeeeeeeeeeeeee
 
@@ -130,98 +153,114 @@ Weeeeeeeeeeeeeeeeee
 
 Redirect `stderr` to a file:
 
-		2> foo
+    2> foo.txt
 
 For example, using a "bad" command will redirect the error to a file rather than displaying it on the screen:
 
-		asdf 2> foo
+```
+$ asdf 2> foo.txt
+$ cat foo.txt
+
+Command 'asdf' not found, did you mean:
+
+  command 'asdfg' from deb aoeui
+  command 'sadf' from deb sysstat
+  command 'sdf' from deb sdf
+  command 'adsf' from deb ruby-adsf
+
+Try: sudo apt install <deb name>
+```
 
 Take note that the following might not do as you expect:
 
-		asdf > foo
+```
+$ asdf > foo.txt
+```
 
-(It will create the file `foo`, if it doesn't already exist, but it will be empty!)
-
-To append, use `>>`.
+It will create the file `foo.txt`, if it doesn't already exist, but it will be empty!
 
 > To redirect both `stdout` and `stderr`:
 >
->		&> foo
+>		&> foo.txt
 
 ### Redirecting File Descriptors
 
 Redirect `stderr` to `stdout`:
 
-		2>&1
+```
+2>&1
+```
 
-Append both `stderr` and `stdout` to `foo`:
+Append both `stderr` and `stdout` to `foo.txt`:
 
-		asdf >> foo 2>&1
+```
+$ asdf >> foo.txt 2>&1
+```
 
-> Random access**\***:
-> 
-> 		echo 123456789 > foo 	# Create `foo`.
-> 		exec 3<> foo			# Assign fd 3 for reading and writing.
-> 		read -n 4 <&3			# Seek 4 chars.
-> 		echo -n . >&3			# Write.
-> 		cat foo					# 1234.6789
-> 		cat <&3					# 6789
-> 		exec 3>&-				# Close fd 3.
+> Random access\*:
 >
+> 		$ echo 123456789 > foo.txt 	# Create `foo.txt`.
+> 		$ exec 3<> foo.txt		# Assign fd 3 for reading and writing.
+> 		$ read -n 4 <&3		# Seek 4 chars.
+> 		$ echo -n . >&3		# Write.
+> 		$ cat foo.txt		        # 1234.6789
+> 		$ cat <&3		        # 6789
+> 		$ exec 3>&-		        # Close fd 3.
 
-#### Closing File Descriptors**\***
+#### Closing File Descriptors\*
 
-		n<&-
-		Close input file descriptor n.
+<pre class="math">
+n<&-
+Close input file descriptor n.
 
-		0<&-, <&-
-		Close stdin.
+n>&-
+Close output file descriptor n.
 
-		n>&-
-		Close output file descriptor n.
+0<&-, <&-
+Close stdin.
 
-		1>&-, >&-
-		Close stdout.
+1>&-, >&-
+Close stdout.
+</pre>
 
-**\*** Examples taken from http://tldp.org/LDP/abs/html/io-redirection.html
+\* Examples taken from http://tldp.org/LDP/abs/html/io-redirection.html
 
 ### Multiple Instances of Input and Output Redirection (and Pipes)
 
 Common:
 
-		command < input-file > output-file
+	command < input-file > output-file
 
 Uncommon, but equivalent:
 
-		< input-file command > output-file
+	< input-file command > output-file
 
 These commands are all equivalent:
 
-		$ grep hugo < <(ls -R) > foo
+	$ grep hugo < <(ls -R) > foo.txt
 
-		$ < <(ls -R) grep hugo > foo
+	$ < <(ls -R) grep hugo > foo.txt
 
-		$ ls -R | grep hugo > foo
+	$ ls -R | grep hugo > foo.txt
 
 ### Redirecting Code Blocks
 
 The following are equivalent:
 
-		~:$ while read name
-		> do
-		> echo $name
-		> done < <(echo -e "john\npaul\ngeorge\nringo")
+	$ while read name
+	> do
+	> echo $name
+	> done < <(echo -e "john\npaul\ngeorge\nringo")
 
-		~:$ echo -e "john\npaul\ngeorge\nringo" | while read name
-		> do
-		> echo $name
-		> done
+	$ echo -e "john\npaul\ngeorge\nringo" | while read name
+	> do
+	> echo $name
+	> done
 
-		john
-		paul
-		george
-		ringo
-		~:$
+	john
+	paul
+	george
+	ringo
 
 ---
 
@@ -232,39 +271,39 @@ The following are equivalent:
 
 A command list within parentheses will launch and execute within a subshell.
 
-		~:$ ( cd /my_project && make )
-		~:$
+	$ ( cd /my_project && make )
+	$
 
 You can see the nesting level by printing the value of the [`$BASH_SUBSHELL`] internal variable:
 
-		~:$ echo $BASH_SUBSHELL
-		0
-		~:$ ( cd /etc ; echo $BASH_SUBSHELL ; ( cd /proc ; echo $BASH_SUBSHELL ) )
-		1
-		2
-		~:$ echo $BASH_SUBSHELL
-		0
+	$ echo $BASH_SUBSHELL
+	0
+	$ ( cd /etc ; echo $BASH_SUBSHELL ; ( cd /proc ; echo $BASH_SUBSHELL ) )
+	1
+	2
+	$ echo $BASH_SUBSHELL
+	0
 
 > Note that the commands executed in a subshell, so the current directory didn't change in the parent process.  This can be useful in a script when needing to frequently change directories, although some purists don't like to spawn a subshell (also, there's [pushd and popd]).
 
-You could run a command group in a subshell with its own environment**\***:
+You could run a command group in a subshell with its own environment\*:
 
-		COMMAND1
-		COMMAND2
-		COMMAND3
-		(
-		  IFS=:
-		  PATH=/bin
-		  unset TERMINFO
-		  set -C
-		  shift 5
-		  COMMAND4
-		  COMMAND5
-		  exit 3 # Only exits the subshell!
-		)
-		# The parent shell has not been affected, and the environment is preserved.
-		COMMAND6
-		COMMAND7
+	COMMAND1
+	COMMAND2
+	COMMAND3
+	(
+	  IFS=:
+	  PATH=/bin
+	  unset TERMINFO
+	  set -C
+	  shift 5
+	  COMMAND4
+	  COMMAND5
+	  exit 3 # Only exits the subshell!
+	)
+	# The parent shell has not been affected, and the environment is preserved.
+	COMMAND6
+	COMMAND7
 
 **\*** Example taken from http://tldp.org/LDP/abs/html/subshells.html
 
@@ -295,26 +334,30 @@ Bash has a builtin pseudo-device file, `/dev/tcp`, which creates a `TCP` connect
 
 Get a web page:
 
-		exec 5<> /dev/tcp/www.benjamintoll.com/80
-		echo -e "GET / HTTP/1.0\n" >&5
-		cat <&5 > index.html
-		exec 5<&-
+```
+$ exec 5<> /dev/tcp/www.benjamintoll.com/80
+$ echo -e "GET / HTTP/1.0\n" >&5
+$ cat <&5
+$ exec 5<&-
+```
 
 This is mostly the same as:
 
-		curl -O www.benjamintoll.com/index.html
+	curl -O www.benjamintoll.com/index.html
 
 Get headers:
 
-		exec 5<> /dev/tcp/www.benjamintoll.com/80
-		echo -e "GET / HTTP/1.0\n" >&5
-		cat <&5
-		exec 5<&-
+```
+$ exec 5<> /dev/tcp/www.benjamintoll.com/80
+$ echo -e "GET / HTTP/1.0\n" >&5
+$ cat <&5
+$ exec 5<&-
+```
 
 Emulate a ping:
 
-		echo "HEAD / HTTP/1.0" > /dev/tcp/chomsky/80
-		echo $?
+	echo "HEAD / HTTP/1.0" > /dev/tcp/chomsky/80
+	echo $?
 
 Etc.
 
@@ -330,27 +373,27 @@ The `set` command enables or disables options within a script, shell or Bash fil
 
 To enable:
 
-		set -o verbose
-		or
-		set -v
+	set -o verbose
+	or
+	set -v
 
 To disable:
 
-		set +o verbose
-		or
-		set +v
+	set +o verbose
+	or
+	set +v
 
 Here are some other ways to set options:
 
 - After the [shebang]:
 
-		#!/bin/bash -v
+        #!/bin/bash -v
 
 - When invoking a script:
 
-		$ bash -v script_name
-		or
-		$ bash -o verbose script_name
+        $ bash -v script_name
+        or
+        $ bash -o verbose script_name
 
 [Bash shell]: https://en.wikipedia.org/wiki/Bash_(Unix_shell)
 [worth studying]: /2018/02/20/on-learning/
