@@ -7,9 +7,9 @@ date = "2021-04-18T23:33:04-04:00"
 This is the first article in a two-part series:
 
 1. Classful Networks
-1. Classless Networks
+1. [Classless Networks]
 
-> This article talks about the first architectural version of network addressing that was in use between 1981-1993.  Even though the subject of this post is outdated, I believe it's necessary to understand classful networks and their limitations to be able to fully appreciate and understand CIDR (Classless Inter-Domain Routing), which is covered in the next article.
+> This article talks about the first architectural version of network addressing that was in use between 1981-1993.  Even though the subject of this post is outdated, I believe it's necessary to understand classful networks and their limitations to be able to fully appreciate and understand CIDR (Classless Inter-Domain Routing), which is covered in the [next article].
 
 ---
 
@@ -329,7 +329,7 @@ So, at first classful networks seemed like a great idea, but two major flaws soo
 1. It doesn't scale.
 1. It doesn't allow for route aggregation.
 
-In the next thrilling episode, we'll see how the [IETF] attempted to solve these problems.
+In the [next thrilling episode], we'll see how the [IETF] attempted to solve these problems.
 
 ---
 
