@@ -181,7 +181,7 @@ def breadth_first_search(root):
     queue = [root]
     visited = []
 
-    while len(queue):
+    while queue:
         node = queue.pop()
         visited.append(node.value)
 
@@ -216,7 +216,7 @@ def depth_first_search(root):
     stack = [root]
     visited = []
 
-    while len(stack):
+    while stack:
         node = stack.pop()
         visited.append(node.value)
 
