@@ -128,22 +128,21 @@ class Node:
 class Tree:
     def __init__(self, nodelist):
         self.nodes = nodelist[::]                                               (1)
+        self.root = None
         self.make_tree()
 
     def display(self):                                                          (2)
         print(self.nodes)
 
     def get_root(self):
-        return self.nodes[0]
+        return self.root
 
     def make_tree(self):
+        # Root must call Node, all other parents will already
+        # have been instanced and can just be looked-up.
+        self.nodes[0] = self.root = Node(self.nodes[0])
         for i in range(len(self.nodes) // 2):                                   (3)
-            # Root must call Node, all other parents will already
-            # have been instanced and can just be looked-up.
-            if i == 0:
-                self.nodes[i] = parent = Node(self.nodes[i])
-            else:
-                parent = self.nodes[i]
+            parent = self.nodes[i]
             self.nodes[2*i+1] = parent.left = Node(self.nodes[2*i+1])           (4)
             if 2*i+2 < len(self.nodes):
                 self.nodes[2*i+2] = parent.right = Node(self.nodes[2*i+2])
