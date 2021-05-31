@@ -130,6 +130,22 @@ The last call to `lsof` shows that the file descriptor was indeed closed as the 
 
 > Bash can use UDP sockets as well.
 
+Of course, it's possible to open a socket to anything that has a valid domain or IP address:
+
+```
+$ exec 9</dev/tcp/benjamintoll.com/80
+$ echo -e "HEAD /^C
+$ echo -e "HEAD / HTTP/1.0\n" >&9
+$ cat <&9
+[snipped]
+$
+$ exec 9</dev/tcp/52.149.246.39/80
+$ echo -e "HEAD / HTTP/1.0\n" >&9
+$ cat <&9
+[snipped]
+$ exec 9<&-
+```
+
 ---
 
 There are clearly easier ways to make socket connections: `wget`, `curl`, `ncat` and `socat` are just a few that come to mind.  Also, allowing Bash to make socket connections may violate your security policy and may need to be locked down depending on if the machine is single or multi-user.
