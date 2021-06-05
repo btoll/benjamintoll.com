@@ -73,7 +73,7 @@ I now conclude this conclusion.
 
 [off-by-one errors]: https://en.wikipedia.org/wiki/Off-by-one_error
 [Need to reverse something]: /2021/05/23/on-reversing-things/
-[learning should be considered a sport]: https://www.geeksforgeeks.org/competitive-programming-a-complete-guide/
+[learning should be considered a sport]: https://en.wikipedia.org/wiki/Competitive_programming
 [`howto-algorithm`]: https://github.com/btoll/howto-algorithm
 [So it goes]: https://www.goodreads.com/questions/251943-what-does-so-it-goes-mean-the-narrator
 
