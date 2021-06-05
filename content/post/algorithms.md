@@ -25,8 +25,6 @@ In retrospect, they were easy to catch.  For example, I found that doing any sor
 
 Now, unless I've already done the problem many times, I don't go near a keyboard until I've written down the code on paper.  And note that I said code, not pseudocode.  Yes, all the braces and brackets and colons that are needed for it to be a complete, running program.
 
-Weeeeeeeeeeeeeeeeeeeeeeeee!
-
 # Don't Memorize
 
 Maybe in the beginning, upon first exposure, it's ok to memorize a solution, but it won't get you far.  I found myself doing this at first, and I quickly got myself more confused as I would try to solve a problem from memory rather than through logic.  It's the latter that's the muscle that needs worked and improved.
@@ -55,9 +53,7 @@ I have mixed feelings on the coding challenge sites that exist.  On the one hand
 
 It's good to have some idea of what the industry considers an "easy", "medium" and "hard" question, but I certainly don't think that [learning should be considered a sport].
 
-Just as with any industry, there are a lot of turds floating around.  Ignore them and their insecurities, keep your focus and remember who you are.  If I can get better at algorithms, anyone can, and that means you!  Yeah!
-
-Weeeeeeeeeeeeeeeeeeeeeeeee!
+Here's a novel idea:  learning is its own reward.
 
 # Conclusion
 
@@ -66,6 +62,8 @@ At first, my main goal was to build my confidence when faced with problems that 
 One nice side effect of all of this was not worrying as much about interviews.  I may not know every problem, but I can reason through many and even have something to say about the ones that I don't understand.  Programming is hard, and no one can be expected to get everything right all of the time.
 
 I have a repository that is a dumping ground for algorithms and data structures, [`howto-algorithm`].  There's no rhyme or reason to it, though, and I'm afraid there's not much documentation or links.  [So it goes].
+
+Finally, just as with any industry, there are a lot of turds floating around.  Ignore them and their insecurities, keep your focus and remember who you are.  If I can get better at algorithms, anyone can, and that means you!  Yeah!
 
 I now conclude this conclusion.
 
