@@ -10,7 +10,7 @@ In this post, we'll be looking at a quite common problem that seems to be featur
 
 It seems to be marked as an "easy" problem on every site, but I didn't think it was so easy.  The whole ranking thing is mostly bollocks anyway.  [Everyone learns differently].
 
-Anyway, my eyes glaze over when I encounter a matrix question, and I'll more often than not skip to another question.  And that's not good.  I need to tackle my irrational fear of two-dimensional arrays.  And, on a side note, what a completely idiotic thing to fear.  Seriously.
+Anyway, my eyes glaze over when I encounter a matrix question, and I'll more often than not skip to another question.  And that's not good.  I need to tackle my irrational fear of two-dimensional arrays.  And, on a side note, what a completely idiotic thing to fear.
 
 - [Setup](#setup)
 - [Implementation](#implementation)
@@ -127,7 +127,7 @@ def make_matrix(rows):
 >
 > I'm sure you can guess my opinion.  If you're unsure about how to implement any of these yourself, don't use this package or any other until you understand what your code is doing.
 
-And here's one way to rotate the matrix 90&#176; (there are others, of course):
+And here's one way to rotate the matrix 90&#176; clockwise (there are others, of course):
 
 <pre class="math">
 def rotate(matrix):
@@ -217,7 +217,7 @@ for n in range(3, 6):
 +------------------------+              +------------------------+
 </pre>
 
-Ever since I was a little kid, I've loved patterns.  Little did I know that that would prove to be an invaluable quality later in my second act as a programmer.  We can look at the patterns in the data grids above to perhaps glean some insights into what is happening.
+Ever since I was a little kid, I've loved patterns.  Little did I know that that would prove to be an invaluable quality later in my second act as a programmer.  We can look at the patterns in the data grids above to perhaps glean some insights into what is happening.  And these patterns are occurring because the data is sequential.
 
 For instance, note that the transposition for each row increases in direct relation to the `N` size of the grid.  Just for fun, let's look at how we can use this knowledge to do the transposition in a different way:
 
@@ -244,7 +244,7 @@ Notes:
 1. The `length` is one-based, so we need to subtract one to prevent any out-of-bounds errors!
 1. Simply add the `length` to each previous value for all the cells in the row.  Again, this works because the matrix values are a sequence which we can leverage using the `length` value.
 
-We can probably lose the first `for` loop, though.  After all, we already have the information needed to initiate the first value of each row by looking at the `length` property, which is a sequence.
+We can probably lose the first `for` loop, though.  Since the data is a [sequence], we already have the information needed to initiate the first value of each row by looking at the `length` property.
 
 <pre class="math">
 def transpose(length):                      (1)
@@ -282,9 +282,9 @@ def transpose(matrix):                      (1)
 
 Notes:
 
-1. Again, we're passing in the existing `matrix`.
+1. We're back to passing in the existing `matrix`.
 1. Seed each row with its initial value, which will be the next subsequent value in the sequence.  We add one because the `for` loop is zero-based (which can be changed obviously and is just an implementation detail).
-1. Since the length of the matrix is the same as that of each of its rows (i.e., `matrix[0]`, `matrix[1]`, etc.), we just re-using the `length` variable here instead of calculating the length of each `row`.
+1. Since the length of the matrix is the same as that of each of its rows (i.e., `matrix[0]`, `matrix[1]`, etc.), we just re-use the `length` variable here instead of calculating the length of each `row`.
 1. Add the previous value in the row to the `length`.
 
 Lastly, if we wanted to be cheeky, we could now rewrite the `rotate` function to use this new `transpose` helper function:
@@ -400,12 +400,17 @@ We're now heading down the path towards [functional programming].  We've separat
 
 > It's good to isolate parts of a program to see what each little fella is doing.  After all, it's not pre-ordained that this stuff will be fully understood without first exercising a bit of [freewill].
 
+# Conclusion
+
+This has now become longer than I originally intended, so I think I'll put my pencil down and tie a bow on this one.  More could be said, and if I'm so inclined I'll revisit this and update it.
+
 [in-place]: https://en.wikipedia.org/wiki/In-place_algorithm
 [Cracking the Coding Interview]: https://www.crackingthecodinginterview.com/
 [Everyone learns differently]: /2021/06/04/on-algorithms/
 [`numpy`]: https://numpy.org/
 [an exercise in self-indulgence]: https://www.youtube.com/watch?v=PWue-XcFFxw
 [before and after]: https://www.youtube.com/watch?v=IK37o2F0cyc
+[sequence]: https://en.wikipedia.org/wiki/Sequence
 [functional programming]: https://en.wikipedia.org/wiki/Functional_programming
 [arity]: https://en.wikipedia.org/wiki/Arity
 [freewill]: https://www.youtube.com/watch?v=urBpdyFCZmo

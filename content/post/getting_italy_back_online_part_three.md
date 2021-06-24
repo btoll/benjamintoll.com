@@ -30,7 +30,7 @@ Grab a nice [tea] or coffee and let's get started!
 
 To begin, I first need to generate the certificate that proves the ownership of the public key and thus my server.  Let's Encrypt makes it painless to do this; it works with most (all?) popular web servers and only needs port 80 to be exposed and accessible on the host.  I'm containerizing the temporary nginx web server and the `certbot` agent that issues the commands.
 
-So, how does it work?  In brief, `certbot` needs permissions to be able to write a file to the public document root.  Let's Encrypt will issue a token, and then `certbot` create a file and append the token to this page.  Here is the location:
+So, how does it work?  In brief, `certbot` needs permissions to be able to write a file to the public document root.  Let's Encrypt will issue a token, and then `certbot` will create a file and append that token to the page.  Here is the location:
 
 `http://<YOUR_DOMAIN>/.well-known/acme-challenge/<TOKEN>`
 
@@ -52,13 +52,16 @@ services:
       - $HOME/certbot/www:/usr/share/nginx/html
 </pre>
 
-> Note that it's not necessary to mount a volume to the public root where files are served by the web server as long as the permissions allow `certbot` to write to it.  If you receive an error such as the following, then either mount a volume where the permissions are correctly set or otherwise `chmod` the `/usr/share/nginx/html` directory.
+> Note that it's not necessary to mount a volume to the public root where files are served by the web server as long as the permissions allow `certbot` to write to it.
+>
+> If you receive an error such as the following, then either mount a volume where the permissions are correctly set or otherwise `chmod` the `/usr/share/nginx/html` directory.
 >
 >       IMPORTANT NOTES:
 >        - The following errors were reported by the server:
 >
 >          Domain: benjamintoll.com
 >          Type:   unauthorized
+>          ...
 
 ---
 
@@ -144,7 +147,7 @@ echo "EMAIL:   $EMAIL"
 echo "DRYRUN:  $DRYRUN"
 echo -------------------------------
 
-mkdir -p letsencrypt/{dh-param,etc,var/{lib,log}}
+mkdir -p letsencrypt/{etc,var/{lib,log}}
 
 docker-compose up -d
 
@@ -484,12 +487,9 @@ $ tree -L 2
 │   ├── create_cert.sh
 │   ├── dh-param
 │   ├── docker-compose.yml
-│   ├── docker-compose.yml.bk
-│   ├── docker-compose.yml.orig
 │   ├── etc
 │   ├── letsencrypt-site
 │   ├── nginx.conf
-│   ├── tmp
 │   ├── var
 │   └── www
 ├── dh-param
@@ -519,13 +519,15 @@ Looks like I'm all donzo.
 
 # Conclusion
 
-In conclusion, this is the conclusion of this fantastically informative article.
+In conclusion, this is the conclusion of this fantastically informative article.  In a future article, we'll look at how to take the multi-container Italian Dictionary app and deploy it in a Kubernetes cluster.
 
 Okey-dokey and ciao tutti.
 
 # References
 
 - [How to Set Up Free SSL Certificates from Let's Encrypt using Docker and Nginx](https://www.humankode.com/ssl/how-to-set-up-free-ssl-certificates-from-lets-encrypt-using-docker-and-nginx)
+- [SSL Labs - SSL Server Test](https://www.ssllabs.com/ssltest/)
+- [Security Headers](https://securityheaders.com/)
 
 [in the series]: /2021/03/13/on-getting-italy-back-online-part-one/
 [Italian Dictionary website]: https://italy.benjamintoll.com/
