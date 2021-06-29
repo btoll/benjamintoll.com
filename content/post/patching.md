@@ -1,69 +1,10 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.58.0" />
++++
+title = "On Patching"
+date = "2019-06-16T21:54:25-04:00"
 
++++
 
-<title>On Patching - benjamintoll.com</title>
-<meta property="og:title" content="On Patching - benjamintoll.com">
-
-
-
-  
-
-
-
-
-
-
-<link rel="stylesheet" href="/css/main.css" media="all">
-<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Merriweather:400|Lato:400,400italic,700">
-
-  </head>
-  <body>
-    <div class="wrapper">
-      <header class="header">
-        <nav class="nav">
-  <a href="/" class="nav-logo">
-    <img src="/images/pete.jpeg" 
-         width="50" 
-         height="50" 
-         alt="I am Pete">
-  </a>
-
-  <ul class="nav-links">
-    
-    <li><a href="/">Blog</a></li>
-    
-    <li><a href="/contact/">Contact</a></li>
-    
-    <li><a href="/links/">Links</a></li>
-    
-  </ul>
-</nav>
-
-      </header>
-
-
-<main class="content" role="main">
-
-  <article class="article">
-    
-    <span class="article-duration">6 min read</span>
-    
-
-    <h1 class="article-title">On Patching</h1>
-
-    
-    <span class="article-date">June 16, 2019</span>
-    
-
-    <div class="article-content">
-      
-
-<p>One of the simple pleasures in life is patching code.  Most days, it&rsquo;s done using <a href="https://git-scm.com/">Git</a>, but sometimes I still do it the old-fashioned way.  In fact, I used the our old friend <a href="https://linux.die.net/man/1/patch"><code>patch</code></a> just the other day.  Weeeeeeeeeeeeeeeeeeeeeeeeee</p>
+<p>One of the simple pleasures in life is patching code.  Most days, it&rsquo;s done using <a href="https://git-scm.com/">Git</a>, but sometimes I still do it the old-fashioned way.  In fact, I used our old friend <a href="https://linux.die.net/man/1/patch"><code>patch</code></a> just the other day.  Weeeeeeeeeeeeeeeeeeeeeeeeee</p>
 
 <blockquote>
 <p>I&rsquo;ll be using &ldquo;patch&rdquo; interchangeably as both the <code>patch</code> tool and as the set of changes provided by a <code>diff</code> tool.</p>
@@ -255,28 +196,4 @@ $ patch -R &lt; foo.patch
 <ul>
 <li><a href="https://www.computerhope.com/unix/udiff.htm">Linux diff command</a></li>
 </ul>
-
-    </div>
-  </article>
-
-  
-
-</main>
-
-      <footer class="footer">
-        <ul class="footer-links">
-          <li>
-            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
-          </li>
-          <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
-          </li>
-        </ul>
-      </footer>
-
-    </div>
-
-    
-  </body>
-</html>
 
