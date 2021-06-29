@@ -1,73 +1,12 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.58.0" />
++++
+title = "On Escaping a Chroot"
+date = "2019-05-18T21:54:25-04:00"
 
++++
 
-<title>On Escaping a Chroot - benjamintoll.com</title>
-<meta property="og:title" content="On Escaping a Chroot - benjamintoll.com">
+> This post builds upon some topics that I've previously covered, specifically bits of [On Running a Tor Onion Service in a Chroot] and [On Stack Smashing, Part Two].
 
-
-
-  
-
-
-
-
-
-
-<link rel="stylesheet" href="/css/main.css" media="all">
-<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Merriweather:400|Lato:400,400italic,700">
-
-  </head>
-  <body>
-    <div class="wrapper">
-      <header class="header">
-        <nav class="nav">
-  <a href="/" class="nav-logo">
-    <img src="/images/pete.jpeg" 
-         width="50" 
-         height="50" 
-         alt="I am Pete">
-  </a>
-
-  <ul class="nav-links">
-    
-    <li><a href="/">Blog</a></li>
-    
-    <li><a href="/contact/">Contact</a></li>
-    
-    <li><a href="/links/">Links</a></li>
-    
-  </ul>
-</nav>
-
-      </header>
-
-
-<main class="content" role="main">
-
-  <article class="article">
-    
-    <span class="article-duration">6 min read</span>
-    
-
-    <h1 class="article-title">On Escaping a Chroot</h1>
-
-    
-    <span class="article-date">May 18, 2019</span>
-    
-
-    <div class="article-content">
-      
-
-<blockquote>
-<p>This post builds upon some topics that I&rsquo;ve previously covered, specifically bits of <a href="/2018/04/06/on-running-a-tor-onion-service-in-a-chroot/"><code>On Running a Tor Onion Service in a Chroot</code></a> and <a href="/2019/04/10/on-stack-smashing-part-two/"><code>On Stack Smashing, Part Two</code></a>.</p>
-</blockquote>
-
-<p>For years I&rsquo;ve heard how a <a href="https://en.wikipedia.org/wiki/Chroot">chroot</a> isn&rsquo;t secure and is trivial to escape.  However, I never looked into it until recently.</p>
+For years I've heard how a [chroot] isn't secure and is trivial to escape.  However, I never looked into it until recently.
 
 <blockquote>
 <p>Note that I&rsquo;m not speaking of <a href="https://en.wikipedia.org/wiki/FreeBSD_jail">BSD jails</a> or <a href="https://en.wikipedia.org/wiki/LXC">Linux containers</a>, which are much more secure.</p>
@@ -294,27 +233,7 @@ cwd is /
 <li><a href="https://github.com/earthquake/chw00t">chw00t: chroot escape tool</a></li>
 </ul>
 
-    </div>
-  </article>
-
-  
-
-</main>
-
-      <footer class="footer">
-        <ul class="footer-links">
-          <li>
-            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
-          </li>
-          <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
-          </li>
-        </ul>
-      </footer>
-
-    </div>
-
-    
-  </body>
-</html>
+[On Running a Tor Onion Service in a Chroot]: /2018/04/06/on-running-a-tor-onion-service-in-a-chroot/
+[On Stack Smashing, Part Two]: /2019/04/10/on-stack-smashing-part-two/
+[chroot]: https://en.wikipedia.org/wiki/Chroot
 
