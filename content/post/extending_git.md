@@ -1,67 +1,8 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.58.0" />
++++
+title = "On Extending Git"
+date = "2019-07-05T21:54:25-04:00"
 
-
-<title>On Extending Git - benjamintoll.com</title>
-<meta property="og:title" content="On Extending Git - benjamintoll.com">
-
-
-
-  
-
-
-
-
-
-
-<link rel="stylesheet" href="/css/main.css" media="all">
-<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Merriweather:400|Lato:400,400italic,700">
-
-  </head>
-  <body>
-    <div class="wrapper">
-      <header class="header">
-        <nav class="nav">
-  <a href="/" class="nav-logo">
-    <img src="/images/pete.jpeg" 
-         width="50" 
-         height="50" 
-         alt="I am Pete">
-  </a>
-
-  <ul class="nav-links">
-    
-    <li><a href="/">Blog</a></li>
-    
-    <li><a href="/contact/">Contact</a></li>
-    
-    <li><a href="/links/">Links</a></li>
-    
-  </ul>
-</nav>
-
-      </header>
-
-
-<main class="content" role="main">
-
-  <article class="article">
-    
-    <span class="article-duration">3 min read</span>
-    
-
-    <h1 class="article-title">On Extending Git</h1>
-
-    
-    <span class="article-date">July 5, 2019</span>
-    
-
-    <div class="article-content">
-      
++++
 
 <p>One of my favorite things to do is automate my workflows.  When it comes to version control, <a href="https://git-scm.com/">Git</a> makes this extremely easy to do by allowing it to be extended.</p>
 
@@ -183,28 +124,4 @@ Benjamin Toll &lt;benjam72@yahoo.com&gt;
 <li><a href="https://www.atlassian.com/git/articles/extending-git">Extending git</a></li>
 <li><a href="http://linuxfocus.org/English/November2003/article309.shtml">Writing man-pages</a></li>
 </ul>
-
-    </div>
-  </article>
-
-  
-
-</main>
-
-      <footer class="footer">
-        <ul class="footer-links">
-          <li>
-            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
-          </li>
-          <li>
-            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" width="22" height="22"></a>
-          </li>
-        </ul>
-      </footer>
-
-    </div>
-
-    
-  </body>
-</html>
 
