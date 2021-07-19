@@ -12,13 +12,15 @@ Of course, this is a work in progress...
 - Do what scares you.
 - Read books.
 - Question everything.
+- And think for yourself.
 - Be skeptical of authority.
 
 ### About computers and programming.
 
 - Remember your ABCs (Always Be Coding)!
-- Read source code and man pages and RFCs and docs.
+- Read source code and man pages and RFCs and docs and papers.
 - Use the command line.
+- Study data structures and algorithms.
 - Learn a systems programming language (if a frontend developer).
 - Get to know your tools intimately.
 - Know Unix.
