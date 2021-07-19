@@ -8,6 +8,13 @@ date = "2021-05-10T11:55:04-04:00"
 
 - the smartphone
 - social media
+- titles
+    + some of my favorites
+        - \* engineer
+        - entrepreneur
+        - serial entrepreneur
+        - software craftsman
+        - thought leader
 
 # 20<sup>th</sup> Century
 
@@ -15,4 +22,8 @@ date = "2021-05-10T11:55:04-04:00"
 - Steve Jobs
 - Mark Zuckerberg
 - animated GIFs
+
+---
+
+Leave a comment below if you disagree!
 
