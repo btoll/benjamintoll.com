@@ -36,6 +36,7 @@ It's a small list, as favorites can be, and I may add to it in time.
 
 ### Systems
 
+- [Nmap Network Scanning](https://nmap.org/book/)
 - [TCP/IP Illustrated](https://en.wikipedia.org/wiki/TCP/IP_Illustrated)
 
 [library at college]: https://library.unm.edu/about/libraries/zim.php
