@@ -25,6 +25,12 @@ So Docker?  Unless I'm missing something, they've just been successful at market
 In this article, we're going to look at one particular container technology built into [systemd] called [systemd-nspawn].  `systemd` is an [init system] that has been widely adopted by many Linux distributions, so the chances are very good that you already have it installed (because you are using Linux, right?).  And, if not, it's just an install away.
 
 > `systemd` has been highly controversial within the Linux community.  I'm not going to get into it here, but long story short, many people feel that it doesn't subscribe to [the Unix philosophy].  I think they have a good point, and if you're not using `systemd`, I don't know if you need to download the entire package just to be able to use the container utilities of which I'm speaking here.  You may be able to get away with just downloading the `systemd-container` package.  I really don't know, but I suspect not, which would understandably turn some people off.
+>
+> See these "discussions" to get a sense of how things were going:
+>
+> - [Linus Brings Down the Hammer](https://lkml.org/lkml/2014/4/2/420)
+> - [Bug Report](https://bugs.freedesktop.org/show_bug.cgi?id=76935)
+> - [SystemD bugs - Pwnies](https://pwnies.com/systemd-bugs/)
 
 `systemd-nspawn` is a utility that ships with `systemd`, so most Linux users will have it "out-of-the-box" with most standard installations (if not present on your system, simply download the `systemd-container` package).  This is the utility that allows you to spawn containers.  The [`machinectl`] utility will also be a part of the `systemd-container` package, and this will enable you to manage your containers via a simple inteface (although everything can be done using `systemd-nspawn`).
 
@@ -81,7 +87,7 @@ You can tell `debootstrap` to simply download the `deb` packages without install
 	debootstrap --arch=amd64 --variant=buildd --include=vim,curl,git --make-tarball=stretch-buildd_vim-curl-git.tgz stretch foo
 	et al.
 
-> Note that when using `debootstrap` to create an archive the command still needs a location, even though we're not actually installing anything.  In this case, I just made an empty directory `foo` which allows me to run the command.
+> Note that when using `debootstrap` to create an archive the command still needs a location, even though we're not actually installing anything.  It's not even necessary to create the directory, just give it any name (like `foo`).
 
 This will allow me to point the installation at the archive rather than downloading them via HTTP, allowing me to save precious bits.  You could also place these archives on a local network drive which would be save not only bandwidth but time.
 
@@ -148,6 +154,11 @@ You should have seen `init` start and bootstrap the userspace, which then dumps 
 	trout login:
 
 Ruh roh, we don't have a login!  That's ok, we'll just create one.  Press `Ctrl-]]]` to exit the container and then spawn the container without the boot option, `-b`.
+
+> If you get the following error when attempting to boot into the container, it's because an init system hasn't been installed in it:
+>
+>     execv(/usr/lib/systemd/systemd, /lib/systemd/systemd, /sbin/init) failed: No such file or directory
+>
 
 At the prompt, use `passwd` to set a root password.  I suggest [12345].  Now, if you spawn the container with the boot option, you can login.
 
@@ -226,6 +237,10 @@ How do you import a container?  Like this:
 That one is taken from the [`machinectl` man page].  As you can see, pretty standard stuff and what one would expect from a utility to manage containers.
 
 I just ran out of steam.  I'll be updating this as I learn more about `systemd-nspawn` and `machinectl`.  In the meantime, read the man pages, explore and have fun!
+
+## References
+
+- [systemd-nspawn](https://wiki.archlinux.org/title/systemd-nspawn)
 
 [chroots]: http://man7.org/linux/man-pages/man2/chroot.2.html
 [have written about them]: /2018/04/06/on-running-a-tor-onion-service-in-a-chroot/
