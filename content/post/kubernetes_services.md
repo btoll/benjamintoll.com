@@ -174,11 +174,6 @@ The [NodePort] Service is exposed on each [Node] at a static port.  So, all work
 
 I'll usually create a NodePort Service when I need to contact the Pods from outside of the cluster on a local LAN or even my development machine, since it's simpler than port forwarding to a specific Pod when only using the ClusterIP Service.  Also, the ReplicaSet will ensure that the desired state of Pods is fulfilled, so routing through a Node is much safer in case one or more of the Pods go down and are replaced by others with a different name.
 
-```
-$ kubectl expose deployment benjamintoll --type=NodePort --name=benjamintoll
-$ kubectl get svc benjamintoll -oyaml > node_port.yaml
-```
-
 > If you want to understand the syntax and contents of a NodePort Service, a neat trick is to create the deployment and then expose the Service using `kubectl`.  Then get the Service and redirect to a `yaml` file.  Note that Kubernetes will add a lot of information to the resource that usually isn't present when defining by hand.
 >
 >       $ kubectl expose deployment benjamintoll --type=NodePort --name=benjamintoll
@@ -241,7 +236,7 @@ $ for ip in $(kubectl get no -o jsonpath='{.items[1:].status.addresses[0].addres
 Or:
 
 ```
-for ip in $(kubectl get no -owide --no-headers | awk '{ if (NR!=1) { print $6 }}')
+$ for ip in $(kubectl get no -owide --no-headers | awk '{ if (NR!=1) { print $6 }}')
 > do
 > x-www-browser $ip:31117
 > done
