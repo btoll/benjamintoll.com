@@ -1,7 +1,7 @@
 BaseURL = "/"
 languageCode = "en-us"
 title = "benjamintoll.com"
-theme = "lithium"
+theme = "hugo-lithium-theme"
 
 [markup]
 	[markup.goldmark]
@@ -24,6 +24,7 @@ theme = "lithium"
 
 [params]
     description = "benjamintoll.com"
+    minimal = false
 
     [params.logo]
     url = "pete.jpeg"
