@@ -25,7 +25,7 @@ RUN chmod 600 /test-key && \
         echo "IdentityFile /test-key"; \
         echo "StrictHostKeyChecking no"; \
     } >> /etc/ssh/ssh_config && \
-    git clone git@github.com:btoll/private.git
+    git clone git@github.com:btoll/private-repo.git
 
 RUN rm test-key
 </pre>
@@ -42,9 +42,9 @@ Step 2/5 : RUN apk add --no-cache openssh-client git
  ---> d8836283df88
 Step 3/5 : COPY test-key /
  ---> 361abf16c6cc
-Step 4/5 : RUN chmod 600 /test-key &&     {         echo "IdentityFile /test-key";         echo "StrictHostKeyChecking no";     } >> /etc/ssh/ssh_config &&     git clone git@github.com:btoll/private.git
+Step 4/5 : RUN chmod 600 /test-key &&     {         echo "IdentityFile /test-key";         echo "StrictHostKeyChecking no";     } >> /etc/ssh/ssh_config &&     git clone git@github.com:btoll/private-repo.git
  ---> Running in 6fc40b60a171
-Cloning into 'private'...
+Cloning into 'private-repo'...
 Warning: Permanently added 'github.com,140.82.113.3' (RSA) to the list of known hosts.
 Removing intermediate container 6fc40b60a171
  ---> a1a757aaf720
@@ -156,10 +156,10 @@ FROM alpine
 
 RUN apk add --no-cache openssh-client git
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN --mount=type=ssh git clone git@github.com:btoll/private.git
+RUN --mount=type=ssh git clone git@github.com:btoll/private-repo.git
 </pre>
 
-Note that only the `RUN` commands that have explicitly mounted as `type=ssh` have access to the forwarded agent.  The other `RUN` commands aren't aware of the SSH agent and are merrily going about their little lives in blissful ignorance.  This syntax will set up the `SSH_AUTH_SOCK` environment variable, which contains the location of the Unix-domain socket that the agent uses in communication with other processes.
+Note that only the `RUN` commands that have explicitly mounted as `type=ssh` have access to the forwarded agent.  The other `RUN` commands aren't aware of the SSH agent and are merrily going about their little lives in blissful ignorance.  This syntax will set up the `SSH_AUTH_SOCK` environment variable, which contains the location of the [Unix domain socket] that the agent uses in communication with other processes.
 
 Let's now build the image with the `--ssh` option to allow for the SSH connectivity via the agent.  First, make sure that the SSH agent on the host has been started and the private key added to it via the `ssh-add` command (use `ssh-add -l` to list the fingerprints currently known to the agent):
 
@@ -186,16 +186,16 @@ $ DOCKER_BUILDKIT=1 docker build -t test --ssh default .
  => => extracting sha256:540db60ca9383eac9e418f78490994d0af424aab7bf6d0e47ac8ed4e2e9bcbba                                                                              0.1s
  => [2/4] RUN apk add --no-cache openssh-client git                                                                                                                    2.2s
  => [3/4] RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts                                                                                  0.6s
- => [4/4] RUN --mount=type=ssh git clone git@github.com:btoll/private.git                                                                                              1.0s
+ => [4/4] RUN --mount=type=ssh git clone git@github.com:btoll/private-repo.git                                                                                              1.0s
  => exporting to image                                                                                                                                                 0.2s
  => => exporting layers                                                                                                                                                0.1s
  => => writing image sha256:2514edbea523e05e44965e809d7cd23deb06a62e367f7f2fc0896a75854b986b                                                                           0.0s
  => => naming to docker.io/library/test                                                                                                                                0.0s
 ```
 
-The `--ssh` option allows the Docker Engine to [forward the SSH agent] connection into the container, obviating the need to physically copy the private key into the container.
+> In the example above, `--ssh default` denotes the default identity whose SSH key that must be represented in the SSH Agent.
 
-> For plain output, use the `--progress=plain` when building.
+The `--ssh` option allows the Docker Engine to [forward the SSH agent] connection into the container, obviating the need to physically copy the private key into the container.
 
 ```
 $ docker history test
@@ -210,8 +210,8 @@ IMAGE          CREATED          CREATED BY                                      
 And we can see that there's only one layer.  Nice!  But, did it work?
 
 ```
-$ docker run --rm -it test stat private
-  File: private
+$ docker run --rm -it test stat private-repo
+  File: private-repo
   Size: 4096            Blocks: 8          IO Block: 4096   directory
 Device: 92h/146d        Inode: 1721696     Links: 6
 Access: (0755/drwxr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root)
@@ -230,7 +230,7 @@ test         latest    2514edbea523   About a minute ago   23.6MB
 
 The images built from the two example Dockerfiles are the same size, but the second build is significantly better as it's simpler, has only one layer and doesn't leak any secrets.
 
-The second example involves other types of secrets, such as files that contain login credentials.
+The second example involves other types of secrets, such as files that contain login credentials and certificates.
 
 ### `--secret` option
 
@@ -246,7 +246,11 @@ RUN --mount=type=secret,id=mysecret cat /run/secrets/mysecret
 RUN --mount=type=secret,id=mysecret,dst=/foobar cat /foobar
 </pre>
 
+Create the secret and build the image (using plain output, i.e., `--progress=plain`):
+
 ```
+$ echo THIS IS A SECRET > mysecret.txt
+$
 $ DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain \
 > --secret id=mysecret,src=mysecret.txt -t test .
 #1 [internal] load build definition from Dockerfile
@@ -302,6 +306,8 @@ $ docker run --rm -it ff6 stat /foobar
 stat: can't stat '/foobar': No such file or directory
 ```
 
+> If you're not seeing your secret, ensure that the `--no-cache` flag is part of your `docker build` command.
+
 Nope, it's not there!  [Kool Moe Dee].
 
 Of course, we suspected as much because the `/run` directory is a [`tmpfs`] filesystem:
@@ -349,6 +355,7 @@ The end.
 [`tmpfs`]: https://en.wikipedia.org/wiki/Tmpfs
 [Filesystem Hierarchy Standard]: https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
 [In the official docs]: https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information
+[Unix domain socket]: https://en.wikipedia.org/wiki/Unix_domain_socket
 [forward the SSH agent]: https://www.ssh.com/academy/ssh/agent
 [Kool Moe Dee]: https://en.wikipedia.org/wiki/Kool_Moe_Dee
 [if this isn't nice, I don't know what is]: https://bookriot.com/kurt-vonnegut-quotes/
