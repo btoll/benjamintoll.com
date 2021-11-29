@@ -6,10 +6,13 @@ date = "2021-05-10T11:55:04-04:00"
 
 # 21<sup>st</sup> Century
 
+- agile software development
+- cloud computing
 - the smartphone
 - social media
 - titles
     + some of my favorites
+        - cloud architect
         - \* engineer
         - entrepreneur
         - serial entrepreneur
@@ -18,10 +21,12 @@ date = "2021-05-10T11:55:04-04:00"
 
 # 20<sup>th</sup> Century
 
-- Jeff Bezos
-- Steve Jobs
-- Mark Zuckerberg
-- animated GIFs
+- jeff bezos
+- steve jobs
+- mark zuckerberg
+- auto-tune
+- microsoft
+- animated gifs
 
 ---
 
