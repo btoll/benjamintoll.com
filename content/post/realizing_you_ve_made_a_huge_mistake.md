@@ -22,7 +22,7 @@ So, here is an unordered list of things that I absolutely can't stand.  Of cours
 
     Part of me expects this kind of asinine comment from a certain type of manager, but not from a fellow programmer.  As programmers, our domain area is the code.  We are its advocate.  Others in the organization advocate for different things, as they're supposed to.  So when programmers align themselves with other interests, ones that are usually at odds with ours, it's very disconcerting.
 
-    On a side not, if you've attempted to address technical debt on your own as you come across it and you're told in no uncertain terms that it's not appreciated and/or a "distraction" for the rest of the team, it's over, time to move on.
+    On a side note, if you've attempted to address technical debt on your own as you come across it and you're told in no uncertain terms that it's not appreciated and/or a "distraction" for the rest of the team, it's over, time to move on.
 
     This is related to...
 
@@ -68,7 +68,7 @@ So, here is an unordered list of things that I absolutely can't stand.  Of cours
 
 - **They're serious about Agile**
 
-    There's a scrum master with Post-It notes.  There are several meetings during the week that culminate with something called a Retrospective.  All your natural human instincts in your DNA cultivated of millions of years instructs you to laugh, but a quick look at the faces around the room tells you that this is all Very Serious Stuff.
+    There's a scrum master with Post-It notes.  There are several meetings during the week that culminate with something called a Retrospective.  All your natural human instincts in your DNA cultivated over millions of years instructs you to laugh, but a quick look at the faces around the room tells you that this is all Very Serious Stuff.
 
     Of course, everyone I've ever talked to hates Agile.  Some still cling to the idea that it's a great methodology, but it's just that no one is doing it right.
 
