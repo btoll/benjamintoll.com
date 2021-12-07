@@ -23,6 +23,7 @@ date = "2021-05-10T11:55:04-04:00"
 
 - jeff bezos
 - steve jobs
+- elon musk
 - mark zuckerberg
 - auto-tune
 - microsoft
