@@ -19,7 +19,7 @@ The `pre-commit` script (or any other one that is defined) would then iterate ov
 In the case of the `pre-commit` Git action, the tree directory structure would look like this:
 
 <pre class="math">
-$ tree <a href="https://github.com/btoll/git-init/tree/master/hooks">.git/hooks/</a>
+$ tree <a href="https://github.com/btoll/dotfiles/tree/master/git-hub/hooks">.git/hooks/</a>
 .git/hooks/
 ├── pre-commit
 └── pre-commit.d
@@ -269,11 +269,11 @@ I really like this approach, as it leverages Git's own tooling to determine the 
 [do only one thing and do it well]: https://en.wikipedia.org/wiki/Unix_philosophy
 [Junio Hamano]: https://simple.wikipedia.org/wiki/Junio_Hamano
 [section]: https://en.wikipedia.org/wiki/INI_file
-[`.git/hooks/`]: https://github.com/btoll/git-init/tree/master/hooks
+[`.git/hooks/`]: https://github.com/btoll/dotfiles/tree/master/git-hub/hooks
 [`git config`]: https://git-scm.com/docs/git-config
 [`saddle`]: https://github.com/btoll/saddle
 [Kool Moe Dee]: https://en.wikipedia.org/wiki/Kool_Moe_Dee
-[`pre-commit`]: https://github.com/btoll/git-init/blob/master/hooks/pre-commit
-[`pycodestyle.sh`]: https://github.com/btoll/git-init/blob/master/hooks/pre-commit.d/pycodestyle.sh
-[`pytest.sh`]: https://github.com/btoll/git-init/blob/master/hooks/pre-commit.d/pytest.sh
+[`pre-commit`]: https://github.com/btoll/dotfiles/blob/master/git-hub/hooks/pre-commit
+[`pycodestyle.sh`]: https://github.com/btoll/dotfiles/blob/master/git-hub/hooks/pre-commit.d/pycodestyle.sh
+[`pytest.sh`]: https://github.com/btoll/dotfiles/blob/master/git-hub/hooks/pre-commit.d/pytest.sh
 

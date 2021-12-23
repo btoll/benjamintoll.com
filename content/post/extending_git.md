@@ -91,7 +91,7 @@ Benjamin Toll &lt;benjam72@yahoo.com&gt;
 </ol>
 
 <blockquote>
-<p>I have a repo called <a href="https://github.com/btoll/git-init">git-init</a> where I&rsquo;ve collected all of my extensions, aliases and hooks.  Check out the <a href="https://github.com/btoll/git-init/blob/master/README.md">README</a> for examples!</p>
+<p>I've collected all of my extensions, aliases and hooks in my <a href="https://github.com/btoll/dotfiles/tree/master/git-hub">dotfiles repository</a>.  Check out the `README` for examples!</p>
 </blockquote>
 
 <h2 id="faves">Faves</h2>
@@ -99,20 +99,18 @@ Benjamin Toll &lt;benjam72@yahoo.com&gt;
 <p>I&rsquo;ll list some of my favorite Git extensions, ones that I use every single day.</p>
 
 <ul>
-<li><p><a href="https://github.com/btoll/git-init#git-bootstrap">git-bootstrap</a> - Open the files that make up a particular commit in Vim.</p></li>
+<li><p><a href="https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-bootstrap">git-bootstrap</a> - Open the files that make up a particular commit in Vim.</p></li>
 
-<li><p><a href="https://github.com/btoll/git-init#git-hub">git-hub</a> - Open any file, directory or commit on GitHub in regular view or blame view.</p></li>
+<li><p><a href="https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-hub">git-hub</a> - Open any file, directory or commit on GitHub in regular view or blame view.</p></li>
 
-<li><p><a href="https://github.com/btoll/git-init#git-introduced">git-introduced</a> - Find the commit(s) that introduced or removed a method or other search pattern.</p></li>
-
-<li><p><a href="https://github.com/btoll/git-init#git-ls">git-ls</a> - List the files that are staged and modified or that make up any given commit and optionally open in Vim for editing.</p></li>
+<li><p><a href="https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-ls">git-ls</a> - List the files that are staged and modified or that make up any given commit and optionally open in Vim for editing.</p></li>
 </ul>
 
 <p>Click through to see examples for each one.</p>
 
 <h2 id="installation">Installation</h2>
 
-<p>Since I&rsquo;m a prince, I wrote some install scripts to make it easy to install both <a href="https://github.com/btoll/git-init/blob/master/install.sh">the extensions</a> and <a href="https://github.com/btoll/git-init/blob/master/install_manpages.sh">the man pages</a> on a system.</p>
+<p>Since I&rsquo;m a prince, I wrote some install scripts to make it easy to install both <a href="https://github.com/btoll/dotfiles/blob/master/git-hub/install.sh">the extensions</a> and <a href="https://github.com/btoll/dotfiles/blob/master/git-hub/install_manpages.sh">the man pages</a> on a system.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
