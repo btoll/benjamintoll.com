@@ -18,6 +18,10 @@ Usually, just tagging as the `latest` is fine.
 ./build_and_deploy.sh --tagname latest --deploy
 ```
 
+## CI/CD
+
+Uses [GitHub Actions] to scan all the embedded links in the markdown files (i.e., the articles) in the repository.  Uses the [`link-scanner`] tool.
+
 ## Misc
 
 ### Create a New Post
@@ -25,4 +29,7 @@ Usually, just tagging as the `latest` is fine.
 ```
 hugo new post/intro.md
 ```
+
+[GitHub Actions]: https://docs.github.com/en/actions
+[`link-scanner`]: https://github.com/btoll/link-scanner
 
