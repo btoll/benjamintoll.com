@@ -39,7 +39,7 @@ Let's look at an example of HTTPS.  As for the handshake itself, the description
 
 You can see this in action by using [curl] to fetch a page from a site that has a certificate installed (if the certificate is self-signed, use the `--insecure` flag with the following command):
 
-	$ curl -v https://www.theowlsnestfarm.com
+	$ curl -v https://www.benjamintoll.com
 
 	* TLSv1.2 (OUT), TLS header, Certificate Status (22):
 	* TLSv1.2 (OUT), TLS handshake, Client hello (1):
