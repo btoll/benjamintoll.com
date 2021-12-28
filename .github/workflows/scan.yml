@@ -15,5 +15,5 @@ jobs:
       - name: Scan Links
         uses: docker://btoll/link-scanner:latest
         with:
-          args: -dir content/post
+          args: -dir content/post -v
 
