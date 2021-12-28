@@ -46,7 +46,7 @@ As you'd expect, the larger the symbol set (key space), the greater the bit stre
 [key stretching]: https://en.wikipedia.org/wiki/Key_stretching
 [quantum computers are mainstream]: https://www.cnbc.com/2018/03/30/ibm-sees-quantum-computing-going-mainstream-within-five-years.html
 [lattice-based cryptography]: https://en.wikipedia.org/wiki/Lattice-based_cryptography
-[Diceware]: http://world.std.com/%7Ereinhold/diceware.html
+[Diceware]: https://en.wikipedia.org/wiki/Diceware
 [one in JavaScript]: https://github.com/btoll/onf-diceware
 [one in Go]: https://github.com/btoll/diceware
 [my password manager]: https://github.com/btoll/stymie-go
