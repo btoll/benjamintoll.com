@@ -1,0 +1,19 @@
+name: Link Scanner
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Scan Links
+        uses: docker://btoll/link-scanner:latest
+        with:
+          args: -dir content/post
+
