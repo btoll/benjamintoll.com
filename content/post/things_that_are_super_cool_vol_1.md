@@ -6,6 +6,8 @@ date = "2021-04-07T13:17:54-04:00"
 
 In no particular order, because they are all equally awesome:
 
+- Innovation
+- Disruption
 - Stickers on laptops.
 - Apple stickers on anything.
 - Entrepreneurs
