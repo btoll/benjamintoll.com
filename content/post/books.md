@@ -28,7 +28,8 @@ It's a small list, as favorites can be, and I may add to it in time.
 
 - [Hacking: the Art of Exploitation](https://nostarch.com/hacking2.htm)
 - [The C Programming Language](https://en.wikipedia.org/wiki/The_C_Programming_Language)
-- [JavaScript: the Definitive Guide](https://www.oreilly.com/library/view/javascript-the-definitive/9781449393854/)
+- [Professional JavaScript for Web Developers](https://www.wiley.com/en-us/Professional+JavaScript+for+Web+Developers-p-9780764579080)
+- [Writing an Interpreter in Go](https://interpreterbook.com/)
 
 ### Command Interpreters
 
