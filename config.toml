@@ -25,6 +25,7 @@ theme = "hugo-lithium-theme"
 [params]
     description = "benjamintoll.com"
     minimal = false
+    favicon = "dog.ico"
 
     [params.logo]
     url = "pete.jpeg"
