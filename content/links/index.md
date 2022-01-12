@@ -38,14 +38,13 @@ title = "Links"
 [npm]: https://www.npmjs.com/~benjam72
 
 [Hangman]: https://github.com/btoll/hangman
-[Memory Game]: http://www.benjamintoll.com/memory-game/
-[Music Theory]: http://www.benjamintoll.com/music-theory/
+[Memory Game]: https://www.benjamintoll.com/memory-game/
+[Music Theory]: https://www.benjamintoll.com/music-theory/
 
-[Italian Dictionary]: http://italy.benjamintoll.com
-[CSSCompress]: http://www.benjamintoll.com/tools/css_compress.html
-[HTMLify]: http://www.benjamintoll.com/tools/HTMLify.html
+[Italian Dictionary]: https://italy.benjamintoll.com
+[CSSCompress]: https://www.benjamintoll.com/tools/css_compress/
+[HTMLify]: https://www.benjamintoll.com/tools/htmlify/
 
-[Previous website]: http://www.benjamintoll.com/archive/
-[snapshots]: https://web.archive.org/web/*/benjamintoll.com
+[Previous website]: https://www.benjamintoll.com/archive/
 [`benjamintoll.com` onion service]: http://5d6xbdrhw3hs4vngpukrsx6aih64vkpixqpexjmbo4eh7kl66iuseryd.onion
 
