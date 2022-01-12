@@ -29,9 +29,9 @@ title = "Links"
 ## Misc
 
 - CV [\[odt\]](/docs/BenjaminToll.odt) [\[pdf\]](/docs/BenjaminToll.pdf)
+- [`benjamintoll.com` onion service]
 <!--
 - The Owl's Nest Farm [\[Internet\]](https://www.theowlsnestfarm.com/) [\[Tor\]](http://lgewyajrjxytj4z6.onion)
-- http://2pxszt6mnu35mreo.onion
 -->
 
 [GitHub]: https://github.com/btoll
@@ -47,10 +47,5 @@ title = "Links"
 
 [Previous website]: http://www.benjamintoll.com/archive/
 [snapshots]: https://web.archive.org/web/*/benjamintoll.com
-[http://2pxszt6mnu35mreo.onion]: http://2pxszt6mnu35mreo.onion
-
-<!--
-- [Previous website]
-- benjamintoll.com [snapshots] on the Wayback Machine
--->
+[`benjamintoll.com` onion service]: http://5d6xbdrhw3hs4vngpukrsx6aih64vkpixqpexjmbo4eh7kl66iuseryd.onion
 
