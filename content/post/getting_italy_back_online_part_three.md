@@ -71,27 +71,30 @@ Let's now take a gander at the shell script that can test the correctness of the
 
 ```
 #!/bin/bash
+#shellcheck disable=2086
 
 set -e
 
-CNAME=()
-DOMAIN=
+trap cleanup EXIT
+
+cleanup() {
+    docker-compose down
+}
+
+D=()
 DRYRUN=true
 EMAIL=root@localhost
 
 usage() {
-    echo "$0 -c CNAME -d DOMAIN -e EMAIL -s DRYRUN"
+    echo "$0 -d DOMAIN [ -d DOMAIN ... ] -e EMAIL -p"
     exit "$1"
 }
 
 while getopts "c:d:e:hp" opt
 do
     case "$opt" in
-        c)
-            CNAME+=("$OPTARG")
-            ;;
         d)
-            DOMAIN="$OPTARG"
+            D+=("$OPTARG")
             ;;
         e)
             EMAIL="$OPTARG"
@@ -113,13 +116,7 @@ do
     esac
 done
 
-if sudo lsof -i tcp:80
-then
-    echo "[ERROR] Another process is already bound to port 80."
-    exit 1
-fi
-
-if [ -z "$DOMAIN" ]
+if [ "${#D[*]}" -eq 0 ]
 then
     echo "[ERROR] Missing required parameter DOMAIN"
     usage 2
@@ -132,17 +129,14 @@ else
     OPTIONS="--email $EMAIL --no-eff-email"
 fi
 
-DOMAINS="-d $DOMAIN "
-if [ "${#CNAME[*]}" -gt 0 ]
-then
-    for item in "${CNAME[@]}"
-    do
-        DOMAINS+="-d $item.$DOMAIN "
-    done
-fi
+for domain in "${D[@]}"
+do
+    LIST_DOMAINS+="$domain "
+    DOMAINS+="-d $domain "
+done
 
 echo -------------------------------
-echo "DOMAINS: $DOMAINS"
+echo "DOMAINS: $LIST_DOMAINS"
 echo "EMAIL:   $EMAIL"
 echo "DRYRUN:  $DRYRUN"
 echo -------------------------------
@@ -154,9 +148,9 @@ docker-compose up -d
 docker run --rm -it \
     --name letsencrypt-certbot \
     -v "$(pwd)/www:/data/letsencrypt" \
-    -v "$(pwd)/certbot/etc/letsencrypt:/etc/letsencrypt" \
-    -v "$(pwd)/certbot/var/lib/letsencrypt:/var/lib/letsencrypt" \
-    -v "$(pwd)/certbot/var/log/letsencrypt:/var/log/letsencrypt" \
+    -v "$(pwd)/letsencrypt/etc/letsencrypt:/etc/letsencrypt" \
+    -v "$(pwd)/letsencrypt/var/lib/letsencrypt:/var/lib/letsencrypt" \
+    -v "$(pwd)/letsencrypt/var/log/letsencrypt:/var/log/letsencrypt" \
     certbot/certbot \
     certonly --webroot \
     --agree-tos --webroot-path=/data/letsencrypt \
@@ -165,48 +159,45 @@ docker run --rm -it \
 docker run --rm -it \
     --name letsencrypt-certbot \
     -v "$(pwd)/www:/data/letsencrypt" \
-    -v "$(pwd)/certbot/etc/letsencrypt:/etc/letsencrypt" \
-    -v "$(pwd)/certbot/var/lib/letsencrypt:/var/lib/letsencrypt" \
+    -v "$(pwd)/letsencrypt/etc/letsencrypt:/etc/letsencrypt" \
+    -v "$(pwd)/letsencrypt/var/lib/letsencrypt:/var/lib/letsencrypt" \
     certbot/certbot \
     certificates
 
-docker-compose down
 ```
 
 And let's look at its usage:
 
 <pre class="math">
 $ ./create_cert.sh -h
-./create_cert.sh -c CNAME -d DOMAIN -e EMAIL -p
+./create_cert.sh -d DOMAIN [ -d DOMAIN ... ] -e EMAIL -p
 
-<b>-c</b>   List as many CNAMEs as needed, they will be gathered into a list.
-<b>-d</b>   The registered domain.
+<b>-d</b>   List as many domains as needed, they will be gathered into a list.
 <b>-e</b>   The email address for Let's Encrypt correspondence (recommended).
 <b>-p</b>   If present, the script will generate a production certificate.
-     ( It defaults to "--staging" to test the command, i.e., <b>-p</b> is not set. )
+     ( The `certbot` client defaults to "--staging" to test the command, i.e., <b>-p</b> is not set. )
 </pre>
 
-So, to generate a certificate for `benjamintoll.com` as well as `www.benjamintoll.com` and `italy.benjamintoll.com`:
-```
-$ ./create_cert.sh -c www -c italy -d benjamintoll.com -e benjam72@yahoo.com -p
-```
-
-> Due to [rate limits], it's important to test using the default `--staging` mode (`$DRYRUN` in the shell script below).
+> Due to [rate limits], it's important to test using the default `dryrun` mode, which in turn activates `certbot`s `--staging` mode.
 
 ---
 
 Ok, now, let's run it in `--staging` mode to test the commands for correctness:
 
 ```
-$ ./create_cert.sh -c italy -d benjamintoll.com -e benjam72@yahoo.com
+$ ./create_cert.sh \
+    -d benjamintoll.com \
+    -d www.benjamintoll.com \
+    -d italy.benjamintoll.com \
+    -e btoll@example.com
 ```
 
 You'll see logs to `stdout` that echo your choices:
 
 <pre class="math">
 -------------------------------
-DOMAINS: -d benjamintoll.com -d italy.benjamintoll.com
-EMAIL:   benjam72@yahoo.com
+DOMAINS: benjamintoll.com www.benjamintoll.com italy.benjamintoll.com
+EMAIL:   btoll@example.com
 DRYRUN:  true
 -------------------------------
 </pre>
@@ -230,7 +221,7 @@ Found the following certs:
   Certificate Name: benjamintoll.com
     Serial Number: fa091434decbf9f2b3004954fe3bcccf987b
     Key Type: RSA
-    Domains: benjamintoll.com italy.benjamintoll.com
+    Domains: benjamintoll.com italy.benjamintoll.com www.benjamintoll.com
     Expiry Date: 2021-06-24 02:12:18+00:00 (INVALID: TEST_CERT)
     Certificate Path: /etc/letsencrypt/live/benjamintoll.com/fullchain.pem
     Private Key Path: /etc/letsencrypt/live/benjamintoll.com/privkey.pem
@@ -269,7 +260,11 @@ certbot
 Once it completes successfully, generate the production cert by setting the `-p` flag.  This will replace the test cert with the production one:
 
 ```
-$ ./create_cert.sh -c italy -d benjamintoll.com -e benjam72@yahoo.com -p
+$ ./create_cert.sh \
+    -d benjamintoll.com \
+    -d www.benjamintoll.com \
+    -d italy.benjamintoll.com \
+    -e btoll@example.com -p
 ```
 
 And that's it for this step!  Weeeeeeeeeeeeeeeeeeee
@@ -304,7 +299,7 @@ services:
        - db_password
        - db_root_password
 
-  webserver:
+  proxy:
     build:
       context: dockerfiles
       dockerfile: Dockerfile.nginx
@@ -326,7 +321,7 @@ services:
       dockerfile: Dockerfile.php-fpm
     restart: always
     depends_on:
-      - webserver
+      - proxy
     volumes:
       - ./projects/italy:/var/www/html:ro
     secrets:
