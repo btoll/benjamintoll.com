@@ -6,7 +6,7 @@ date = "2021-08-20T14:33:56-04:00"
 
 ---
 
-> This article for appeared on April 6, 2018.  It has been significantly updated, earning a new publication date.  Among the updates:
+> This article originally appeared on April 6, 2018.  It has been significantly updated, earning a new publication date.  Among the updates:
 > 1. Updating the onion service from version 2 to version 3.
 > 1. Details on installing `tor`.
 > 1. Details on installing the `chroot` using `schroot`.
@@ -237,9 +237,9 @@ Notes:
 
 ### Create the Onion Service
 
-Creating the service is very straightforward.  The [Tor official docs] on this are short, to the point and easy to follow.
+Creating the service is very straightforward.  The [Tor official docs] on this are short and easy to follow.
 
-Now that you've installed `nginx` in the `chroot`, it's time to configure your onion service in the host.  You need only be concerned [with two directives]:
+Now that you've installed `nginx` in the `chroot`, it's time to configure your onion service in the host.  You need only be concerned with two directives:
 
 - `HiddenServiceDir`
     + This is a directory where Tor will store information about that onion service. In particular, Tor will create a file here named `hostname` which will tell you the onion URL. You don't need to add any files to this directory. Make sure this is not the same directory as the `hidserv` directory you created when setting up thttpd, as your HiddenServiceDir contains secret information!
@@ -357,7 +357,6 @@ Lastly, it cannot be overstated how important this is.  With the continued assau
 [onion services best practices]: https://help.riseup.net/en/security/network-security/tor/onionservices-best-practices
 [Tor browser]: https://www.torproject.org/download/
 [their Tor Debian repository]: https://support.torproject.org/apt/tor-deb-repo/
-[Tor official docs]: https://www.torproject.org/docs/tor-onion-service.html.en
+[Tor official docs]: https://community.torproject.org/onion-services/setup/
 [nginx]: https://www.nginx.com/
-[with two directives]: https://www.torproject.org/docs/tor-onion-service.html.en#two
 

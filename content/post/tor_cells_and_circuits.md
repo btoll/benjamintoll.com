@@ -4,7 +4,7 @@ date = "2018-07-30T14:28:07-04:00"
 
 +++
 
-I'm giving [a talk] this Wednesday at [a local group] on the [Tor] project, and I wanted to log some of the notes I took as I read [the design paper].
+I'm giving [a talk] this Wednesday at a local Meetup group on the [Tor] project, and I wanted to log some of the notes I took as I read [the design paper].
 
 Most of it is taken word-for-word, and so I do not claim this to be a work of my own origin.  It is intended to be a highly-condensed well of Tor knowledge to which I can frequently refer.
 
@@ -185,7 +185,6 @@ Similarly, if a node on the circuit goes down, the adjacent node can send a rela
 	- This two-step handshake allows Tor to support TCP-based applications that use half-closed connections.
 
 [a talk]: http://www.benjamintoll.com/talks/tor.pdf
-[a local group]: https://www.meetup.com/Leominster-Code-Meetup/
 [Tor]: https://www.torproject.org/
 [the design paper]: https://svn.torproject.org/svn/projects/design-paper/tor-design.html
 [read the paper yourself]: https://svn.torproject.org/svn/projects/design-paper/tor-design.html
