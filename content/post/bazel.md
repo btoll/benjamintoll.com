@@ -1,6 +1,7 @@
 +++
 title = "On Bazel"
 date = "2021-09-14T21:54:25-04:00"
+draft = true
 
 +++
 

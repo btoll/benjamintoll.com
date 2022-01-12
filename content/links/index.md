@@ -42,8 +42,8 @@ title = "Links"
 [Music Theory]: https://www.benjamintoll.com/music-theory/
 
 [Italian Dictionary]: https://italy.benjamintoll.com
-[CSSCompress]: https://www.benjamintoll.com/tools/css_compress/
-[HTMLify]: https://www.benjamintoll.com/tools/htmlify/
+[CSSCompress]: /tools/css_compress/
+[HTMLify]: /tools/htmlify/
 
 [Previous website]: https://www.benjamintoll.com/archive/
 [`benjamintoll.com` onion service]: http://5d6xbdrhw3hs4vngpukrsx6aih64vkpixqpexjmbo4eh7kl66iuseryd.onion
