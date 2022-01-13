@@ -8,11 +8,11 @@ This is the third installment [in the series] on getting my world-famous [Italia
 
 [Encrypting the web] is something that we should all do and prioritize, and here at `benjamintoll.com`, it's no different.  In this article, I'll walk through setting up a [Let's Encrypt] [certificate] in the Docker Compose file that I'm using for the multi-container Italian website.
 
-> I'm not going to go into the details of how a Let's Encrypt certificate works, which I'll probably do in a future article.  This post will only focus on its implementation in the two files that need to be updated, `docker-compose.yml` and `default.conf`.
+> I'm not going to go into the details of how a Let's Encrypt certificate works.  This post will only focus on its implementation in the two files that need to be updated, `docker-compose.yml` and `default.conf`.
 
 Here are the steps that are needed to be a good citizen:
 
-1. Create a temporary nginx container to test and then create the certificate.  This temporary container doesn't need to serve any files, it just needs to have the necessary permissions to allow [`certbot`], an [ACME] client, to create the webpage for the ACME [HTTP-01 challenge] question (the most commonly used challenge).  This proves to Let's Encrypt that we own the server.  In addition, this container must be instanced on the server that is pointed to by the [A record], and any subdomains must have [CNAME records].  If not, you'll get a giant error and no certificate.
+1. Create a temporary nginx container to test and then create the certificate.  This temporary container doesn't need to serve any files, it just needs to have the necessary permissions to allow [`certbot`], an [ACME] client, to create the webpage for the ACME [HTTP-01 challenge] question (the most commonly used challenge).  This proves to Let's Encrypt that we own the domain.  In addition, this container must be instanced on the server that is pointed to by the [A record], and any subdomains must have [CNAME records].  If not, you'll get a giant error and no certificate.
 
 1. Add the bind mounts in `docker-compose.yml`.
 
@@ -28,13 +28,15 @@ Grab a nice [tea] or coffee and let's get started!
 
 # Create the Certificate
 
-To begin, I first need to generate the certificate that proves the ownership of the public key and thus my server.  Let's Encrypt makes it painless to do this; it works with most (all?) popular web servers and only needs port 80 to be exposed and accessible on the host.  I'm containerizing the temporary nginx web server and the `certbot` agent that issues the commands.
+To begin, I first need to generate the certificate that proves the ownership of the public key and thus my domain.  Let's Encrypt makes it painless to do this; it works with any web server and only needs port 80 to be exposed and accessible on the host.  Note that for my setup and the purposes of this article, I'm containerizing the temporary nginx web server and the `certbot` agent that issues the commands.
 
-So, how does it work?  In brief, `certbot` needs permissions to be able to write a file to the public document root.  Let's Encrypt will issue a token, and then `certbot` will create a file and append that token to the page.  Here is the location:
+So, how does it work?  In brief, on the server, `certbot` needs permissions to be able to write a file to the public document root.  Let's Encrypt will issue a token, and then `certbot` will create a file and append that token to the page.  Here is the location:
 
 `http://<YOUR_DOMAIN>/.well-known/acme-challenge/<TOKEN>`
 
 Let's Encrypt will then try to download that.  If it can, this will fulfill the needed validation and I can then go on to use `certbot` to issue the commands to download the certificate.
+
+> Let's Encrypt only issues [Domain Validation (DV) certificates].
 
 Let's take a peek at `docker-compose.yml` and the `letsencrypt-nginx` service:
 
@@ -182,7 +184,7 @@ $ ./create_cert.sh -h
 
 ---
 
-Ok, now, let's run it in `--staging` mode to test the commands for correctness:
+Ok, now, let's run it in `certbot`'s `staging` mode to test the commands for correctness:
 
 ```
 $ ./create_cert.sh \
@@ -273,7 +275,7 @@ And that's it for this step!  Weeeeeeeeeeeeeeeeeeee
 
 Next, we'll plug the changes that are needed into `docker-compose.yml`, which are simple and straightforward.  It's just necessary to mount the volumes.
 
-Let's view is the file with the new additions in <span style="color: blue;">blue</span>:
+Let's view the excerpted file with the new additions in <span style="color: blue;">blue</span>.
 
 `docker-compose.yml`
 
@@ -281,23 +283,7 @@ Let's view is the file with the new additions in <span style="color: blue;">blue
 version: "3.7"
 
 services:
-  db:
-    image: mysql
-    command: --default-authentication-plugin=mysql_native_password
-    restart: always
-    environment:
-      MYSQL_DATABASE_FILE: /run/secrets/db_name
-      MYSQL_USER_FILE: /run/secrets/db_user
-      MYSQL_PASSWORD_FILE: /run/secrets/db_password
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
-    volumes:
-      - ./sql:/docker-entrypoint-initdb.d
-      - italy_db_data:/var/lib/mysql
-    secrets:
-       - db_name
-       - db_user
-       - db_password
-       - db_root_password
+  ...
 
   proxy:
     build:
@@ -315,33 +301,7 @@ services:
       <span style="color: blue;">- ./certbot/etc/letsencrypt/live/benjamintoll.com/fullchain.pem:/etc/letsencrypt/live/benjamintoll.com/fullchain.pem</span>
       <span style="color: blue;">- ./certbot/etc/letsencrypt/live/benjamintoll.com/privkey.pem:/etc/letsencrypt/live/benjamintoll.com/privkey.pem</span>
 
-  italy:
-    build:
-      context: dockerfiles
-      dockerfile: Dockerfile.php-fpm
-    restart: always
-    depends_on:
-      - proxy
-    volumes:
-      - ./projects/italy:/var/www/html:ro
-    secrets:
-       - source: php_italy
-         target: /var/www/italy.php
-
-secrets:
-  db_name:
-    file: secrets/italy/db_name.txt
-  db_user:
-    file: secrets/italy/db_user.txt
-  db_password:
-    file: secrets/italy/db_password.txt
-  db_root_password:
-    file: secrets/italy/db_root_password.txt
-  php_italy:
-    file: secrets/italy/php_italy.txt
-
-volumes:
-  italy_db_data:
+  ...
 </pre>
 
 Notes:
@@ -537,6 +497,7 @@ Okey-dokey and ciao tutti.
 [`certbot`]: https://certbot.eff.org/
 [a list of them]: https://letsencrypt.org/docs/client-options/#other-client-options
 [tea]: https://oliveology.co.uk/
+[Domain Validation (DV) certificates]: https://letsencrypt.org/docs/faq/#general
 [HTTP-01 challenge]: https://letsencrypt.org/docs/challenge-types/#http-01-challenge
 [rate limits]: https://letsencrypt.org/docs/rate-limits/
 
