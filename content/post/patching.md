@@ -4,27 +4,27 @@ date = "2019-06-16T21:54:25-04:00"
 
 +++
 
-<p>One of the simple pleasures in life is patching code.  Most days, it&rsquo;s done using <a href="https://git-scm.com/">Git</a>, but sometimes I still do it the old-fashioned way.  In fact, I used our old friend <a href="https://linux.die.net/man/1/patch"><code>patch</code></a> just the other day.  Weeeeeeeeeeeeeeeeeeeeeeeeee</p>
+One of the simple pleasures in life is patching code.  Most days, it's done using [Git], but sometimes I still do it the old-fashioned way.  In fact, I used our old friend [`patch`] just the other day.  Weeeeeeeeeeeeeeeeeeeeeeeeee
 
-<blockquote>
-<p>I&rsquo;ll be using &ldquo;patch&rdquo; interchangeably as both the <code>patch</code> tool and as the set of changes provided by a <code>diff</code> tool.</p>
-</blockquote>
+> I'll be using "patch" interchangeably as both `patch` tool and as the set of changes provided by a `diff` tool.
 
-<p>If using Git, the simplest way to produce a <a href="https://en.wikipedia.org/wiki/Patch_(computing)">patch</a> is to use the <a href="https://git-scm.com/docs/git-diff"><code>git-diff</code></a> tool:</p>
+If using Git, the simplest way to produce a [patch] is to use the [`git-diff`] tool:
 
-<pre><code>$ git diff
+```
+$ git diff
 $ git diff foo.c
-$ git diff foo.c &gt; foo.patch
-</code></pre>
+$ git diff foo.c > foo.patch
+```
 
-<p>Also, I&rsquo;ll use the <code>git-show</code> tool to see the differences that made up the last commit:</p>
+Also, I'll use the [`git-show`] tool to see the differences that made up the last commit:
 
-<pre><code>$ git show
-</code></pre>
+```
+$ git show
+```
 
-<p>Of course, we don&rsquo;t need to <a href="https://lkml.org/lkml/2004/12/20/255">email patches to project maintainers</a> like they used to in the bad old days.  Now, since everyone used distributed systems, that method of communicating patches has been obsoleted, right?  All I need to know is <a href="https://git-scm.com/docs/git-pull"><code>git-pull</code></a> and <a href="https://git-scm.com/docs/git-push"><code>git-push</code></a> and where to click on GitHub!</p>
+Of course, we don't need to [email patches to project maintainers] like they used to in the bad old days.  Now, since everyone used distributed systems, that method of communicating patches has been obsoleted, right?  All I need to know is [`git-pull`] and [`git-push`] and where to click on GitHub!
 
-<p>Um, no.  So, even if your little JavaScript team doesn&rsquo;t feel the need to distribute patches, that doesn&rsquo;t mean that others aren&rsquo;t doing it.  Yes, there are even Git tools for that (<a href="https://git-scm.com/docs/git-format-patch"><code>git-format-patch</code></a>, <a href="https://git-scm.com/docs/git-am"><code>git-am</code></a>).</p>
+Um, no.  So, even if your little JavaScript team doesn't feel the need to distribute patches, that doesn't mean that others aren't doing it.  Yes, there are even Git tools for that ([`git-format-patch`], [`git-am`]).
 
 <p>Anyway, let&rsquo;s look at a quick example of using <a href="http://man7.org/linux/man-pages/man1/diff.1.html"><code>diff</code></a> and <code>patch</code> to create and apply a patch, respectively, like they did back in the 16<sup>th</sup> century.</p>
 
@@ -196,4 +196,15 @@ $ patch -R &lt; foo.patch
 <ul>
 <li><a href="https://www.computerhope.com/unix/udiff.htm">Linux diff command</a></li>
 </ul>
+
+[Git]: https://git-scm.com/
+[`patch`]: https://linux.die.net/man/1/patch
+[patch]: https://en.wikipedia.org/wiki/Patch_(computing)
+[`git-diff`]: https://git-scm.com/docs/git-diff
+[`git-show`]: https://git-scm.com/docs/git-show
+[email patches to project maintainers]: https://lkml.org/lkml/2004/12/20/255
+[`git-pull`]: https://git-scm.com/docs/git-pull
+[`git-push`]: https://git-scm.com/docs/git-push
+[`git-format-patch`]: https://git-scm.com/docs/git-format-patch
+[`git-am`]: https://git-scm.com/docs/git-am
 

@@ -4,122 +4,122 @@ date = "2019-07-05T21:54:25-04:00"
 
 +++
 
-<p>One of my favorite things to do is automate my workflows.  When it comes to version control, <a href="https://git-scm.com/">Git</a> makes this extremely easy to do by allowing it to be extended.</p>
+One of my favorite things to do is automate my workflows.  When it comes to version control, [Git] makes this extremely easy to do by allowing it to be extended.
 
-<p>So, what does it mean to extend Git?  Simply put, it&rsquo;s extending Git&rsquo;s behavior to do anything you would like.  Effectively, it&rsquo;s adding programs written in any language and invoking them as if they were Git built-ins.</p>
+So, what does it mean to extend Git?  Simply put, it's extending Git's behavior to do anything you would like.  Effectively, it's adding programs written in any language and invoking them as if they were Git built-ins.
 
-<p>For example, everyone knows <code>git pull</code> and <code>git push</code>.  I&rsquo;ve extended Git to also do <code>git hub</code> and <code>git bootstrap</code>, as well as <code>git dirty</code> (well, technically that&rsquo;s an alias, but you get my point).</p>
+For example, everyone knows `git-pull` and `git-push`.  I've extended Git to also do `git-hub` and `git-bootstrap`, as well as `git-dirty` (well, technically that's an alias, but you get my point).
 
-<h2 id="extending-git">Extending Git</h2>
+## Extending Git
 
-<p>How is this done?  There are only three simple rules:</p>
+How is this done?  There are only three simple rules:
 
-<ol>
-<li><p>Create your script in a file called <code>git-scriptname</code>, where <code>scriptname</code> is obviously a placeholder for, well, the name of the script :)</p></li>
+1. Create your script in a file called `git-SCRIPTNAME`, where `SCRIPTNAME` is obviously a placeholder for, well, the name of the script :)
 
-<li><p>Make the script executable.</p></li>
+1. Make the script executable.
 
-<li><p>Place the script in your <code>$PATH</code>.</p></li>
-</ol>
+1. Place the script in your `$PATH`.
 
-<p>Say what?  Yeah, it&rsquo;s really that easy.  But you will look like a hero to your peers!</p>
+Say what?  Yeah, it's really that easy.  But you will look like a hero to your peers!
 
-<blockquote>
-<p>All of my Git extensions are shell scripts, but you can use any scripting language you&rsquo;d like that&rsquo;s on the system.</p>
+> All of my Git extensions are shell scripts, but you can use any scripting language you'd like that's on the system.
+
+Let's go further and create your own man pages for these extensions.
+
+## Man Pages
+
+Wouldn't it be [dynamite] to create and install your own man pages?  Wouldn't it be sweet to do `man git-SCRIPTNAME` and see your own majestic documentation?  Yes!
+
+You can do this in four easy steps:
+
+1. Download the `pod2man` package using your package manager.
+
+2. Create a `.pod` file.  It's easy to create, just use one of mine as a template to create your own.
+
+    For example, create `git-hub.pod`:
+
+    <pre class="math">
+    =head1 NAME
+
+    git-hub - Open any file, directory or commit on GitHub in regular view or blame view.
+
+    =head1 SYNOPSIS
+
+    git hub [ -f, --file file ] [ -b, --branch branch ] [ --range 'L10-L20' ] [ --get-hash hash ] [ --hash hash ] [ --blame ]
+
+    =head1 EXAMPLES
+
+    git hub
+        - Opens the current working directory.
+
+    git hub --file grid/filters/filter/List.js
+        - Opens the file.
+
+    git hub -f grid/header/Container --blame
+        - Opens the file in a blame view.
+
+    git hub --branch extjs-4.2.x -f Component.js
+        - Opens the file in a remote branch other than the one that is currently checked out.
+
+    git hub --hash b51abf6f38902
+        - Opens the commit hash.
+
+    git hub --get-hash EXTJS-15755
+        - Opens the commit hash to which the local topic branch points.
+
+    git hub --get-hash extjs5.1.0
+        - Opens the commit hash to which the tag points.
+
+    git hub -f app.js --range 'L10-L20'
+        - Opens the file with the specified range highlighted.
+
+    =head1 AUTHOR
+
+    Benjamin Toll &lt;benjam72@yahoo.com&gt;
+    </pre>
+
+3. Generate the file:
+
+    ```
+    pod2man git-hub.pod > git-hub.1
+    ```
+
+4. Weeeeeeeeeeeeeeeeeeeeeeeeee
+
+> I've collected all of my extensions, aliases and hooks in my [dotfiles repository].  Check out the `README` for examples!</p>
 </blockquote>
 
-<p>Let&rsquo;s go further and create your own man pages for these extensions.</p>
+## Faves
 
-<h2 id="man-pages">Man Pages</h2>
+I'll list some of my favorite Git extensions, ones that I use every single day.
 
-<p>Wouldn&rsquo;t it be <a href="https://www.youtube.com/watch?v=b5rKZs6HnB4">dynamite</a> to create and install your own man pages?  Wouldn&rsquo;t it be sweet to do <code>man git-hub</code>?  Yes!</p>
+- [`git-bootstrap`] - Open the files that make up a particular commit in Vim.
 
-<p>You can do this in four easy steps:</p>
+- [`git-hub`] - Open any file, directory or commit on GitHub in regular view or blame view.
 
-<ol>
-<li><p>Download the <code>pod2man</code> package using your package manager.</p></li>
+- [`git-ls`] - List the files that are staged and modified or that make up any given commit and optionally open in Vim for editing.
 
-<li><p>Create a <code>.pod</code> file.  It&rsquo;s easy to create, just use one of mine as a template to create your own.</p>
+Click through to see examples for each one.
 
-<p>For example, create <code>git-hub.pod</code>:</p>
+## Installation
 
-<pre><code>=head1 NAME
+Since I'm a prince, I wrote some install scripts to make it easy to install both [the extensions] and [the man pages] on a system.
 
-git-hub - Open any file, directory or commit on GitHub in regular view or blame view.
+## Conclusion
 
-=head1 SYNOPSIS
+I don't need no stinkin' conclusion.
 
-git hub [ -f, --file file ] [ -b, --branch branch ] [ --range 'L10-L20' ] [ --get-hash hash ] [ --hash hash ] [ --blame ]
+## References
 
-=head1 EXAMPLES
+- [Extending git](https://www.atlassian.com/git/articles/extending-git)
+- [Writing man-pages](http://linuxfocus.org/English/November2003/article309.shtml)
 
-git hub
-    - Opens the current working directory.
-
-git hub --file grid/filters/filter/List.js
-    - Opens the file.
-
-git hub -f grid/header/Container --blame
-    - Opens the file in a blame view.
-
-git hub --branch extjs-4.2.x -f Component.js
-    - Opens the file in a remote branch other than the one that is currently checked out.
-
-git hub --hash b51abf6f38902
-    - Opens the commit hash.
-
-git hub --get-hash EXTJS-15755
-    - Opens the commit hash to which the local topic branch points.
-
-git hub --get-hash extjs5.1.0
-    - Opens the commit hash to which the tag points.
-
-git hub -f app.js --range 'L10-L20'
-    - Opens the file with the specified range highlighted.
-
-=head1 AUTHOR
-
-Benjamin Toll &lt;benjam72@yahoo.com&gt;
-</code></pre></li>
-
-<li><p>Generate the file:</p>
-
-<pre><code>pod2man git-hub.pod &gt; git-hub.1
-</code></pre></li>
-
-<li><p>Weeeeeeeeeeeeeeeeeeeeeeeeee</p></li>
-</ol>
-
-<blockquote>
-<p>I've collected all of my extensions, aliases and hooks in my <a href="https://github.com/btoll/dotfiles/tree/master/git-hub">dotfiles repository</a>.  Check out the `README` for examples!</p>
-</blockquote>
-
-<h2 id="faves">Faves</h2>
-
-<p>I&rsquo;ll list some of my favorite Git extensions, ones that I use every single day.</p>
-
-<ul>
-<li><p><a href="https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-bootstrap">git-bootstrap</a> - Open the files that make up a particular commit in Vim.</p></li>
-
-<li><p><a href="https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-hub">git-hub</a> - Open any file, directory or commit on GitHub in regular view or blame view.</p></li>
-
-<li><p><a href="https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-ls">git-ls</a> - List the files that are staged and modified or that make up any given commit and optionally open in Vim for editing.</p></li>
-</ul>
-
-<p>Click through to see examples for each one.</p>
-
-<h2 id="installation">Installation</h2>
-
-<p>Since I&rsquo;m a prince, I wrote some install scripts to make it easy to install both <a href="https://github.com/btoll/dotfiles/blob/master/git-hub/install.sh">the extensions</a> and <a href="https://github.com/btoll/dotfiles/blob/master/git-hub/install_manpages.sh">the man pages</a> on a system.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>I don&rsquo;t need no stinkin&rsquo; conclusion.</p>
-
-<h2 id="references">References</h2>
-
-<ul>
-<li><a href="https://www.atlassian.com/git/articles/extending-git">Extending git</a></li>
-<li><a href="http://linuxfocus.org/English/November2003/article309.shtml">Writing man-pages</a></li>
-</ul>
+[Git]: https://git-scm.com/
+[dynamite]: https://www.youtube.com/watch?v=b5rKZs6HnB4
+[dotfiles repository]: https://github.com/btoll/dotfiles/tree/master/git-hub
+[`git-bootstrap`]: https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-bootstrap
+[`git-hub`]: https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-hub
+[`git-ls`]: https://github.com/btoll/dotfiles/blob/master/git-hub/bin/git-ls
+[the extensions]: https://github.com/btoll/dotfiles/blob/master/git-hub/install.sh
+[the man pages]: https://github.com/btoll/dotfiles/blob/master/git-hub/install_manpages.sh
 

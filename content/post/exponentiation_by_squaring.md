@@ -1426,6 +1426,6 @@ Weeeeeeeeeeeeeeeeeeeeeeee
 [`bc`]: https://linux.die.net/man/1/bc
 [exponentiation]: https://en.wikipedia.org/wiki/Exponentiation
 [is what it is]: https://www.youtube.com/watch?v=LzHmunZxJeM
-[exponentiation_by_squaring_powers_of_two.c]: https://github.com/btoll/tools/blob/master/c/exponentiation_by_squaring_powers_of_two.c
-[exponentiation_by_squaring.c]: https://github.com/btoll/tools/blob/master/c/exponentiation_by_squaring.c
+[exponentiation_by_squaring_powers_of_two.c]: https://github.com/btoll/tools/blob/master/c/crypto/exponentiation_by_squaring_powers_of_two.c
+[exponentiation_by_squaring.c]: https://github.com/btoll/tools/blob/master/c/crypto/exponentiation_by_squaring.c
 

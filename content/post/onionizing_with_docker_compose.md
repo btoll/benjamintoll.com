@@ -386,7 +386,7 @@ I highly recommend reading through [the Tor onion service protocol] in the offic
 
 # References
 
-- [Tor onion service protocol](https://torpat.ch/tpo/docs/onion-services.html.en)
+- [Tor onion service protocol](https://community.torproject.org/onion-services/overview/)
 - [the Tor v3 onion services protocol specification](https://gitweb.torproject.org/torspec.git/tree/rend-spec-v3.txt)
 - [torservers/onionize-docker](https://github.com/torservers/onionize-docker)
 

@@ -569,7 +569,9 @@ It's easy to generate the assembly code from the C code by calling `gcc` with th
 
 	gcc -masm=intel -S stack_example.c -o stack_example.s
 
-Incidentally, do yourself a favor and pick up a copy of one of my all-time favorite books that discusses this topic and others at length, [Hacking: the Art of Exploitation].  And don't buy it from Amazon, if you're reading this you can afford to pay the difference.  [Fuck](https://www.truthdig.com/articles/inside-amazons-abusive-labor-practices/) [Jeff](https://www.theguardian.com/technology/2018/jan/31/amazon-warehouse-wristband-tracking) [Bezos](https://www.commondreams.org/news/2018/05/22/amazon-workers-food-stamps-jeff-bezos-rakes-275-million-day-sanders-says-what-rigged).
+Incidentally, do yourself a favor and pick up a copy of one of my all-time favorite books that discusses this topic and others at length, [Hacking: the Art of Exploitation].  And don't buy it from Amazon, if you're reading this you can afford to pay the difference.
+
+[Fuck] [Jeff] [Bezos].
 
 [GDB]: https://www.gnu.org/software/gdb/
 [red zone]: https://en.wikipedia.org/wiki/Red_zone_(computing)
@@ -585,4 +587,7 @@ Incidentally, do yourself a favor and pick up a copy of one of my all-time favor
 [command-line calculator]: http://www.theunixschool.com/2011/05/bc-unix-calculator.html
 [automatic variables]: https://en.wikipedia.org/wiki/Automatic_variable
 [Hacking: the Art of Exploitation]: https://nostarch.com/hacking2.htm
+[Fuck]: https://www.truthdig.com/articles/inside-amazons-abusive-labor-practices/
+[Jeff]: https://www.theguardian.com/technology/2018/jan/31/amazon-warehouse-wristband-tracking
+[Bezos]: https://money.com/amazon-employee-median-salary-jeff-bezos/
 

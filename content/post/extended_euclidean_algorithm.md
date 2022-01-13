@@ -324,5 +324,5 @@ Weeeeeeeeeeeeeeeeeeeeeeee
 [modular multiplicative inverse]: https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
 [private key]: https://en.wikipedia.org/wiki/Modular_multiplicative_inverse#Applications
 [linear combination]: https://en.wikipedia.org/wiki/Linear_combination
-[euclidean_algorithm.c]: https://github.com/btoll/tools/blob/master/c/euclidean_algorithm.c
+[euclidean_algorithm.c]: https://github.com/btoll/tools/blob/master/c/crypto/euclidean_algorithm.c
 

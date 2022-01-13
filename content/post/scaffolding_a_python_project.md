@@ -1,6 +1,6 @@
 +++
 title = "On Scaffolding a Python Project"
-date = "2021-03-31T19:52:09-04:00"
+date = "2022-01-13T01:52:09-04:00"
 draft = true
 
 +++
@@ -30,7 +30,7 @@ $ python -m pip install pyscaffold==4.0.1
 $ <a href="#mcd">mcd</a> projects
 
 # Create scaffolding
-$ <a href="https://pyscaffold.org/en/stable/examples.html">putup</a> foo-project -l GPL-3.0-only -d "There once was a foo"
+$ putup foo-project -l GPL-3.0-only -d "There once was a foo"
 done! 🐍 🌟 ✨
 
 # Inspect.
@@ -66,7 +66,6 @@ $ tree
 6 directories, 20 files
 </pre>
 
-
 > ### mcd
 >
 >   mcd = Make cd
@@ -78,6 +77,10 @@ $ tree
 >           {
 >               mkdir -p "$1" && cd "$1"
 >           }
+
+# References
+
+- [PyScaffold Usage & Examples](https://pyscaffold.org/en/stable/usage.html)
 
 [reStructuredText]: https://en.wikipedia.org/wiki/ReStructuredText
 [PyScaffold]: https://pypi.org/project/PyScaffold/

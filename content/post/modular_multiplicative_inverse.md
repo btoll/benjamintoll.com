@@ -382,8 +382,7 @@ As an autodidact, it took me a tremendous amount of time to wade through the cop
 [modular multiplicative inverse]: https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
 [modular arithmetic]: https://en.wikipedia.org/wiki/Modular_arithmetic
 [my little friend]: https://www.youtube.com/watch?v=3MDHL0xnPpA
-[priv_key.c]: https://github.com/btoll/tools/blob/master/c/priv_key.c
-[is_prime.c]: https://github.com/btoll/tools/blob/master/c/is_prime.c
+[is_prime.c]: https://github.com/btoll/tools/blob/master/c/crypto/is_prime.c
 [congruence class]: https://en.wikipedia.org/wiki/Modular_arithmetic#Congruence_class
 [written about it]: /2018/12/28/on-the-extended-euclidean-algorithm/
 [Euler's theorem]: https://en.wikipedia.org/wiki/Euler%27s_theorem

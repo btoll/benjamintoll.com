@@ -236,7 +236,7 @@ In addition, the sieve of Eratosthenes can serve as the generator of the factor 
 [a JavaScript implementation]: https://github.com/btoll/tools/blob/master/javascript/sieve_of_eratosthenes
 [segmented sieve]: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes#Segmented_sieve
 [incremental sieve]: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes#Incremental_sieve
-[is_prime.c]: https://github.com/btoll/tools/blob/master/c/is_prime.c
+[is_prime.c]: https://github.com/btoll/tools/blob/master/c/crypto/is_prime.c
 [udderly]: https://en.wikipedia.org/wiki/Udder
 [Libray of Alexandria]: https://en.wikipedia.org/wiki/Library_of_Alexandria
 [quadratic sieve]: https://en.wikipedia.org/wiki/Quadratic_sieve

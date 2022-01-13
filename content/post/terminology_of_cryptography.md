@@ -260,7 +260,7 @@ What is needed is a shortcut or "trapdoor" where the latter becomes knowable, i.
 
 [Stack Overflow]: https://stackoverflow.com/questions/tagged/cryptography
 [Stack Exchange]: https://crypto.stackexchange.com/
-[The Handbook of Applied Cryptography]: http://cacr.uwaterloo.ca/hac/
+[The Handbook of Applied Cryptography]: https://cacr.uwaterloo.ca/hac/
 [Crypto-Gram]: https://www.schneier.com/crypto-gram/
 [injective]: https://en.wikipedia.org/wiki/Injective_function
 [surjective]: https://en.wikipedia.org/wiki/Surjective_function

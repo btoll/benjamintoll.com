@@ -274,9 +274,9 @@ When time allows, it's beneficial to dig into the fundamental math behind the bu
 [relatively prime]: https://en.wikipedia.org/wiki/Coprime_integers
 [the extended Euclidean algorithm]: /2018/12/28/on-the-extended-euclidean-algorithm/
 [the Euclidean algorithm]: https://en.wikipedia.org/wiki/Euclidean_algorithm
-[the entire program]: https://github.com/btoll/tools/blob/master/c/eulers_totient_function_naive.c
+[the entire program]: https://github.com/btoll/tools/blob/master/c/crypto/eulers_totient_function_naive.c
 [fundamental theorem of arithmetic]: https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic
-[prime_factors.c]: https://github.com/btoll/tools/blob/master/c/prime_factors.c
+[prime_factors.c]: https://github.com/btoll/tools/blob/master/c/crypto/prime_factors.c
 [his product formula]: https://en.wikipedia.org/wiki/Proof_of_the_Euler_product_formula_for_the_Riemann_zeta_function#The_Euler_product_formula
 [Carmichael's totient function]: https://en.wikipedia.org/wiki/Carmichael_function
 

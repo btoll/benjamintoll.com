@@ -19,7 +19,7 @@ The `pre-commit` script (or any other one that is defined) would then iterate ov
 In the case of the `pre-commit` Git action, the tree directory structure would look like this:
 
 <pre class="math">
-$ tree <a href="https://github.com/btoll/dotfiles/tree/master/git-hub/hooks">.git/hooks/</a>
+$ tree .git/hooks/
 .git/hooks/
 ├── pre-commit
 └── pre-commit.d
@@ -27,7 +27,7 @@ $ tree <a href="https://github.com/btoll/dotfiles/tree/master/git-hub/hooks">.gi
     └── pytest.sh
 </pre>
 
-I knew that this approach would suit well my purposes, so I promptly stole it.
+I knew that this approach would suit well my purposes, so [I promptly stole it].
 
 Enough chatter, let's see an example.
 
@@ -268,6 +268,7 @@ I really like this approach, as it leverages Git's own tooling to determine the 
 [Git hooks]: https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
 [do only one thing and do it well]: https://en.wikipedia.org/wiki/Unix_philosophy
 [Junio Hamano]: https://simple.wikipedia.org/wiki/Junio_Hamano
+[I promptly stole it]: https://github.com/btoll/dotfiles/tree/master/git-hub/hooks
 [section]: https://en.wikipedia.org/wiki/INI_file
 [`.git/hooks/`]: https://github.com/btoll/dotfiles/tree/master/git-hub/hooks
 [`git config`]: https://git-scm.com/docs/git-config

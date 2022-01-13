@@ -8,17 +8,15 @@ date = "2019-05-18T21:54:25-04:00"
 
 For years I've heard how a [chroot] isn't secure and is trivial to escape.  However, I never looked into it until recently.
 
-<blockquote>
-<p>Note that I&rsquo;m not speaking of <a href="https://en.wikipedia.org/wiki/FreeBSD_jail">BSD jails</a> or <a href="https://en.wikipedia.org/wiki/LXC">Linux containers</a>, which are much more secure.</p>
-</blockquote>
+> Note that I'm not speaking of [BSD jails] or [Linux containers], which are much more secure.
 
-<p>For an escape to be successful, there needs to be a way for an unprivileged user to become a privileged user.  The most frequently cited method, and the one I&rsquo;ll demonstrate here, is to exploit a <a href="https://en.wikipedia.org/wiki/Setuid">setuid</a> binary.</p>
+For an escape to be successful, there needs to be a way for an unprivileged user to become a privileged user.  The most frequently cited method, and the one I'll demonstrate here, is to exploit a [setuid] binary.
 
-<p>Once the <code>setuid</code> binary has been exploited and the user has a root shell, escaping from the <code>chroot</code> is like taking candy from a baby.</p>
+Once the `setuid` binary has been exploited and the user has a root shell, escaping from the `chroot` is like taking candy from a baby.
 
-<p>Let&rsquo;s dig in.</p>
+Let's dig in.
 
-<h2 id="create-a-chroot">Create a <code>chroot</code></h2>
+## Create a `chroot`
 
 <p>My preferred way to create a <code>chroot</code>, as I&rsquo;ve written about before, is to use the <a href="https://linux.die.net/man/8/debootstrap"><code>debootstrap</code></a> tool.  Since I&rsquo;ve already documented how to do this, I&rsquo;ll just list the commands and not go into any detail.  See the posts linked at the top of this post for more information.</p>
 
@@ -236,4 +234,7 @@ cwd is /
 [On Running a Tor Onion Service in a Chroot]: /2018/04/06/on-running-a-tor-onion-service-in-a-chroot/
 [On Stack Smashing, Part Two]: /2019/04/10/on-stack-smashing-part-two/
 [chroot]: https://en.wikipedia.org/wiki/Chroot
+[BSD jails]: https://en.wikipedia.org/wiki/FreeBSD_jail
+[Linux containers]: https://en.wikipedia.org/wiki/LXC
+[setuid]: https://en.wikipedia.org/wiki/Setuid
 
