@@ -474,7 +474,7 @@ Looks like I'm all donzo.
 
 # Conclusion
 
-In conclusion, this is the conclusion of this fantastically informative article.  In a future article, we'll look at how to take the multi-container Italian Dictionary app and deploy it in a Kubernetes cluster.
+In conclusion, this is the conclusion of this fantastically informative article.  In [the next article], we'll take a look at creating a certificate for multiple domains (as opposed to only subdomains).  Also, we'll clean up our `nginx` configuration to be more readable according to `nginx` best practices.
 
 Okey-dokey and ciao tutti.
 
@@ -500,4 +500,5 @@ Okey-dokey and ciao tutti.
 [Domain Validation (DV) certificates]: https://letsencrypt.org/docs/faq/#general
 [HTTP-01 challenge]: https://letsencrypt.org/docs/challenge-types/#http-01-challenge
 [rate limits]: https://letsencrypt.org/docs/rate-limits/
+[Let's Encrypt and multiple domains]: /2022/01/13/on-lets-encrypt-and-multiple-domains/
 

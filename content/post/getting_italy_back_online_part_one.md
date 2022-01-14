@@ -11,7 +11,7 @@ This is a series of articles that describes different methods of deploying my [I
 1. Vagrant and Ansible (this article)
 1. [Docker and Docker Compose]
 1. [Adding a Let's Encrypt TLS certificate]
-1. Kubernetes
+1. [Let's Encrypt and multiple domains]
 
 ---
 
@@ -159,14 +159,15 @@ And that's really it.  As you can see, there's really not much going on here.  I
 [Next], let's use [Docker] and [Docker Compose] to improve on this as I take our next incremental step to our end goal.
 
 [Italian dictionary website]: http://italy.benjamintoll.com
-[$64,000 question]: https://en.wikipedia.org/wiki/The_$64,000_Question
 [Docker and Docker Compose]: /2021/03/14/on-getting-italy-back-online-part-two/
+[Adding a Let's Encrypt TLS certificate]: /2021/03/19/on-getting-italy-back-online-part-three/
+[Let's Encrypt and multiple domains]: /2022/01/13/on-lets-encrypt-and-multiple-domains/
+[$64,000 question]: https://en.wikipedia.org/wiki/The_$64,000_Question
 [The Catcher in the Rye]: https://en.wikipedia.org/wiki/The_Catcher_in_the_Rye
 [Dylan Dog]: https://en.wikipedia.org/wiki/Dylan_Dog
 [VirtualBox]: https://www.virtualbox.org/
 [Vagrant]: https://www.vagrantup.com/
 [Ansible]: https://www.ansible.com/
-[Kubernetes]: https://kubernetes.io/
 [shell provisioner]: https://www.vagrantup.com/docs/provisioning/shell
 [roles]: https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html
 [provisioning support for Ansible]: https://www.vagrantup.com/docs/provisioning/ansible_intro
@@ -177,6 +178,5 @@ And that's really it.  As you can see, there's really not much going on here.  I
 [view the docs]: https://galaxy.ansible.com/docs/using/installing.html
 [Docker]: https://docs.docker.com/
 [Docker Compose]: https://docs.docker.com/compose/
-[Adding a Let's Encrypt TLS certificate]: /2021/03/19/on-getting-italy-back-online-part-three/
 [Next]: /2021/03/14/on-getting-italy-back-online-part-two/
 
