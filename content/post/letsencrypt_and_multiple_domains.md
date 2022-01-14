@@ -155,7 +155,6 @@ http {
         location {
         }
     }
-
 }
 </pre>
 

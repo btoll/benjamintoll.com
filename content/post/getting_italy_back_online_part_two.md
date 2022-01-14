@@ -407,6 +407,6 @@ Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 [swarm]: https://docs.docker.com/engine/swarm/
 [`tmpfs`]: https://en.wikipedia.org/wiki/Tmpfs
 [mutual TLS]: https://en.wikipedia.org/wiki/Mutual_authentication
-[Next]: http://localhost/2021/03/19/on-getting-italy-back-online-part-three/
+[Next]: /2021/03/19/on-getting-italy-back-online-part-three/
 [Let's Encrypt]: https://letsencrypt.org/
 
