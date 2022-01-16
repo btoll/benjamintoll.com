@@ -29,10 +29,8 @@ title = "Links"
 ## Misc
 
 - CV [\[odt\]](/docs/BenjaminToll.odt) [\[pdf\]](/docs/BenjaminToll.pdf)
+- [The Owl's Nest Farm]
 - [`benjamintoll.com` onion service]
-<!--
-- The Owl's Nest Farm [\[Internet\]](https://www.theowlsnestfarm.com/) [\[Tor\]](http://lgewyajrjxytj4z6.onion)
--->
 
 [GitHub]: https://github.com/btoll
 [npm]: https://www.npmjs.com/~benjam72
@@ -46,4 +44,5 @@ title = "Links"
 [HTMLify]: /tools/htmlify/
 
 [`benjamintoll.com` onion service]: http://5d6xbdrhw3hs4vngpukrsx6aih64vkpixqpexjmbo4eh7kl66iuseryd.onion
+[The Owl's Nest Farm]: https://theowlsnest.farm
 
