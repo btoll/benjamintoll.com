@@ -21,6 +21,9 @@ theme = "hugo-lithium-theme"
 [[menu.main]]
     name = "Links"
     url = "/links/"
+[[menu.main]]
+    name = "Support"
+    url = "/support/"
 
 [params]
     description = "benjamintoll.com"
