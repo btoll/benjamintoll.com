@@ -35,6 +35,10 @@ It's a small list, as favorites can be, and I may add to it in time.
 
 - [Learning the Bash Shell](https://www.oreilly.com/library/view/learning-the-bash/1565923472/)
 
+### Containers
+
+- [Container Security](https://www.oreilly.com/library/view/container-security/9781492056690/)
+
 ### Systems
 
 - [Nmap Network Scanning](https://nmap.org/book/)
