@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#shellcheck disable=1087
 
 # Example: ./build_and_deploy.sh --tagname latest --deploy
 

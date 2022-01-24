@@ -104,9 +104,7 @@ $ ykman list --serials
 To manage the connection modes:
 
 ```
-$ ykman mode
-Current connection mode is: OTP+FIDO+CCID
-Supported USB interfaces are: OTP, FIDO, CCID
+$ ykman config mode [OPTIONS] MODE
 ```
 
 To inspect the device:
