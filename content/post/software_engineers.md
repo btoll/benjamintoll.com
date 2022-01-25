@@ -12,7 +12,7 @@ My curiosity piqued, I asked what type, and she replied that she is a chemist.
 
 Ah, I said, you're a real engineer!  I'm a programmer who works with software engineers, I continued.
 
-Yeah, I work with some of them, they both responded at the same time.
+Yeah, I work with some of those people, they responded at the same time.
 
-We paused and then shared a big laugh.
+After a pause, we shared a big laugh.
 
