@@ -41,6 +41,7 @@ It's a small list, as favorites can be, and I may add to it in time.
 
 ### Systems
 
+- [The Linux Programming Interface](https://man7.org/tlpi/)
 - [Nmap Network Scanning](https://nmap.org/book/)
 - [TCP/IP Illustrated](https://en.wikipedia.org/wiki/TCP/IP_Illustrated)
 
