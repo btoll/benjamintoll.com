@@ -4,6 +4,8 @@ date = "2018-08-20T10:53:13-04:00"
 
 +++
 
+> If you're interested in seeing some examples of running a Tor browser container in `systemd-nspawn`, see [`On Running systemd-nspawn Containers`].
+
 I was recently researching container technology (again), as I seem to do every once in a while.  I've been using [chroots] for a long time and [have written about them] a bit.  I love the idea of sandboxes, so I've always been drawn to the concept and use them when needed.
 
 I've been down this road before, and every time I'm hesitant to use the most well-known player in this domain, Docker.  Why?  Well, almost to a person, the one recommending that I use Docker has never heard of chroot or BSD jails.  This is usually indicative that that person has not done their homework and has just adopted Docker.  This could be for a multitude of reasons, but none of them are reasonable or smart unless they've also weighed the alternatives, such as ones offered natively by various [Unices].  That may not be fair, but that's how the cookie crumbles.
@@ -32,7 +34,7 @@ In this article, we're going to look at one particular container technology buil
 > - [Bug Report](https://bugs.freedesktop.org/show_bug.cgi?id=76935)
 > - [SystemD bugs - Pwnies](https://pwnies.com/systemd-bugs/)
 
-`systemd-nspawn` is a utility that ships with `systemd`, so most Linux users will have it "out-of-the-box" with most standard installations (if not present on your system, simply download the `systemd-container` package).  This is the utility that allows you to spawn containers.  The [`machinectl`] utility will also be a part of the `systemd-container` package, and this will enable you to manage your containers via a simple inteface (although everything can be done using `systemd-nspawn`).
+`systemd-nspawn` is a utility that ships with `systemd`, so most Linux users will have it "out-of-the-box" with most standard installations (if not present on your system, simply download the `systemd-container` package).  This is the utility that allows you to spawn containers.  The [`machinectl`] utility will also be a part of the `systemd-container` package, and this will enable you to manage your containers via a simple interface (although everything can be done using `systemd-nspawn`).
 
 > I won't be talking about [Linux containers] or Solaris Containers, but they are also popular and exciting container technologies.
 
@@ -89,7 +91,7 @@ You can tell `debootstrap` to simply download the `deb` packages without install
 
 > Note that when using `debootstrap` to create an archive the command still needs a location, even though we're not actually installing anything.  It's not even necessary to create the directory, just give it any name (like `foo`).
 
-This will allow me to point the installation at the archive rather than downloading them via HTTP, allowing me to save precious bits.  You could also place these archives on a local network drive which would be save not only bandwidth but time.
+This will allow me to point the installation at the archive rather than downloading them via HTTP, allowing me to save precious bits.  You could also place these archives on a local network drive which would save not only bandwidth but time.
 
 So, here is what the process was for me to download and install a base container:
 
@@ -242,6 +244,7 @@ I just ran out of steam.  I'll be updating this as I learn more about `systemd-n
 
 - [systemd-nspawn](https://wiki.archlinux.org/title/systemd-nspawn)
 
+[`On Running systemd-nspawn Containers`]: /2022/02/04/on-running-systemd-nspawn-containers/
 [chroots]: http://man7.org/linux/man-pages/man2/chroot.2.html
 [have written about them]: /2018/04/06/on-running-a-tor-onion-service-in-a-chroot/
 [Unices]: https://www.thefreedictionary.com/Unices
