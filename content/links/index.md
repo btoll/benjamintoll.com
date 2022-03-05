@@ -39,7 +39,7 @@ title = "Links"
 
 [Hangman]: https://github.com/btoll/hangman
 [Memory Game]: https://github.com/btoll/memory-game
-[Music Theory]: https://github.com/btoll/music-theory
+[Music Theory]: /music-theory
 
 [Italian Dictionary]: https://italy.benjamintoll.com
 [CSSCompress]: /tools/css_compress/
