@@ -18,6 +18,7 @@ date = "2021-05-10T11:55:04-04:00"
         - serial entrepreneur
         - software craftsman
         - thought leader
+        - Docker Captain
 
 # 20<sup>th</sup> Century
 
