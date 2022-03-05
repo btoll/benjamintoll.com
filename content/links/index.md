@@ -38,7 +38,7 @@ title = "Links"
 [npm]: https://www.npmjs.com/~benjam72
 
 [Hangman]: https://github.com/btoll/hangman
-[Memory Game]: https://github.com/btoll/memory-game
+[Memory Game]: /memory-game
 [Music Theory]: /music-theory
 
 [Italian Dictionary]: https://italy.benjamintoll.com

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Memory Game</title>
+<style>
+body {
+    background: #eed;
+}
+div#cardTable {
+    position: absolute;
+    top: 18%;
+    left: 30%;
+    width: 520px;
+}
+div#scorer {
+    color: #EED;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 20px;
+    padding: 20px;
+    position: absolute;
+    top: 2%;
+    left: 30%;
+    text-align: center;
+    width: 190px;
+}
+div#cardTable div {
+    background-color: #60793e;
+    float: left;
+    height: 66px;
+    margin: 10px;
+    width: 65px;
+}
+div#cardTable p {
+    background: #FFF;
+    border: 1px solid #CCC;
+    display: none;
+    font-size: 1.5em;
+    font-weight: bold;
+    height: 66px;
+    margin: 0;
+    text-align: center;
+    width: 65px;
+}
+div#cardTable p span {
+    display: block;
+    padding: 20px 0;
+}
+div.scorecard {
+    background: #FFF;
+    border: 1px solid #999;
+    height: 120px;
+    margin: 20px;
+    padding: 10px;
+    width: 120px;
+}
+div.scorecard h1 {
+    font-size: 1em;
+    margin: 2px auto;
+}
+div.scorecard p {
+    color: #6db0b7;
+    font: 4em/1.2 cursive;
+    margin: 0;
+    text-align: center;
+}
+div.scorecard p#matches {
+    color: #888081;
+}
+</style>
+<script type="text/javascript" src="build/index.js"></script>
+</head>
+
+<body>
+    <div class="scorecard">
+        <h1>Chances</h1>
+        <p id="chances"></p>
+    </div>
+
+    <div class="scorecard">
+        <h1>Matches</h1>
+        <p id="matches"></p>
+    </div>
+
+    <div id="scorer">
+    </div>
+
+    <div id="cardTable">
+    </div>
+
+</body>
+</html>
+
