@@ -1,16 +1,23 @@
 [
     {
-        "name": "chord_puzzle",
-        "data": {
-            "width": 600,
-            "height": 750
-        }
-    },
-    {
         "name": "chord_builder",
         "data": {
             "width": 600,
             "height": 550
+        }
+    },
+    {
+        "name": "chord_intervals",
+        "data": {
+            "width": 600,
+            "height": 550
+        }
+    },
+    {
+        "name": "chord_puzzle",
+        "data": {
+            "width": 600,
+            "height": 750
         }
     },
     {
