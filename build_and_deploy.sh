@@ -36,6 +36,7 @@ done
 
 build_image () {
     if ! docker run --rm -it -v "$(pwd)":/src btoll/hugo:0.80.0
+#    if ! systemd-nspawn --machine hugo --quiet
     then
         echo -e "\n$RED_FG[$0]$END_FG_COLOR The $FULL_IMAGE_NAME site could not be generated."
         exit 1

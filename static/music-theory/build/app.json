@@ -21,7 +21,7 @@
         }
     },
     {
-        "name": "key_signature",
+        "name": "key_signatures",
         "data": {
             "width": 600,
             "height": 270
