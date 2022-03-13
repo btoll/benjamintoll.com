@@ -8,12 +8,13 @@ date = "2022-03-12T14:57:16-05:00"
 
 Music is the most important thing that humans have ever created.  There is no debate.  Ok, maybe fire, but that's it.  Well, and maybe electricity, cause that's what clouds run on.
 
-In that spirit, I recently added another quiz to my world-famous and wildly-popular online [music theory application].  There are now four for your edification.
+In that spirit, I recently added two new quizzes to my world-famous and wildly-popular online [music theory application].  There are now five to delight and astound you!
 
 - Chord Builder
 - Chord Intervals
 - Chord Puzzle
-- Key Signature
+- Key Signatures
+- Modes
 
 The music theory tool uses [PeteJS], my own JavaScript library, which was originally written about 500 years ago.  It comprises the following modules, and I have no current plans for further development.
 
