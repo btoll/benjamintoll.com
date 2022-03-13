@@ -26,6 +26,13 @@
             "width": 600,
             "height": 270
         }
+    },
+    {
+        "name": "modes",
+        "data": {
+            "width": 600,
+            "height": 550
+        }
     }
 ]
 

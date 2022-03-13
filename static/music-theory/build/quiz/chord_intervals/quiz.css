@@ -1,0 +1,82 @@
+/*
+http://www.positioniseverything.net/easyclearing.html
+*/
+.clearfix:after {
+    clear: both;
+    content: ".";
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+div {
+    margin: 0 20px;
+}
+
+p {
+    font: italic 14px "Trebuchet MS";
+    margin: 10px 20px 5px;
+}
+
+div#chordIntervalsQuiz {
+    background: #FFF;
+    margin: 20px auto;
+}
+
+div#chordIntervalsQuiz > div {
+    margin: 0 auto;
+    width: 480px;
+}
+
+#currentChordInterval {
+    background: #EED;
+    border: 2px solid #CCC;
+    color: blue;
+    font-weight: bold;
+    padding: 10px;
+    text-align: center;
+    width: 301px;
+}
+
+#chordIntervals {
+    width: 425px;
+}
+
+a:link,
+a:visited,
+a:hover,
+a:active {
+    border: 1px solid #CCC;
+    color: #000;
+    float: left;
+    height: 40px;
+    margin: 5px;
+    text-align: center;
+    text-decoration: none;
+    width: 150px;
+}
+
+a:hover {
+    background: #EDD;
+}
+
+#chords a {
+    width: 130px;
+}
+
+/*make the <span>s completely fill their parent <a>s*/
+span {
+    display: block;
+    padding: 10px 0;
+}
+
+#currentChordInterval span {
+    display: inline;
+    margin: 0 20px;
+}
+
