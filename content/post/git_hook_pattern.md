@@ -151,20 +151,21 @@ The easiest step.  Copy `pre-commit` and `pre-commit.d` and its contents to `./.
 #!/bin/bash
 
 # Try for local hooks first.
-HOOKS=$(git config --local --get-all hooks.pre-commit)                  (1)
+HOOKS=$(git config --local --get-all hooks.pre-commit)                         (1)
 
 if [ -z "$HOOKS" ]
 then
-    HOOKS=$(git config --global --get-all hooks.pre-commit.saddle)      (2)
+    HOOKS=$(git config --global --get-all hooks.pre-commit.saddle)             (2)
 fi
 
 if [ -n "$HOOKS" ]
 then
     for HOOK in $HOOKS
     do
-        if ! bash "./.git/hooks/pre-commit.d/$HOOK"                     (3)
+        if ! bash "./.git/hooks/pre-commit.d/$HOOK"                            (3)
         then
-            exit 1                                                      (4)
+            echo -e "\n---\nTo skip all tests, do \`git commit --no-verify\`."
+            exit 1                                                             (4)
         else
             # Separate the hooks by an empty line.
             echo
