@@ -188,6 +188,7 @@ Hopefully, these brief overview has gone a bit more in-depth than most introduct
 - [Virtualization Lecture Slides](https://people.cs.rutgers.edu/~pxk/416/notes/content/23-vm-slides.pdf)
 - [A Comparison of Software and Hardware Techniques for x86 Virtualization](https://www.vmware.com/pdf/asplos235_adams.pdf)
 - [Container Security](https://containersecurity.tech/)
+- [On System Calls](/2022/08/18/on-system-calls/)
 
 [hypervisors]: https://en.wikipedia.org/wiki/Hypervisor
 [virtual machine monitor]: https://en.wikipedia.org/wiki/Hypervisor
