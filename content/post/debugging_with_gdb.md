@@ -573,6 +573,10 @@ Incidentally, do yourself a favor and pick up a copy of one of my all-time favor
 
 [Fuck] [Jeff] [Bezos].
 
+## References
+
+- [Online GDB](https://www.onlinegdb.com/)
+
 [GDB]: https://www.gnu.org/software/gdb/
 [red zone]: https://en.wikipedia.org/wiki/Red_zone_(computing)
 [can be changed]: https://gcc.gnu.org/onlinedocs/gcc-3.3.6/gcc/i386-and-x86_002d64-Options.html#index-no_002dred_002dzone-998

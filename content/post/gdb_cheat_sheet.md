@@ -487,6 +487,10 @@ Lastly, if you start up GDB without issuing the `-tui` switch but want to see th
 
 > For those who'd like more `TUI` action, here's [a sweet tutorial].
 
+## References
+
+- [Online GDB](https://www.onlinegdb.com/)
+
 [GDB]: https://www.gnu.org/software/gdb/
 [On Debugging with GDB]: /2018/05/19/on-debugging-with-gdb/
 [On Stack Smashing, Part One]: /2019/04/09/on-stack-smashing-part-one/
