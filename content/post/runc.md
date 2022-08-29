@@ -18,6 +18,8 @@ It's not meant to be a thorough dissection of its features and capabilities, and
     - [The OCI config](#the-oci-config)
     - [The `rootfs`](#the-rootfs)
 - [Creating a container, redux](#creating-a-container-redux)
+    + [User Namespace](#user-namespace)
+    + [Mounts](#mounts)
 - [Conclusion](#conclusion)
 - [References](#references)
 
@@ -180,7 +182,19 @@ The first two can be used if Docker has already been installed on your system, w
 
     In order for this to work, you'll need to first create a container.  It doesn't matter if it's state is running or stopped, as long as `docker container ls` can list it then `riddler` will be able to extract the OCI config.
 
-    The tool works by calling the Docker API via the Docker daemon.  Here is an example of how `riddler` accesses the config of a created container:
+    For example:
+
+    ```
+    $ docker container ls -a
+    CONTAINER ID   IMAGE           COMMAND   CREATED          STATUS                      PORTS     NAMES
+    7861b5dad3b0   golang:latest   "bash"    10 minutes ago   Exited (0) 10 minutes ago             vigilant_hopper
+    $ riddler vigilant_hopper
+    config.json has been saved.
+    ```
+
+    This will save the spec to the current working directory.
+
+    The tool works by calling the Docker API via the Docker daemon.  Here is an example of how `riddler` accesses the config of a created container underneath the hood:
 
     ```
     $ curl -XGET --unix-socket /var/run/docker.sock localhost/containers/tor-browser/json
@@ -318,6 +332,8 @@ Now that we have an OCI filesystem bundle, let's do something with it by revisit
 
 Calling `runc run` will first create the container and then run it.  We'll work with the `golang` directory that we had previously downloaded using `skopeo`.
 
+### User Namespace
+
 In the first example, we'll provide the `--rootless` flag that will enable `runc` to create a rootless container.  Then, we'll create and run it, get the user id, and then `sleep`.  We'll then get more information about the process on the host.
 
 ```
@@ -450,6 +466,125 @@ $ sudo runc exec ctr uname -a
 Linux umoci-default 5.11.0-46-generic #51-Ubuntu SMP Thu Jan 6 22:14:29 UTC 2022 x86_64 GNU/Linux
 ```
 
+### Mounts
+
+I'll briefly touch on mounting into the container.
+
+When I created the `config.json` spec, it created the following mount points:
+
+<pre class="math">
+...
+	"mounts": [
+		{
+			"destination": "/proc",
+			"type": "proc",
+			"source": "proc"
+		},
+		{
+			"destination": "/dev",
+			"type": "tmpfs",
+			"source": "tmpfs",
+			"options": [
+				"nosuid",
+				"strictatime",
+				"mode=755",
+				"size=65536k"
+			]
+		},
+		{
+			"destination": "/dev/pts",
+			"type": "devpts",
+			"source": "devpts",
+			"options": [
+				"nosuid",
+				"noexec",
+				"newinstance",
+				"ptmxmode=0666",
+				"mode=0620"
+			]
+		},
+		{
+			"destination": "/dev/shm",
+			"type": "tmpfs",
+			"source": "shm",
+			"options": [
+				"nosuid",
+				"noexec",
+				"nodev",
+				"mode=1777",
+				"size=65536k"
+			]
+		},
+		{
+			"destination": "/dev/mqueue",
+			"type": "mqueue",
+			"source": "mqueue",
+			"options": [
+				"nosuid",
+				"noexec",
+				"nodev"
+			]
+		},
+		{
+			"destination": "/sys",
+			"type": "none",
+			"source": "/sys",
+			"options": [
+				"rbind",
+				"nosuid",
+				"noexec",
+				"nodev",
+				"ro"
+			]
+		},
+		{
+			"destination": "/sys/fs/cgroup",
+			"type": "cgroup",
+			"source": "cgroup",
+			"options": [
+				"nosuid",
+				"noexec",
+				"nodev",
+				"relatime",
+				"ro"
+			]
+		}
+...
+</pre>
+
+That's great!  Now, what if I wanted to mount another?  For example, let's mount `/run` from the host.  First let's get more information on it by using our old friend `df`:
+
+```
+$ df -lh | ag run
+tmpfs           1.6G  1.6M  1.6G   1% /run
+tmpfs           5.0M  4.0K  5.0M   1% /run/lock
+tmpfs           1.6G   64K  1.6G   1% /run/user/1000
+```
+
+This tells us that its type is [`tmpfs`].  This will inform the definition in `config.json`:
+
+...
+	"mounts": [
+		{
+			"destination": "/run",
+			"type": "tmpfs",
+			"source": "/run",
+            "options": ["rbind", "rw"]
+		},
+...
+
+> Make sure you create it as a [bind mount]!
+
+Let's create the container and then confirm that it's been mounted:
+
+```
+$ runc run -b bundle/ ctr
+# ls /run/user
+1000
+```
+
+Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
 <!--
 > If you don't define a `net` namespace in the bundle (config.json) then it will inherit that namespace from the host and boom! you have network access.
 >
@@ -495,5 +630,7 @@ There are other container runtimes that implement the OCI runtime spec, but I ha
 [`docker export`]: https://docs.docker.com/engine/reference/commandline/export/
 [`debootstrap`]: https://wiki.debian.org/Debootstrap
 [`chroot` wrapper tool]: https://github.com/btoll/chroot
+[`tmpfs]: https://en.wikipedia.org/wiki/Tmpfs
+[bind mount]: https://unix.stackexchange.com/questions/198590/what-is-a-bind-mount
 [`crun`]: https://github.com/containers/crun
 
