@@ -237,13 +237,13 @@ Here's another example of the same program that uses pointers to write to an are
 <pre class="math">
 #define _GNU_SOURCE
 
-#include &lt;stdlib.h>gt;
-#include &lt;stdio.h>gt;
-#include &lt;sys/mman.h>gt;
-#include &lt;sys/syscall.h>gt;
-#include &lt;unistd.h>gt;
-#include &lt;string.h>gt;
-#include &lt;sys/types.h>gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;sys/syscall.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/types.h&gt;
 
 #define MAX_SIZE 4096
 
