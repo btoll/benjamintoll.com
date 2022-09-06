@@ -214,6 +214,8 @@ There are other very good reasons to check out this technology.  Here are some o
 
 - [eBPF site](https://ebpf.io/)
 - [A thorough introduction to eBPF](https://lwn.net/Articles/740157/)
+- [Why is the kernel community replacing iptables with BPF?](https://cilium.io/blog/2018/04/17/why-is-the-kernel-community-replacing-iptables/)
+- [BPF and XDP Reference Guide](https://scanfcilium.readthedocs.io/en/latest/bpf.html)
 - [Awesome eBPF - A curated list of awesome projects related to eBPF.](https://github.com/zoidbergwill/awesome-ebpf)
 
 [BPF]: https://en.wikipedia.org/wiki/Berkeley_Packet_Filter
