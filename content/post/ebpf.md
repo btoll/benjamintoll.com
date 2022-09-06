@@ -71,14 +71,14 @@ So, how does one get their `eBPF` program into kernel space?  Essentially, you w
 
 Once the `eBPF` program is inserted into the kernel by calling the `bpf` syscall, it is verified by the kernel to ensure it's safe using static analysis (after all, injecting user space code into kernel space is fraught with danger) and then [JIT compiled] from the intermediary `eBPF` bytecode to the machine specific instruction set, so it runs as fast as natively-compiled kernel code and [kernel modules].
 
-So, when are the `eBPF` function called?  Well, `eBPF` is event-driven and are run when these events occur, such as when the following hooks are encountered:
+So, when are the `eBPF` functions called?  Well, `eBPF` is event-driven, and the functions are called when these events occur, such as when the following hooks are encountered:
 
 - system calls
 - function entry/exit
 - kernel tracepoints
 - network events
 
-If a predefined hook doesn't exist for a particular kernel function, it is still possible to create a kernel probe ([`kprobe`] and `kretprobe`) or user probe (`uprobe`) to be called at a function's entry point in kernel and user applications, respectively.
+If a predefined hook doesn't exist for a particular kernel function, it is still possible to create a kernel probe ([`kprobe`] and `kretprobe`) or user probe (`uprobe` and `uretprobe`) to be called at a function's entry point in kernel and user applications, respectively.
 
 And, as previously mentioned, user space can get information from kernel space about the particular things that it's interested in and have captured, through the use of the `eBPF` maps key/value data structure (by commands that can create and modify these `eBPF` maps).
 
@@ -217,6 +217,7 @@ There are other very good reasons to check out this technology.  Here are some o
 - [Why is the kernel community replacing iptables with BPF?](https://cilium.io/blog/2018/04/17/why-is-the-kernel-community-replacing-iptables/)
 - [BPF and XDP Reference Guide](https://scanfcilium.readthedocs.io/en/latest/bpf.html)
 - [Awesome eBPF - A curated list of awesome projects related to eBPF.](https://github.com/zoidbergwill/awesome-ebpf)
+- [System Call (Wikipedia)](https://en.wikipedia.org/wiki/System_call)
 
 [BPF]: https://en.wikipedia.org/wiki/Berkeley_Packet_Filter
 [Linux Journal]: https://www.linuxjournal.com/
@@ -231,7 +232,7 @@ There are other very good reasons to check out this technology.  Here are some o
 [`bpf` system call]: https://man7.org/linux/man-pages/man2/bpf.2.html
 [BPF Internals]: https://www.youtube.com/watch?v=_5Z2AU7QTH4
 [the Bee's Knees]: https://en.wikipedia.org/wiki/Bee%27s_Knees
-[system calls]: https://en.wikipedia.org/wiki/System_call
+[system calls]: /2022/08/18/on-system-calls/
 [`LLVM`]: https://en.wikipedia.org/wiki/LLVM
 [`Clang`]: https://en.wikipedia.org/wiki/Clang
 [`kprobe`]: https://docs.kernel.org/trace/kprobes.html
