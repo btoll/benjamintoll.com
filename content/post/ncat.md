@@ -46,7 +46,11 @@ Here is Ncat listening as a server:
 
 	$ ncat -l localhost 10003 < <(echo -e "HTTP/1.0 200 OK\n\n<h1>hello world</h1>")
 
-Simply point a browser to `localhost:10003`.
+Or, in a loop:
+
+    $ while true; do ncat -l localhost 10003 < <(echo -e "HTTP/1.0 200 OK\n\n<h1>hello world</h1>"); done
+
+Simply point a browser to `localhost:10003` (or curl)
 
 Note that, in the previous example, Ncat is expecting a file descriptor to be redirected to `stdin`, so you could replace the process substitution here with a regular file.
 
