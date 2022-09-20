@@ -264,6 +264,7 @@ I included three links to other solutions below in the [References](#references)
 - [Unicode Converter - Decimal, text, URL, and unicode converter](https://www.branah.com/unicode-converter)
 - [`asbits`]
 - [`htoi`](https://github.com/btoll/tools/blob/master/c/htoi.c)
+- [On Ints as Bit Vectors](/2019/03/16/on-ints-as-bit-vectors/)
 
 [capture the flag]: https://en.wikipedia.org/wiki/Capture_the_flag_(cybersecurity)
 [John Hammond's channel]: https://www.youtube.com/c/JohnHammond010
