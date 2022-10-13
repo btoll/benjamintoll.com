@@ -59,7 +59,7 @@ Knowledge of commonly-used algorithms and Big O notation is important, and I lik
 
 > Most companies don't care about what particular language is chosen for a coding challenge (even one that isn't used at the company), so why do they then care about knowledge in a particular tool versus lack of knowledge in another?
 
-I've had plenty of interviews where the inteviewer(s) are complete assholes (like the aforementioned Netflix interview), and so I place a high priority on make the candidate feel as comfortable as possible.  If the interviewer is obnoxious, then that is great information to have, no matter how well you do.  After all, you're there to evaluate if **you** want to work there, bearing in mind that you'll sometimes spend more time with these pricks than with your significant other.  Fuck that.
+I've had plenty of interviews where the inteviewer(s) are complete assholes (like the aforementioned Netflix interview), and so I place a high priority on make the candidate feel as comfortable as possible.  If the interviewer is obnoxious, then that is great information to have, no matter how well you do.  After all, you're there to evaluate if **you** want to work there, bearing in mind that you'll sometimes spend more time with these ninjas than with your significant other.
 
 # Conclusion
 
