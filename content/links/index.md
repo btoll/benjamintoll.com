@@ -8,11 +8,12 @@ title = "Links"
 - [Docker Hub]
 - [npm]
 
-## Games
+## Games / Education
 
 - [Hangman]
 - [Memory Game]
 - [Music Theory]
+- [Scale Buddy]
 
 ## Online Tools
 - [Italian Dictionary]
@@ -40,6 +41,7 @@ title = "Links"
 [Hangman]: https://github.com/btoll/hangman
 [Memory Game]: /memory-game
 [Music Theory]: /music-theory
+[Scale Buddy]: https://github.com/btoll/scale_buddy
 
 [Italian Dictionary]: https://italy.benjamintoll.com
 [CSSCompress]: /tools/css_compress/
