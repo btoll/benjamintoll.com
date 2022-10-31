@@ -30,3 +30,7 @@ Of course, this is a work in progress...
 
 The End.
 
+## Related
+
+- [On Thumb Rules](/2022/10/30/on-thumb-rules/)
+
