@@ -70,7 +70,7 @@ So, here is an unordered list of things that I absolutely can't stand.  Of cours
 
     There's a scrum master with Post-It notes.  There are several meetings during the week that culminate with something called a Retrospective.  All your natural human instincts in your DNA cultivated over millions of years instructs you to laugh, but a quick look at the faces around the room tells you that this is all Very Serious Stuff.
 
-    Of course, everyone I've ever talked to hates Agile.  Some still cling to the idea that it's a great methodology, but it's just that no one is doing it right.
+    Of course, [everyone I've ever talked to hates Agile].  Some still cling to the idea that it's a great methodology, but it's just that no one is doing it right.
 
     Sadly, no one at **your** company feels this way, and so every day you have a Standup where no one listens to anyone else and everyone stares dumbly at their tracking device.  If you're really unlucky, some Serious Person will bring up an Action Item and the next thing you know you're out in the Parking Lot.
 
@@ -87,4 +87,5 @@ If you don't agree, leave a comment below!  I l{o,i}ve to hear your opinions!
 [I've made a huge mistake]: https://www.youtube.com/watch?v=46Kv4rBJi68
 ["have you tried turning it off and on again?"]: https://www.youtube.com/watch?v=t2F1rFmyQmY
 [The Shadow]: https://en.wikipedia.org/wiki/The_Shadow
+[everyone I've ever talked to hates Agile]: /2021/12/26/on-hating-agiles-guts/
 

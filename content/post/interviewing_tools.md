@@ -4,6 +4,8 @@ date = "2021-05-03T14:42:51-04:00"
 
 +++
 
+> Note that this was written about interviewing for development positions.  I have a slightly different take when interviewing for "devops" positions that I write about in [the breathlessly anticipated follow-up] to this article.
+
 I've been interviewing again for a little while.  Since my job is finding a job, I've been studying at least several hours a day, learning new things and brushing up on the old.
 
 I really enjoy it.  Whether it be algorithms, programming languages, Linux systems administration, networking, infrastructure, etc., they're all subjects that appeal to me and in which I have an interest to get better.  The only area that has been a constant for me over the years is my disinterest in Microsoft products.
@@ -65,12 +67,17 @@ I've had plenty of interviews where the inteviewer(s) are complete assholes (lik
 
 The end.  What more do you want from me?
 
+# References
+
+- [On Interviewing Tools, Redux](/2022/11/11/on-interviewing-tools-redux/)
+
 ---
 
 1.  <span style="font-size: small;">This is similar to when I'm informed that a company doesn't hire remote workers.  But the context is important.  For example, if it's the same tired reasons that I used to hear years ago (and sometimes still do), I wonder if they realize that what they're telling me has everything to do with themselves and nothing to do with me.  It's particularly egregious when it comes from a fellow programmer and not a manager.  In essence, "I'm a child who is so easily distracted that I cannot be trusted to do what I say, and further I cannot comprehend that anyone is different from me."  That's right, I said it.</span>
 
 1. <span style="font-size: small;">Perhaps this is the fault of hiring managers and recruiters.</span>
 
+[the breathlessly anticipated follow-up]: /2022/11/11/on-interviewing-tools-redux/
 [a case of the yips]: https://www.youtube.com/watch?v=a1_9X3ftGyk
 [I can panic in coding interviews]: https://github.com/btoll/howto-panic-in-a-coding-interview
 [I do enjoy things that are difficult]: /2018/02/20/on-learning/
