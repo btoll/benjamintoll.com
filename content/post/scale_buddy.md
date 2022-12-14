@@ -24,6 +24,22 @@ Learning what?  Well, scales, dummy!  Scale Buddy currently supports the followi
 - Natural minor (Aeolian mode)
 - Major pentatonic
 - Minor pentatonic
+- Modes of the major scale
+    + Ionian
+    + Dorian
+    + Phrygian
+    + Lydian
+    + Mixolydian
+    + Aeolian
+    + Locrian
+- Modes of the melodic scale
+    + Melodic minor
+    + Dorian ♭2 / Phrygian ♯6
+    + Lydian augmented / Lydian ♯5
+    + Lydian dominant / Lydian ♭7
+    + Mixolydian ♭6
+    + Locrian ♯2 / Aeolian ♭5
+    + Super Locrian / altered dominant / altered
 
 It's written in Python.  Why?  [Who knows!]
 
@@ -118,17 +134,13 @@ The integer refers to the number of [semitones] between the diatonic notes of th
 
 There is a lookup table that returns the number of semitones between two adjacent notes, and these semitones are then compared to the semitones of the scale interval `tuple` for the given scale type (i.e., major, harmonic minor, etc.).
 
-Then, it's simply a matter of adjusting the lookup table by adding or subtracting by the number of semitones needed to satisfy the scale interval `tuple`.
+Based upon simple comparisons, there is a `current_accidental` local variable that is updated and appended to the current note.  For example, if the interval between the number of semitones between the diatonic of the scale notes being compared is equal to that of the interval of the intended scale to create, then the accidental isn't changed (if the previous note is sharp, then the current note is also raised).
 
-For example, for the `E` major scale, the first interval is a whole note, or two semitones.  However, there is only one semitone between the notes `E` and `F`, so the `E` must be raised (i.e., sharped `♯`) and then the next note in the lookup table would be subtracted by one to accomodate this.  One can think of it as "taking" a semitone from the next pair of notes and giving it the current ones to satisfy the interval specified by the scale interval `tuple`.
+If the comparison is greater or less than, the note is raised or flattened, accordingly.  It's pretty simple, but as previously stated, it took me a while to get to this simplicity.  As usual, I complicate it, but then further iterations whittle it down to the least number of moving parts.
 
-Note a couple of things:
+> For example, for the `E` major scale, the first interval is a whole note, or two semitones.  However, there is only one semitone between the notes `E` and `F`, so the `E` must be raised (i.e., sharped `♯`).
 
-- The identity of the next pair of notes that is giving up or having a semitone taken from it doesn't need to be known for this to work.
-
-- Also, this has a cascading effect if the next pair of notes is two semitones.  For instance, now that it had a semitone subtracted from its total, it will need to take a semitone from **its** next pair of notes.  This will be repeated until the scale interval type reaches a pair of notes that is only separated by one semitone, such as the `B`/`C` and `E`/`F` note pairs in a `C` major scale, at which point the stealing of semitones stops.
-
-- A very cool property of scales are inversions.  For instance, the key of `B` contains five sharps: `C`, `D`, `F`, `G` and `A`, in order.  Inversely, how many flats does the key of `B♭` contain?  Well, `B` and `E`, which are the only notes that aren't raised in a `B` major scale.  This works for all scales.  Check out the [circle of fifths] for proof.  So, because of this neat property, we don't need to work out any scales for which the tonic is sharp or flat; we just need to find its inverse!  So cool!
+Note that a very cool property of scales are inversions.  For instance, the key of `B` contains five sharps: `C`, `D`, `F`, `G` and `A`, in order.  Inversely, how many flats does the key of `B♭` contain?  Well, `B` and `E`, which are the only notes that aren't raised in a `B` major scale.  This works for all scales.  Check out the [circle of fifths] for proof.  Also, [there are many great resources] on the Internets for more in-depth explanations of this neat property.
 
 ## Bonus
 
@@ -145,4 +157,5 @@ Scale Buddy even has its own theme song:
 [the GitHub repository]: https://github.com/btoll/scale_buddy
 [semitones]: https://en.wikipedia.org/wiki/Semitone
 [circle of fifths]: https://en.wikipedia.org/wiki/Circle_of_fifths
+[there are many great resources]: https://www.youtube.com/watch?v=-fErw8WPvw0
 
