@@ -16,19 +16,23 @@ While `chroot`s do perform filesystem isolation, they don't provide any of the s
 > - [On Escaping a Chroot]
 > - [On Stack Smashing, Part Two]
 
-`nspawn`, on the other hand, gives you as much security and configuration as you would want and expect and is as easily configurable as better-known tools like Docker (although it operates at a lower-level).
+`systemd-nspawn`, on the other hand, gives you as much security and configuration as you would want and expect and is as easily configurable as better-known tools like Docker (although it operates at a lower-level).
 
-To create a container, `nspawn` expects a root filesystem and optionally a `JSON` container configuration file, which of course brings to mind an [OCI runtime bundle], because `systemd-nspawn` is fully OCI compliant.  Those familiar with tools like [`runc`] will be familiar with this requirement.
+To create a container, `systemd-nspawn` expects a root filesystem and optionally a `JSON` container configuration file, which of course brings to mind an [OCI runtime bundle], because `systemd-nspawn` is fully OCI compliant.  Those familiar with tools like [`runc`] will be familiar with this requirement.
 
 > One can use many of the same methods to get a root filesystem (rootfs) as documented in my article on [`runc`].
 
-By using the machine option (`--machine | -M`) with `systemd-nspawn`, the operating system tree (root filesystem) is automatically searched for in a couple places, most notably in `/var/lib/machines`, which is the recommended directory on the system.
+By using the machine option (`--machine` or `-M`) with `systemd-nspawn`, the operating system tree (root filesystem) is automatically searched for in a couple places, most notably in `/var/lib/machines`, which is the recommended directory on the system.
 
-The intent of this article is to quickly and succinctly outline several ways to get started using containers with `nspawn`.  Hopefully, it will also encourage you to think more critically of tools like Docker and determine if they are as necessary as all the hype surrounding them would leave you to believe.
+The intent of this article is to quickly and succinctly outline several ways to get started using containers with `systemd-nspawn`.  Hopefully, it will also encourage you to think more critically of tools like Docker and determine if they are as necessary as all the hype surrounding them would have you believe.
 
 We'll be running the Tor browser in a container managed by `systemd-nspawn`.
 
 Note that the following assumptions are made:
+
+- `systemd-nspawn` is already installed on your system.
+
+      $ sudo apt install systemd-container
 
 - All the following examples will assume that the current working directory is `/var/lib/machines`.
 - All commands are run as the `root` user to save typing `sudo` for every command.
@@ -37,7 +41,7 @@ Hey, ho, let's go.
 
 ---
 
-- [`nspawn` Container Settings File](#nspawn-container-settings-file)
+- [`systemd-nspawn` Container Settings File](#nspawn-container-settings-file)
 - [Examples](#examples)
     + [`docker export`](#docker-export)
     + [`debootstrap`](#debootstrap)
@@ -56,23 +60,23 @@ Hey, ho, let's go.
 
 ---
 
-## `nspawn` Container Settings File
+## `systemd-nspawn` Container Settings File
 
-What is a container settings file?  This is an optional INI-like file that contains startup configurations that will be applied to your container by the `nspawn` container manager.  Any command-line option that is given to `systemd-nspawn` can be put in the settings file, although the names will be different (see the docs).  Simply write them to the file and let `nspawn` worry about the rest.  Not a bad deal, friend.
+What is a container settings file?  This is an optional [INI]-like file that contains startup configurations that will be applied to your container by the `systemd-nspawn` container manager.  Any command-line option that is given to `systemd-nspawn` can be put in the settings file, although the names will be different (see the docs).  Simply write them to the file and let `systemd-nspawn` worry about the rest.  Not a bad deal, friend.
 
 If you're familiar with `systemd` service files, then this will be familiar to you.
 
-The `nspawn` container settings file is named after the container to which it is applied.  For instance, our container is called `tor-browser`, so the file should be called `tor-browser.nspawn`.  That's easy enough.
+The `systemd-nspawn` container settings file is named after the container to which it is applied.  For instance, our container is called `tor-browser`, so the file should be called `tor-browser.nspawn`.  That's easy enough.
 
 Where should they go?  That's a great question, geezer!
 
-The search algorithm searches the following locations, in order:
+The algorithm searches the following locations, in order:
 
 - `/etc/systemd/nspawn/`
 - `/run/systemd/nspawn/`
 - `/var/lib/machines/`
 
-Persistent settings file should be placed in `/etc/systemd/nspawn/`, and all its settings contained therein will take effect since this is a privileged location (i.e., only privileged users should be able to access any configs in the `/etc` directory).
+Persistent settings file should be placed in `/etc/systemd/nspawn/`, and, unlike the non-privileged location (see below), every setting contained therein will take effect since this is a privileged location (i.e., only privileged users should be able to access any configs in the `/etc` directory).
 
 > Do **not** put anything in `/run/systemd/nspawn/` that you want to survive a reboot, as the `/run` filesystem is temporary and any runtime data put there is placed in volatile memory.
 >
@@ -80,9 +84,9 @@ Persistent settings file should be placed in `/etc/systemd/nspawn/`, and all its
 >     Type
 >     tmpfs
 
-However, any settings files found in the non-privileged `/var/lib/machines` location will only have a subset of those settings applied.  As you may have guessed, any settings that grant elevated privileges or additional capabilities are ignored.  This is so untrusted or unvetted files downloaded from the scary Internet don't cause undue harm and isn't automatically applied upon container creation.
+However, any settings files found in the non-privileged `/var/lib/machines` location will only have a subset of those settings applied.  As you may have guessed, any settings that grant elevated privileges or additional capabilities are ignored.  This is so untrusted or unvetted files downloaded from the scary Internet don't cause undue harm and aren't automatically applied upon container creation.
 
-In order for the Tor browser to be properly launched, the following `nspawn` file must be installed in `/etc/systemd/nspawn`:
+In order for the Tor browser to be properly launched, the following `systemd-nspawn` file must be installed in `/etc/systemd/nspawn`:
 
 `tor-browser.nspawn`
 
@@ -127,7 +131,7 @@ Clearly, the settings file is much more convenient and allows us to start the co
 
 In addition, there are more parameters we can set, such as filtering system calls, bind mounts, overlay or union mount points, and much more, but that is out of the scope of this article.  And we haven't even covered the `[FILE]` and `[NETWORK]` sections of the settings file.
 
-> If an `nspawn` settings file isn't present, the container will still launch, but to a virtual shell.
+> If an `systemd-nspawn` settings file isn't present, the container will still launch, but to a virtual shell.
 
 Let's now look at some examples.
 
@@ -143,7 +147,7 @@ So, installing software additional software to run containers when you *already*
 
 I've been grudgingly using Docker in my personal projects for the sake of convenience, and it's exactly why I am giddy about moving away from it.  Convenience is the scourge of understanding.
 
-Anyway, I digress.  Here is a very simple way to run the Tor browser as an `nspawn` container:
+Anyway, I digress.  Here is a very simple way to run the Tor browser as a `systemd-nspawn` container:
 
 ```
 # mkdir tor-browser \
@@ -166,7 +170,7 @@ Which leads us to...
 
 I've been using `debootstrap` for years.  It's a really great way to quickly and easily bootstrap a `chroot` by downloading a root filesystem with optional packages.
 
-As mentioned in the previous example, I've created a [shell script] that provisions the container, and it's a simple step to copy it into the OS tree.
+As mentioned in the previous example, I've created a [shell script] that provisions the container, and it's a simple step to copy it into the new OS tree created by `debootstrap`.
 
 To run the script, we'll `chroot` into the container (well, what will *become* the container).
 
@@ -313,7 +317,7 @@ tor-browser(88544b92092430bc5d3fbbffc12a2f04)
 
 ### Removing the Container
 
-When you're *absolutely* sure that you're done with it, you can remove both the machine and the `nspawn` service file in one fell swoop:
+When you're *absolutely* sure that you're done with it, you can remove both the machine and the `systemd-nspawn` service file in one fell swoop:
 
 ```
 # machinectl remove tor-browser
@@ -377,6 +381,7 @@ Unfortunately, though, most developers don't even know that there are options ou
 [`pacstrap`]: https://man.archlinux.org/man/extra/arch-install-scripts/pacstrap.8.en
 [OCI runtime bundle]: https://github.com/opencontainers/runtime-spec/blob/main/spec.md
 [`runc`]: https://github.com/opencontainers/runc
+[INI]: https://en.wikipedia.org/wiki/INI_file
 [article on `runc`]: /2022/01/18/on-runc/#the-rootfs
 [Dockerfile]: https://github.com/btoll/machines/blob/master/tor-browser/Dockerfile
 [shell script]: https://github.com/btoll/machines/blob/master/tor-browser/install_tor_browser.sh
