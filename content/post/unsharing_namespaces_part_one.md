@@ -34,6 +34,8 @@ So, let's get on with it.
     + [Unix Timesharing System](#unix-timesharing-system)
     + [Process IDs](#process-ids)
     + [Mount points](#mount-points)
+- [Summary](#summary)
+- [References](#references)
 
 [Hey, ho, let's go!]
 
@@ -41,7 +43,7 @@ So, let's get on with it.
 
 ## Namespaces
 
-You can get a sense of all of the defined namespaces for all users on your system by listing them:
+You can get a sense of all of the defined [namespaces] for all users on your system by listing them:
 
 ```
 $ sudo lsns
@@ -59,7 +61,7 @@ On mine, there are a whole bunch, mostly Firefox web browser tabs that I have op
 
 ### Unix Timesharing System
 
-The Unix Timesharing System is basically the hostname namespace, which allows us to set a hostname in the `uts` namespace which can be different from that of the host.
+The `uts` [Unix Timesharing System namespace] is basically the hostname namespace, which allows us to set a hostname in the `uts` namespace which can be different from that of the host.
 
 As a simple example, observe the following:
 
@@ -86,7 +88,7 @@ Ok, pretty simple stuff.  Let's move on to a more interesting example.
 
 ### Process IDs
 
-The `pid` namespace is interesting because we first have to know something about [`chroot`]s and the [`/proc`] filesystem.  Let's talk about `/proc` first.
+The [`pid` namespace] is interesting because we first have to know something about [`chroot`]s and the [`/proc`] filesystem.  Let's talk about `/proc` first.
 
 `/proc` is a pseudo-filesystem that is created by the kernel and is an interface to kernel data structures.  Essentially, this means that user space can get information from the kernel and set properties that are read from the kernel by reading from and writing to these files.
 
@@ -189,7 +191,7 @@ Weeeeeeeeeeeeeeeeeeeeeeee
 
 ### Mount points
 
-`mnt` namespaces allow a process to see only its own mount points and not that of any other `mnt` namespace, like its parent's.
+[`mnt` namespaces] allow a process to see only its own mount points and not that of any other `mnt` namespace, like its parent's.
 
 Creating a `mnt` namespace is important so the parent `mnt` namespace isn't shared with child processes and subsequently the host mount table isn't littered with entries that had been mounted in child container processes and not unmounted, leaving a relic that hangs around like your next-door neighbor.
 
@@ -388,19 +390,34 @@ $ sudo ls -l /proc/2528091/ns/ | ag mnt
 lrwxrwxrwx 1 root root 0 Aug  8 20:57 mnt -> mnt:[4026533227]
 ```
 
----
+As this is starting to get fairly long, this is a good point to stop and continue in [On Unsharing Namespaces, Part Two] where we'll cover the `net` and `user` namespaces..
 
-As this is starting to get fairly long, this is a good point to stop and continue in part two.
+## Summary
+
+I hope you have found this article scintillating and that you've been titillated.  I know that I have.
+
+## References
+
+- [On Unsharing Namespaces, Part Two]
+- [Container Security by Liz Rice](https://containersecurity.tech/)
+- [Containers From Scratch - Liz Rice - GOTO 2018](https://www.youtube.com/watch?v=8fi7uSYlOdc)
+- [Trivy](https://github.com/aquasecurity/trivy)
+- [Index of /alpine/](http://dl-cdn.alpinelinux.org/alpine/)
 
 [Titus Herminius Aquilinus]: https://en.wikipedia.org/wiki/Titus_Herminius_Aquilinus
 [Linux namespaces]: https://en.wikipedia.org/wiki/Linux_namespaces
 [`unshare`]: https://www.man7.org/linux/man-pages/man1/unshare.1.html
 [Hey, ho, let's go!]: https://www.youtube.com/watch?v=krokQtkvd9M
+[namespaces]: https://www.man7.org/linux/man-pages/man7/namespaces.7.html
 [`lsns`]: https://www.man7.org/linux/man-pages/man8/lsns.8.html
+[Unix Timesharing System namespace]: https://www.man7.org/linux/man-pages/man7/uts_namespaces.7.html
+[`pid` namespace]: https://www.man7.org/linux/man-pages/man7/pid_namespaces.7.html
 [`chroot`]: https://man7.org/linux/man-pages/man2/chroot.2.html
 [`/proc`]: https://man7.org/linux/man-pages/man5/proc.5.html
+[`mnt` namespaces]: https://www.man7.org/linux/man-pages/man7/mount_namespaces.7.html
 [`rootfs`]: https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
 [version 3.9]: http://dl-cdn.alpinelinux.org/alpine/v3.9/releases/x86_64/alpine-minirootfs-3.9.0-x86_64.tar.gz
 [`sleep`]: https://www.man7.org/linux/man-pages/man1/sleep.1.html
-[Bash special parameters]: https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html
+[Bash and Bourne special parameters]: https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html
+[On Unsharing Namespaces, Part Two]: /2022/12/14/on-unsharing-namespaces-part-two/
 
