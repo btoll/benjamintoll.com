@@ -15,6 +15,7 @@ These are in no particular order.
 - there are a lot of bullshitters in the industry and spotting them is a good skill to develop
 - don't be a bullshitter
 - add "i don't know" and "no" to your vocabulary
+- "it depends" is the most accurate answer to almost any question
 - do the hard stuff
 - follow what interests you, not what's trendy (sometimes the two coincide)
 - always be learning
