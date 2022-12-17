@@ -15,6 +15,7 @@ This is [the second part] of an award-winning series.
 - [The Big Introduction](#the-big-introduction)
 - [Thoughts on Coding Challenges](#thoughts-on-coding-challenges)
 - [Thoughts on Interviewing](#thoughts-on-interviewing)
+- [Bonus Round: DevOps' Greatest Hits](#bonus-round-devops-greatest-hits)
 - [Conclusion](#conclusion)
 - [References](#references)
 
@@ -75,6 +76,22 @@ If that's not enough, here are some areas of discussion for the interview, which
 - advantages and use cases for compiled versus interpreted languages
 - testing
 - debugging
+
+## Bonus Round: DevOps' Greatest Hits
+
+The following **must** be included in every "devops" job description.  If they are not included, you are probably not looking at a genuine listing and should immediately be suspect.
+
+Further, if you ever encounter any self-described "devops" enthusiasts in the wild, drop some of these into the conversation and you should be ok.
+
+- Terraform
+- Docker
+- AWS
+- Ansible
+- Jenkins
+- Puppet or Chef
+- ~~Travis CI~~ ~~Circle CI~~ GitHub Actions
+
+Similar tools will not be deemed acceptable, nor will any experience with or knowledge of any of the underpinning foundational technologies.
 
 ## Conclusion
 
