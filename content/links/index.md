@@ -47,6 +47,6 @@ title = "Links"
 [CSSCompress]: /tools/css_compress/
 [HTMLify]: /tools/htmlify/
 
-[`benjamintoll.com` onion service]: http://5d6xbdrhw3hs4vngpukrsx6aih64vkpixqpexjmbo4eh7kl66iuseryd.onion
 [The Owl's Nest Farm]: https://theowlsnest.farm
+[`benjamintoll.com` onion service]: http://5d6xbdrhw3hs4vngpukrsx6aih64vkpixqpexjmbo4eh7kl66iuseryd.onion
 
