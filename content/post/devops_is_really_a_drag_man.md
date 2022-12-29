@@ -4,9 +4,8 @@ date = "2022-12-16T23:53:13-05:00"
 
 +++
 
-"True terror is to wake up one morning and discover that your high school class is running the country."
-
-- Kurt Vonnegut
+> True terror is to wake up one morning and discover that your high school class is running the country.
+> - [Kurt Vonnegut]
 
 ---
 
@@ -33,6 +32,7 @@ Learning new tools and technologies is what we do in this profession (any profes
 
 I'm sorry to be the one to break it to you, DevOps, but your version of DevOps isn't difficult.  The difficult stuff is everything else you're not asking.
 
+[Kurt Vonnegut]: https://en.wikipedia.org/wiki/Kurt_Vonnegut
 [DevOps]: /2022/08/01/on-devops/
 [DevOps' Greatest Hits]: /2022/11/11/on-interviewing-tools-redux/#bonus-round-devops-greatest-hits
 
