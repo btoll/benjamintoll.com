@@ -35,7 +35,12 @@ while [ "$1" != "" ]; do
 done
 
 build_image () {
-    if ! docker run --rm -it -v "$(pwd)":/src btoll/hugo:0.80.0
+    # Get the effective user ID and pass it as the USER env var in the container:
+    #     $ id -u $USER
+    #     1000
+    # The container doesn't have a `btoll` user, for example, so it will use 1000
+    # as the owner in the container which will map to the `btoll` user on the host.
+    if ! docker run --rm -it -e USER="$(id -u "$USER")" -v "$(pwd)":/src btoll/hugo:0.80.0
 #    if ! systemd-nspawn --machine hugo --quiet
     then
         echo -e "\n$RED_FG[$0]$END_FG_COLOR The $FULL_IMAGE_NAME site could not be generated."
