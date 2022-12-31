@@ -25,6 +25,10 @@ Hey, ho, let's go!
     + [Starting](#starting)
     + [Listing](#listing)
     + [Changing State](#changing-state)
+    + [Snapshotting](#snapshotting)
+        - [Taking](#taking)
+        - [Deleting](#deleting)
+        - [Restoring](#restoring)
     + [Exporting](#exporting)
     + [Unregistering](#unregistering)
     + [Miscellaneous Commands](#miscellaneous-commands)
@@ -379,6 +383,132 @@ $ VBoxManage controlvm kali clipboard mode bidirectional
 
 See [`controlvm`] in the `VirtualBox` docs for more examples of its subcommands.
 
+### Snapshotting
+
+Let's take a brief look at manage snapshots of the virtual machines.
+
+Snapshots are saved in the same location from where `VirtualBox` has registered the VM, usually in `$HOME/VirtualBox\ VMs/`, and you can get information about them from the [`showvminfo`] command.
+
+For example, here we see the location of the Snapshot folder:
+
+```
+$ VBoxManage showvminfo 1b908152-38ed-4fa3-8e81-c60adf3e1102 | head
+Name:                        kali-linux-2022.4-virtualbox-amd64
+Groups:                      /
+Guest OS:                    Debian (64-bit)
+UUID:                        1b908152-38ed-4fa3-8e81-c60adf3e1102
+Config file:                 /home/btoll/VirtualBox VMs/kali-linux-2022.4-virtualbox-amd64/kali-linux-2022.4-virtualbox-amd64.vbox
+Snapshot folder:             /home/btoll/VirtualBox VMs/kali-linux-2022.4-virtualbox-amd64/Snapshots
+Log folder:                  /home/btoll/VirtualBox VMs/kali-linux-2022.4-virtualbox-amd64/Logs
+Hardware UUID:               1b908152-38ed-4fa3-8e81-c60adf3e1102
+Memory size:                 3072MB
+Page Fusion:                 disabled
+```
+
+And, here we see the snapshots that have been taken:
+
+```
+$ VBoxManage showvminfo 1b908152-38ed-4fa3-8e81-c60adf3e1102 | tail
+https://discord.kali.org
+Guest:
+
+Configured memory balloon size: 0MB
+
+Snapshots:
+
+  Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa)
+     Name: --description=snap3 (UUID: e305a502-2573-4516-807d-2ee1f7cb9c84) *
+```
+
+Weeeeeeeeeeeeeeeeeeee
+
+#### Taking
+
+Let's take a couple of snapshots, yo.
+
+```
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap1
+0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
+Snapshot taken. UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa
+
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap2
+0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
+Snapshot taken. UUID: 659d931c-65a5-414b-973d-a7b49df8d764
+```
+
+And let's list them:
+
+```
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+  Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa)
+     Name: --description=snap2 (UUID: 659d931c-65a5-414b-973d-a7b49df8d764) *
+```
+
+The second snapshot is the current one, indicated by the asterisk (\*).
+
+Here is a different view of the filesystem.  The snapshots are snug in their new home:
+
+```
+$ tree VirtualBox\ VMs/kali-linux-2022.4-virtualbox-amd64/Snapshots/
+VirtualBox VMs/kali-linux-2022.4-virtualbox-amd64/Snapshots/
+├── 2022-12-31T18-47-42-389692000Z.sav
+├── {56cb9f0b-d249-4894-bb15-c6ff9357cc98}.vdi
+└── {75f94bd8-3c3f-4170-986a-3bb9c3f8e9fa}.vdi
+
+0 directories, 3 files
+```
+
+#### Deleting
+
+If we delete a snapshot and list the remaining one(s), we can see that the deleted snapshot is, in fact, gonzo:
+
+```
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 delete 659d931c-65a5-414b-973d-a7b49df8d764
+Deleting snapshot '--description=snap2' (659d931c-65a5-414b-973d-a7b49df8d764)
+0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+  Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa) *
+```
+
+The current snapshot is now `snap1`, as indicated by the beloved asterisk.
+
+#### Restoring
+
+Let's look at restoring a particular snapshot.  First, we'll take another snapshot and list them out.  There will be two:
+
+```
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap3
+0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
+Snapshot taken. UUID: e305a502-2573-4516-807d-2ee1f7cb9c84
+sulla ~~> ~/snapshots:
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+  Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa)
+     Name: --description=snap3 (UUID: e305a502-2573-4516-807d-2ee1f7cb9c84) *
+```
+
+The current snapshot is `snap3`, but let's restore `snap1`.  Here, we do it by first referencing the VM from which the snapshot was taken and then the reference to the snapshot we want to restore:
+
+```
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 restore 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa
+Restoring snapshot '--description=snap1' (8df4b7d6-8630-4d71-9a59-a8e0ba0570aa)
+0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+  Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa) *
+     Name: --description=snap3 (UUID: e305a502-2573-4516-807d-2ee1f7cb9c84)
+```
+
+> The VM and snapshot are referenced by their `UUID`s, but it could be a name, instead.
+
+Lastly, we can restore the current snapshot.  For this, it's not necessary to reference the snapshot by `UUID` or name:
+
+```
+$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 restorecurrent
+Restoring snapshot '--description=snap3' (e305a502-2573-4516-807d-2ee1f7cb9c84)
+0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
+```
+
+See [`snapshot`] in the `VirtualBox` docs.
+
 ### Exporting
 
 > Note that `VirtualBox` exports disk images in the `VMDK` format.
@@ -482,7 +612,7 @@ Also, this brief introductory tutorial only touches the tip of the proverbial ic
 
 ## References
 
-- [`VBoxManage` documentation](https://www.vmware.com/)
+- [`VBoxManage` documentation](https://www.virtualbox.org/manual/ch08.html)
 - [Controlling VirtualBox from the Command Line](https://www.oracle.com/technical-resources/articles/it-infrastructure/admin-manage-vbox-cli.html)
 
 [`VirtualBox`]: https://www.virtualbox.org/
@@ -499,6 +629,7 @@ Also, this brief introductory tutorial only touches the tip of the proverbial ic
 [`list`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-list
 [`controlvm`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-unregistervm
 [`unregistervm`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-unregistervm
+[`snapshot`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-snapshot
 [`export`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-export
 [`convertfromraw`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-convertfromraw
 [`showvminfo`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-showvminfo
