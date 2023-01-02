@@ -111,7 +111,7 @@ Note that `createvm` does not create a virtual disk, as it is expected that you 
 The first example only creates the VM:
 
 ```
-$ VBoxManage createvm --name my_shitty_web_app --ostype Debian_64
+$ vboxmanage createvm --name my_shitty_web_app --ostype Debian_64
 Virtual machine 'my_shitty_web_app' is created.
 UUID: 5e5fee85-33c4-4c8d-9a00-8a5138df28a3
 Settings file: '/home/btoll/VirtualBox VMs/my_shitty_web_app/my_shitty_web_app.vbox'
@@ -119,14 +119,14 @@ $ tree VirtualBox\ VMs/
 VirtualBox VMs/
 └── my_shitty_web_app
    └── my_shitty_web_app.vbox
-$ VBoxManage list vms
+$ vboxmanage list vms
 $
 ```
 
 The second example creates the VM and registers it, that is, it imports the XML config file into `VirtualBox` (note the `--register` switch):
 
 ```
-$ VBoxManage createvm --name my_shitty_web_app --ostype Debian_64 --register
+$ vboxmanage createvm --name my_shitty_web_app --ostype Debian_64 --register
 Virtual machine 'my_shitty_web_app' is created and registered.
 UUID: 7a6291f7-e45d-40b5-8292-193d0e130d5b
 Settings file: '/home/btoll/VirtualBox VMs/my_shitty_web_app/my_shitty_web_app.vbox'
@@ -134,13 +134,49 @@ $ tree VirtualBox\ VMs/
 VirtualBox VMs/
 └── my_shitty_web_app
    └── my_shitty_web_app.vbox
-$ VBoxManage list vms
+$ vboxmanage list vms
 "my_shitty_web_app" {7a6291f7-e45d-40b5-8292-193d0e130d5b}
 ```
 
 Registering at the time of creation is probably what you want.  `VirtualBox`, for obvious reasons, doesn't allow VMs with duplicate `UUID`s to be registered, so this is a way of ensuring that (probably) won't happen.
 
 See [`createvm`] in the `VirtualBox` docs.
+
+---
+
+Here's an example that combines creating a VM, registering it, add storage and then finally starting the VM.
+
+We'll first create and register it, followed by customizing its resources:
+
+```
+$ vboxmanage createvm --name debian_11 --ostype Debian_64 --register
+$ vboxmanage modifyvm debian_11 --memory 3072 --cpus 4
+```
+Now, add the contoller on the VM:
+
+```
+$ vboxmanage storagectl debian_11 --name "SATA Controller" --add sata --controller IntelAHCI --portcount 1 --bootable on
+```
+
+See [`storagectl`] in the `VirtualBox` docs.
+
+Then, attach the `VDI` to the storage controller:
+
+```
+$ vboxmanage storageattach debian_11 --storagectl "SATA Controller" --device 0 --port 0 --type hdd --medium debian_11_64bit.vdi
+```
+
+See [`storageattach`] in the `VirtualBox` docs.
+
+> Instead of issuing two commands to add create the storage controller and attach the `VDI`, the documentation specifies that you can do it in one command with the `--storagectl` parameter to the `storageattach` command.
+
+Finally, start it:
+
+```
+$ vboxmanage startvm debian_11
+```
+
+Weeeeeeeeeeeeeeeeeeeeeeeee
 
 ### Registering
 
@@ -151,7 +187,7 @@ The `registervm` command will look for the `.vbox` file to import in `$HOME/.con
 For example, if you get the following error, it's because you haven't provided an absolute path to the location of your XML `.vbox` file:
 
 ```
-$ VBoxManage registervm VirtualBox\ VMs/kali-linux-2022.4-virtualbox-amd64/kali-linux-2022.4-virtualbox-amd64.vbox
+$ vboxmanage registervm VirtualBox\ VMs/kali-linux-2022.4-virtualbox-amd64/kali-linux-2022.4-virtualbox-amd64.vbox
 VBoxManage: error: Runtime error opening '/home/btoll/.config/VirtualBox/VirtualBox VMs/kali-linux-2022.4-virtualbox-amd64/kali-linux-2022.4-virtualbox-amd64.vbox' for reading: -102 (File not found.).
 VBoxManage: error: /home/vbox/tinderbox/ubuntu22.04-amd64-build-VBox-6.1/svn/src/VBox/Main/src-server/MachineImpl.cpp[499] (nsresult Machine::initFromSettings(VirtualBox*, const com::Utf8Str&, const com::Guid*))
 VBoxManage: error: Details: code NS_ERROR_FAILURE (0x80004005), component MachineWrap, interface IMachine, callee nsISupports
@@ -163,8 +199,8 @@ Note that the above command was run in my home directory where the `VirtualBox\ 
 Let's fix that by making it an absolute path and listing the registered VMs:
 
 ```
-$ VBoxManage registervm $(pwd)/VirtualBox\ VMs/kali-linux-2022.4-virtualbox-amd64/kali-linux-2022.4-virtualbox-amd64.vbox
-$ VBoxManage list vms
+$ vboxmanage registervm $(pwd)/VirtualBox\ VMs/kali-linux-2022.4-virtualbox-amd64/kali-linux-2022.4-virtualbox-amd64.vbox
+$ vboxmanage list vms
 "kali-linux-2022.4-virtualbox-amd64" {1b908152-38ed-4fa3-8e81-c60adf3e1102}
 ```
 
@@ -173,14 +209,14 @@ Here's an example managing the files from a central location:
 ```
 $ mkdir "$HOME/VirtualBox VMs/kali"
 $ mv kali-linux-2022.4-virtualbox-amd64.vbox "$HOME/VirtualBox VMs/kali"
-$ VBoxManage registervm "$HOME/VirtualBox VMs/kali/kali-linux-2022.4-virtualbox-amd64.vbox"
+$ vboxmanage registervm "$HOME/VirtualBox VMs/kali/kali-linux-2022.4-virtualbox-amd64.vbox"
 ```
 
 Here's an idea to register a bunch of VMs at once:
 
 ```
 $ find /path/to/VirtualBox\ VMs -type f -name "*.vbox" \
-    -exec VBoxManage registervm {} \;
+    -exec vboxmanage registervm {} \;
 ```
 
 See [`registervm`] in the `VirtualBox` docs.
@@ -192,19 +228,19 @@ As we've seen when creating a VM [`createvm`](#create-vm), the XML `.vbox` file 
 First, we'll change the name of the VM to one that's easier to recall:
 
 ```
-$ VBoxManage modifyvm 1b908152-38ed-4fa3-8e81-c60adf3e1102 --name kali
+$ vboxmanage modifyvm 1b908152-38ed-4fa3-8e81-c60adf3e1102 --name kali
 ```
 
 Then, using that new name, we'll increase the amount of memory that's allocated to the VM:
 
 ```
-$ VBoxManage modifyvm kali --memory 3072
+$ vboxmanage modifyvm kali --memory 3072
 ```
 
 However, it gets fairly tedious changing the settings one at a time, so let's set a number of them at the same time:
 
 ```
-$ VBoxManage modifyvm kali --cpus 4 \
+$ vboxmanage modifyvm kali --cpus 4 \
     --memory 3072 \
     --nic1 bridged \
     --bridgeadapter1 eth0 \
@@ -223,7 +259,7 @@ I've only ever imported an appliance (what a dumb term) in `OVF` format, but the
 Here's an example:
 
 ```
-$ VBoxManage import MSEdge\ -\ Win10.ova
+$ vboxmanage import MSEdge\ -\ Win10.ova
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 Interpreting /home/btoll/disk-formats/ova/MSEdge - Win10.ova...
 OK.
@@ -263,7 +299,7 @@ Successfully imported the appliance.
 I didn't need to move anything into the `VirtualBox\ VMs` directory before the `import` command, as it can be imported from anywhere.  It will register it and movd the XML config file and virtual hard drive into that centralized, managed directory for you, though.  Isn't that nice.
 
 ```
-$ VBoxManage list vms
+$ vboxmanage list vms
 "kali-linux-2022.4-virtualbox-amd64" {1b908152-38ed-4fa3-8e81-c60adf3e1102}
 "MSEdge - Win10" {c15e6153-a5c3-4dd9-92a4-3c46742e6c07}
 $ tree VirtualBox\ VMs/
@@ -284,7 +320,7 @@ VirtualBox VMs/
 Start the `kali` VM and augment its environment:
 
 ```
-$ VBoxManage startvm kali --putenv=FOO=foo --putenv=BAR=bar
+$ vboxmanage startvm kali --putenv=FOO=foo --putenv=BAR=bar
 Waiting for VM "kali" to power on...
 VM "kali" has been successfully started.
 ```
@@ -292,7 +328,7 @@ VM "kali" has been successfully started.
 Run headless:
 
 ```
-$ VBoxManage startvm kali --putenv=QUUX=quux --type headless
+$ vboxmanage startvm kali --putenv=QUUX=quux --type headless
 Waiting for VM "kali" to power on...
 VM "kali" has been successfully started.
 ```
@@ -306,7 +342,7 @@ See [`startvm`] in the `VirtualBox` docs.
 List the guest OS types known to `VirtualBox`:
 
 ```
-$ VBoxManage list ostypes
+$ vboxmanage list ostypes
 ...
 ID:          ArchLinux
 Description: Arch Linux (32-bit)
@@ -337,14 +373,14 @@ Family Desc: Linux
 List the registered VMs:
 
 ```
-$ VBoxManage list vms
+$ vboxmanage list vms
 "kali-linux-2022.4-virtualbox-amd64" {1b908152-38ed-4fa3-8e81-c60adf3e1102}
 ```
 
 List the running VMS:
 
 ```
-$ VBoxManage list runningvms
+$ vboxmanage list runningvms
 "kali" {1b908152-38ed-4fa3-8e81-c60adf3e1102}
 ```
 
@@ -353,7 +389,7 @@ $ VBoxManage list runningvms
 List the NAT network interfaces available on the host:
 
 ```
-$ VBoxManage list natnets
+$ vboxmanage list natnets
 NetworkName:    test
 IP:             192.168.1.1
 Network:        192.168.1.0/24
@@ -372,13 +408,13 @@ There are many more examples of subcommands to the `list` command.  See [`list`]
 Shut down a running VM:
 
 ```
-$ VBoxManage controlvm kali poweroff
+$ vboxmanage controlvm kali poweroff
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 ```
 
 Enable bidirectional clipboard:
 ```
-$ VBoxManage controlvm kali clipboard mode bidirectional
+$ vboxmanage controlvm kali clipboard mode bidirectional
 ```
 
 See [`controlvm`] in the `VirtualBox` docs for more examples of its subcommands.
@@ -392,7 +428,7 @@ Snapshots are saved in the same location from where `VirtualBox` has registered 
 For example, here we see the location of the Snapshot folder:
 
 ```
-$ VBoxManage showvminfo 1b908152-38ed-4fa3-8e81-c60adf3e1102 | head
+$ vboxmanage showvminfo 1b908152-38ed-4fa3-8e81-c60adf3e1102 | head
 Name:                        kali-linux-2022.4-virtualbox-amd64
 Groups:                      /
 Guest OS:                    Debian (64-bit)
@@ -408,7 +444,7 @@ Page Fusion:                 disabled
 And, here we see the snapshots that have been taken:
 
 ```
-$ VBoxManage showvminfo 1b908152-38ed-4fa3-8e81-c60adf3e1102 | tail
+$ vboxmanage showvminfo 1b908152-38ed-4fa3-8e81-c60adf3e1102 | tail
 https://discord.kali.org
 Guest:
 
@@ -427,11 +463,11 @@ Weeeeeeeeeeeeeeeeeeee
 Let's take a couple of snapshots, yo.
 
 ```
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap1
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap1
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 Snapshot taken. UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa
 
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap2
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap2
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 Snapshot taken. UUID: 659d931c-65a5-414b-973d-a7b49df8d764
 ```
@@ -439,7 +475,7 @@ Snapshot taken. UUID: 659d931c-65a5-414b-973d-a7b49df8d764
 And let's list them:
 
 ```
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
   Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa)
      Name: --description=snap2 (UUID: 659d931c-65a5-414b-973d-a7b49df8d764) *
 ```
@@ -463,10 +499,10 @@ VirtualBox VMs/kali-linux-2022.4-virtualbox-amd64/Snapshots/
 If we delete a snapshot and list the remaining one(s), we can see that the deleted snapshot is, in fact, gonzo:
 
 ```
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 delete 659d931c-65a5-414b-973d-a7b49df8d764
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 delete 659d931c-65a5-414b-973d-a7b49df8d764
 Deleting snapshot '--description=snap2' (659d931c-65a5-414b-973d-a7b49df8d764)
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
   Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa) *
 ```
 
@@ -477,11 +513,11 @@ The current snapshot is now `snap1`, as indicated by the beloved asterisk.
 Let's look at restoring a particular snapshot.  First, we'll take another snapshot and list them out.  There will be two:
 
 ```
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap3
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 take --description=snap3
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 Snapshot taken. UUID: e305a502-2573-4516-807d-2ee1f7cb9c84
 sulla ~~> ~/snapshots:
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
   Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa)
      Name: --description=snap3 (UUID: e305a502-2573-4516-807d-2ee1f7cb9c84) *
 ```
@@ -489,10 +525,10 @@ $ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
 The current snapshot is `snap3`, but let's restore `snap1`.  Here, we do it by first referencing the VM from which the snapshot was taken and then the reference to the snapshot we want to restore:
 
 ```
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 restore 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 restore 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa
 Restoring snapshot '--description=snap1' (8df4b7d6-8630-4d71-9a59-a8e0ba0570aa)
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
   Name: --description=snap1 (UUID: 8df4b7d6-8630-4d71-9a59-a8e0ba0570aa) *
      Name: --description=snap3 (UUID: e305a502-2573-4516-807d-2ee1f7cb9c84)
 ```
@@ -502,7 +538,7 @@ $ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 list
 Lastly, we can restore the current snapshot.  For this, it's not necessary to reference the snapshot by `UUID` or name:
 
 ```
-$ VBoxManage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 restorecurrent
+$ vboxmanage snapshot 1b908152-38ed-4fa3-8e81-c60adf3e1102 restorecurrent
 Restoring snapshot '--description=snap3' (e305a502-2573-4516-807d-2ee1f7cb9c84)
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 ```
@@ -516,7 +552,7 @@ See [`snapshot`] in the `VirtualBox` docs.
 Export the `kali` VM to an `OVF` virtual appliance:
 
 ```
-$ VBoxManage export kali --manifest --output kali.ovf
+$ vboxmanage export kali --manifest --output kali.ovf
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 Successfully exported 1 machine(s).
 $ ls
@@ -526,7 +562,7 @@ kali-disk001.vmdk  kali.mf  kali.ovf
 Export the `kali` VM to an `OVA` tar file:
 
 ```
-$ VBoxManage export kali --manifest --output kali.ova
+$ vboxmanage export kali --manifest --output kali.ova
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 Successfully exported 1 machine(s).
 $ ls
@@ -547,7 +583,7 @@ See [`export`] in the `VirtualBox` docs.
 Unregister the VM and remove the entry from the `VirtualBox`:
 
 ```
-$ VBoxManage unregistervm kali-linux-2022.4-virtualbox-amd64
+$ vboxmanage unregistervm kali-linux-2022.4-virtualbox-amd64
 $ tree VirtualBox\ VMs/
 VirtualBox VMs/
 ├── kali-linux-2022.4-virtualbox-amd64
@@ -561,7 +597,7 @@ VirtualBox VMs/
 Unregister the VM, remove the entry from the `VirtualBox` and delete all files associated with the VM:
 
 ```
-$ VBoxManage unregistervm kali-linux-2022.4-virtualbox-amd64 --delete
+$ vboxmanage unregistervm kali-linux-2022.4-virtualbox-amd64 --delete
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
 $ tree VirtualBox\ VMs/
 VirtualBox VMs/
@@ -579,7 +615,7 @@ See [`unregistervm`] in the `VirtualBox` docs.
 Convert a raw disk image (`ISO`) to a virtual disk image (`VDI`):
 
 ```
-$ VBoxManage convertfromraw Win10_22H2_English_x64.iso Win10_22H2_English_x64.vdi
+$ vboxmanage convertfromraw Win10_22H2_English_x64.iso Win10_22H2_English_x64.vdi
 Converting from raw image file="Win10_22H2_English_x64.iso" to file="Win10_22H2_English_x64.vdi"...
 Creating dynamic image with size 6115186688 bytes (5832MB)...
 ```
@@ -589,7 +625,7 @@ See [`convertfromraw`] in the `VirtualBox` docs.
 Show configuration information:
 
 ```
-$ VBoxManage showvminfo kali | head
+$ vboxmanage showvminfo kali | head
 Name:                        kali
 Groups:                      /
 Guest OS:                    Debian (64-bit)
@@ -603,6 +639,7 @@ Page Fusion:                 disabled
 ```
 
 See [`showvminfo`] in the `VirtualBox` docs.
+
 
 ## Conclusion
 
@@ -623,6 +660,8 @@ Also, this brief introductory tutorial only touches the tip of the proverbial ic
 [Virtual Machine Disk]: https://en.wikipedia.org/wiki/VMDK
 [`VMware`]: https://www.vmware.com/
 [`createvm`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-createvm
+[`storagectl`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-storagectl
+[`storageattach`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-storageattach
 [`registervm`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-registervm
 [`modifyvm`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-modifyvm
 [`startvm`]: https://www.virtualbox.org/manual/ch08.html#vboxmanage-startvm
