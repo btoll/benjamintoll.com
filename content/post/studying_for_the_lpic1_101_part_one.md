@@ -6,7 +6,7 @@ date = "2023-01-13T00:25:10-05:00"
 
 When studying for the Linux Professional Institute [LPIC-1] certification, I took a bunch of notes when reading the docs and doing an online course.  Note that this is not exhaustive, so do not depend on this article to get you prepared for the exam.
 
-They menu items below are not in any order.
+The menu items below are not in any order.
 
 This roughly covers [Topic 101: System Architecture].
 
@@ -36,6 +36,7 @@ This roughly covers [Topic 101: System Architecture].
     + [Kernel Ring Buffer](#kernel-ring-buffer)
         - [`dmesg`](#dmesg)
         - [`journalctl`](#journalctl)
+- [References](#references)
 
 ---
 
@@ -828,7 +829,7 @@ Dump the kernel [ring buffer] to view the system initialization logs.
 >   `journalctl --boot=0`       # the last boot
 >   `journalctl --boot=2`       # the second-to-last boot
 
-## References
+# References
 
 - [LPIC-1 Objectives V5.0](https://wiki.lpi.org/wiki/LPIC-1_Objectives_V5.0)
 - [LPIC-1 Learning Materials](https://learning.lpi.org/en/learning-materials/101-500/)
