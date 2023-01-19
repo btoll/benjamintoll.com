@@ -8,6 +8,7 @@ date = "2021-12-13T02:09:10Z"
 - [Movements](#movements)
 - [Workspaces](#workspaces)
 - [Windows](#windows)
+- [Scratchpad](#scratchpad)
 - [Conclusion](#conclusion)
 - [References](#references)
 
@@ -140,6 +141,23 @@ When combined with an aforementioned key, I'll just refer to it as a `Move`.
     + `$mod + w`
     + `$mod + e` to undo
 
+## Scratchpad
+
+- Turn a regular workspace into a scratchpad:
+    + `$mod + Shift + minus`
+
+- Revert a scratchpad back into a workspace:
+    + `$mod + Shift + space`
+
+- Start an application as a scratchpad when `i3` starts:
+    + In `i3` config file:
+
+      <pre class="math">
+      <a href="https://i3wm.org/docs/userguide.html#for_window">for_window</a> [class="thunderbird-default"] move window to scratchpad, scratchpad show
+      exec --no-startup-id thunderbird</pre>
+
+      > Note that the `[class="thunderbird-default"]` bits were determined by [`xprop`].
+
 ## Conclusion
 
 Whether it be `i3`, `vim`, `tmux`, etc., I find it's always a good idea to revisit your config files and remove what you don't use to keep them as simple as possible.  There's nothing worse than an overly-complex config filled with garbage that is never used.
@@ -155,4 +173,5 @@ Whether it be `i3`, `vim`, `tmux`, etc., I find it's always a good idea to revis
 [`xmodmap`]: https://man.archlinux.org/man/xmodmap.1
 [`X`]: https://en.wikipedia.org/wiki/X_Window_System
 [From the `i3` docs]: https://i3wm.org/docs/userguide.html#exec
+[`xprop`]: https://linux.die.net/man/1/xprop
 
