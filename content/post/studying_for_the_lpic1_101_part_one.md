@@ -4,6 +4,15 @@ date = "2023-01-13T00:25:10-05:00"
 
 +++
 
+This is a riveting series:
+
+- On Studying for the LPIC-1 Exam 101 (101-500), Part One
+- [On Studying for the LPIC-1 Exam 101 (101-500), Part Two](/2023/01/15/on-studying-for-the-lpic-1-exam-101-101-500-part-two/)
+- [On Studying for the LPIC-1 Exam 101 (101-500), Part Three](/2023/01/18/on-studying-for-the-lpic-1-exam-101-101-500-part-three/)
+- [On Studying for the LPIC-1 Exam 101 (101-500), Part Four](/2023/01/20/on-studying-for-the-lpic-1-exam-101-101-500-part-four/)
+
+---
+
 When studying for the Linux Professional Institute [LPIC-1] certification, I took a bunch of notes when reading the docs and doing an online course.  Note that this is not exhaustive, so do not depend on this article to get you prepared for the exam.
 
 The menu items below are not in any order.
@@ -36,6 +45,7 @@ This roughly covers [Topic 101: System Architecture].
     + [Kernel Ring Buffer](#kernel-ring-buffer)
         - [`dmesg`](#dmesg)
         - [`journalctl`](#journalctl)
+- [Summary](#summary)
 - [References](#references)
 
 ---
@@ -828,6 +838,10 @@ Dump the kernel [ring buffer] to view the system initialization logs.
 >   `journalctl --list-boots`   # list all boots
 >   `journalctl --boot=0`       # the last boot
 >   `journalctl --boot=2`       # the second-to-last boot
+
+# Summary
+
+Continue your journey with the second installment in this titillating series, [On Studying for the LPIC-1 Exam 101 (101-500), Part Two](/2023/01/15/on-studying-for-the-lpic-1-exam-101-101-500-part-two/).
 
 # References
 

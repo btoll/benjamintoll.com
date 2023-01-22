@@ -4,6 +4,15 @@ date = "2023-01-15T00:25:10-05:00"
 
 +++
 
+This is a riveting series:
+
+- [On Studying for the LPIC-1 Exam 101 (101-500), Part One](/2023/01/13/on-studying-for-the-lpic-1-exam-101-101-500-part-one/)
+- On Studying for the LPIC-1 Exam 101 (101-500), Part Two
+- [On Studying for the LPIC-1 Exam 101 (101-500), Part Three](/2023/01/18/on-studying-for-the-lpic-1-exam-101-101-500-part-three/)
+- [On Studying for the LPIC-1 Exam 101 (101-500), Part Four](/2023/01/20/on-studying-for-the-lpic-1-exam-101-101-500-part-four/)
+
+---
+
 When studying for the Linux Professional Institute [LPIC-1] certification, I took a bunch of notes when reading the docs and doing an online course.  Note that this is not exhaustive, so do not depend on this article to get you prepared for the exam.
 
 The menu items below are not in any order.
@@ -45,6 +54,7 @@ This roughly covers [Topic 102: Linux Installation and Package Management].
     + [Cloud Bullshit](#cloud-bullshit)
         - [`SSH`](#ssh)
         - [`cloud-init`](#cloud-init)
+- [Summary](#summary)
 - [References](#references)
 
 ---
@@ -963,6 +973,10 @@ This will do a couple of nice things for you:
 ### `cloud-init`
 
 The [`cloud-init`] tool simplifies the deployments of cloud-based virtual machines.  It uses a [`cloud-config`] file.
+
+# Summary
+
+Continue your journey with the third installment in this titillating series, [On Studying for the LPIC-1 Exam 101 (101-500), Part Three](/2023/01/18/on-studying-for-the-lpic-1-exam-101-101-500-part-three/).
 
 # References
 
