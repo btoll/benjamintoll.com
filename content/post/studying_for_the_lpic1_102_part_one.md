@@ -1,0 +1,893 @@
++++
+title = "On Studying for the LPIC-1 Exam 102 (102-500), Part One"
+date = "2023-01-22T20:14:10-05:00"
+
++++
+
+This is a riveting series:
+
+- On Studying for the LPIC-1 Exam 102 (101-500), Part One
+- On Studying for the LPIC-1 Exam 102 (101-500), Part Two
+- On Studying for the LPIC-1 Exam 102 (101-500), Part Three
+- On Studying for the LPIC-1 Exam 102 (101-500), Part Four
+- On Studying for the LPIC-1 Exam 102 (101-500), Part Five
+- On Studying for the LPIC-1 Exam 102 (101-500), Part Six
+
+And, so is this one!
+
+- [On Studying for the LPIC-1 Exam 101 (101-500), Part One](/2023/01/13/on-studying-for-the-lpic-1-exam-101-101-500-part-one/)
+
+---
+
+When studying for the Linux Professional Institute [LPIC-1] certification, I took a bunch of notes when reading the docs and doing an online course.  Note that this is not exhaustive, so do not depend on this article to get you prepared for the exam.
+
+The menu items below are not in any order.
+
+This roughly covers [Topic 105: Shells and Shell Scripting].
+
+*Caveat emptor*.
+
+---
+
+- [Exam Details](#exam-details)
+- [Topic 105: Shells and Shell Scripting](#topic-105-shells-and-shell-scripting)
+    + [Terminals](#terminals)
+    + [Shell Types](#shell-types)
+        - [Interactive Login](#interactive-login)
+        - [Interactive Non-Login](#interactive-non-login)
+        - [Non-Interactive Login](#non-interactive-login)
+        - [Non-Interactive Non-Login](#non-interactive-non-login)
+        - [Determine the Shell Type](#determine-the-shell-type)
+    + [`su` and `sudo`](#su-and-sudo)
+    + [Startup Files](#startup-files)
+    + [`SKEL`](#skel)
+    + [Shell Variables](#shell-variables)
+    + [Running a Program in a Modified Environment](#running-a-program-in-a-modified-environment)
+    + [Common Environment Variables](#common-environment-variables)
+    + [Aliases](#aliases)
+    + [Functions](#functions)
+    + [Builtin Variables](#builtin-variables)
+    + [Unsetting](#unsetting)
+    + [Testing](#testing)
+        + [Variables](#variables)
+        + [Files](#files)
+        + [Expressions](#expressions)
+    + [`set -o` vs `shopt`](#set--o-vs-shopt)
+    + [`IFS`](#ifs)
+    + [Scripting](#scripting)
+        - [Local Variables](#local-variables)
+        - [Reading Input](#reading-input)
+        - [`case`](#case)
+    + [Random Examples](#random-examples)
+- [Summary](#summary)
+- [References](#references)
+
+---
+
+# Exam Details
+
+[LPIC-1 Exam 102]
+
+- Exam Objectives Version: 5.0
+- Exam Code: 102-500
+
+# Topic 105: Shells and Shell Scripting
+
+## Terminals
+
+- `tty` - tele-typewriter
+- `pts` - pseudo-terminal slave
+
+## Shell Types
+
+A great way to see which initialization files are `source`d by `bash` for a particular invocation of a shell is to append an `echo` statement to each global file:
+
+```
+echo "hello from /etc/profile" | sudo tee -a /etc/profile
+echo "hello from /etc/bash.bashrc" | sudo tee -a /etc/bash.bashrc
+```
+
+### Interactive Login
+
+Examples include:
+
+1. Invoke a login shell:
+    + `bash -l` or `bash -login`
+1. Drop to a `tty` on your local machine.
+    - `Ctrl+Alt+F2`, for example
+1. Logging into a remote machine via `ssh`.
+
+The following files are sourced, in order:
+
+1. `/etc/profile`
+    + the system-wide profile file for the Bourne shell and Bourne compatible shells
+    + sets `PATH` and `PS1`
+1. if they exist, scripts in `/etc/profile.d/` get executed by `/etc/profile`
+1. `$HOME/.bash_profile`
+    - or `$HOME/.bash_login`
+    - or `$HOME/.profile`
+        + this will `source` `$HOME/.bashrc`
+        + appends `$HOME/bin` to `PATH`
+1. `$HOME/.bash_logout`
+
+> To start an interactive login shell that doesn't source any configuration files, use the `--noprofile` switch.
+
+### Interactive Non-Login
+
+A general definition of an [interactive shell] is one that reads from and writes to a user's terminal:
+
+> An interactive shell is one started without non-option arguments (unless `-s` is specified) and without specifying the `-c` option, whose input and error output are both connected to terminals (as determined by [`isatty(3)`]), or one started with the -i option.
+>
+> From [6.3.1 What is an Interactive Shell?]
+
+Here's some fine examples of interactive non-login shells:
+
+1. Subshell:
+    ```
+    $ bash
+    ```
+1. Subshell with `-i` (interactive) switch:
+    ```
+    $ bash -i
+    ```
+1. With the `-s` switch and positional parameters:
+    <pre class="math">
+    $ cat test.sh
+    #!/usr/bin/bash
+
+    echo "Today's message is: $1 $2"
+
+    </pre>
+
+    ```
+    $ > test.sh bash -s -- hello world
+    Today's message is: hello world
+    ```
+
+    > Note that this examples does not suffer from [`UUOC`].
+
+The following files are sourced, in order:
+
+1. `/etc/bash.bashrc`
+1. `$HOME/.bashrc`
+
+Optionally, you can use the `--rcfile` option to have `bash` skip any initialization from the user `$HOME/.bashrc` file and instead configure the shell's environment from the file specified as its value:
+
+```
+$ bash --rcfile alternate.bashrc
+```
+
+This will still `source` the system-wide `/etc/bash.bashrc` file (at least, it did on my machine using Debian `bullseye`).
+
+> To start an interactive non-login shell that doesn't source any configuration files, use the `--norc` switch.
+
+### Non-Interactive Login
+
+These are rare.
+
+Some examples:
+
+1. `/bin/bash --login <some_script>`
+1. `<some_command> | ssh <some_user>@<some_server>`
+
+### Non-Interactive Non-Login
+
+Running a script will give you a `bash` shell of this type.  Every script will run in its own subshell, opening the shell on execution and closing it on exit.
+
+Here's an interesting property of these types of shells.  There is a variable used by the shell that's named `BASH_ENV`, and it's purpose is to contain a filename that should be `source`d to initialize the shell.
+
+Recall that non-interactive non-login shells will **not** have any initialization files run by the shell when it's launched to customize its environment, because these types of shells are primarily for shells running scripts.
+
+So, if you need the shell to have a custom environment, put it in `BASH_ENV`.  Note, however, that it should be an absolute path to the file because the shell doesn't consult the `PATH` variable for any lookups.
+
+Here's an example that's currently running in production:
+
+`scripting.rc`
+
+<pre class="math">
+$ cat scripting.rc
+export COOTIES="yes, i have them"
+
+</pre>
+
+`c.sh`
+
+<pre class="math">
+#!/bin/bash
+
+test -n "$COOTIES" && echo "$COOTIES"
+</pre>
+
+Let's first run without setting the variable:
+
+```
+$ ./c.sh
+$
+```
+
+Now, let's augment the subshell's environment:
+
+```
+$ env BASH_ENV=$(pwd)/scripting.rc ./c.sh
+yes, i have them
+```
+
+weeeeeeeeeeeeeeeeeee
+
+### Determine the Shell Type
+
+To determine what type of shell you have, use the special parameter `$0` or `$BASH_ARGV0`.  If the result is prepended by a hyphen (`-`), then it's a login shell.  If not, so it just prints `bash`, then it's not:
+
+```
+$ echo $0
+-bash
+```
+
+In addition, there is the `Bash` specific, non-`POSIX` `login_shell` option.
+
+Let's take a look at two examples.  First, an interactive login shell, and second, an interactive non-login shell.
+
+Interactive login shell:
+
+```
+$ echo $0
+-bash
+$ shopt login_shell
+login_shell     on
+$ echo $-
+himBCHs
+```
+
+Interactive non-login shell:
+
+```
+$ bash
+$ echo $0
+bash
+$ shopt login_shell
+login_shell     off
+$ echo $-
+himBCHs
+```
+
+> The special parameter `$-` displays the shell options that have been set for the session.  Since both of the previous examples are interactive, they both report the `-i` switch.
+
+## `su` and `sudo`
+
+TODO: clean this up
+
+`su`:
+- `su - user2`, `su -l user2` or `su --login user2` will start an interactive login shell as `user2`.
+- `su user2` will start an interactive non-login shell as `user2`.
+- `su - root` or `su -` will start an interactive login shell as `root`.
+- `su root` or `su` will start an interactive non-login shell as `root`.
+
+`sudo`:
+
+> [`visudo`]
+
+## Startup Files
+
+## `SKEL`
+
+If set the `SKEL` environment variable holds the location of the `skel` directory.  This is the location that holds the (probably hidden) files that are copied to every user's home directory if they are a regular user that needs a home directory (and is specified by the system administrator at the time the user account is created).
+
+`SKEL` is defined in `/etc/adduser.conf` (default values are in `/etc/default/useradd`):
+
+```
+$ grep SKEL /etc/adduser.conf
+# The SKEL variable specifies the directory containing "skeletal" user
+SKEL=/etc/skel
+# If SKEL_IGNORE_REGEX is set, adduser will ignore files matching this
+SKEL_IGNORE_REGEX="dpkg-(old|new|dist|save)"
+```
+
+> The location of `SKEL` can be changed on user account creation by the value of the `-k` or `--skel` option (as mentioned earlier, only applicable if `-m` or `--create-home` is specified).
+
+Here are the default contents on my Debian `bullseye` machine:
+
+```
+$ ls -A /etc/skel/
+.bash_logout  .bashrc  .profile
+```
+
+Any directories and files created in this location (or any location specified in the `-k` option to [`useradd`]) will also get these custom entries when their account is created with a home directory.
+
+## Shell Variables
+
+Variables can contain the following characters:
+
+- `[a-z][A-Z]`
+- `[0-9]`
+- `_` (underscore)
+
+They cannot start with a number.
+
+Shell variables can be created as immutable by prefacing it with the [`readonly`] builtin (actually, this builtin was inherited from the [Bourne shell]):
+
+```
+$ readonly fudge=original
+$ fudge=changed
+-bash: fudge: readonly variable
+```
+
+Or, mark it as such after creation:
+
+
+```
+$ fudge=original
+$ readonly fudge
+```
+
+> Print all read-only variables by invoking either `readonly` or `readonly -p`.
+
+You can also create a read-only variable using the [`declare`] builtin:
+
+```
+$ declare -r chicken=maybe
+$ echo $chicken
+maybe
+$ chicken=never
+-bash: chicken: readonly variable
+```
+
+Variables become environment variables by [`export`]ing them.  They are then part of the environment that is inherited by subshells.
+
+Turn an environment variable back into a local variable:
+
+```
+$ export TICKLE=my_fancy
+$ bash
+$ echo $TICKLE
+my_fancy
+$ exit
+$ export -n TICKLE
+$ bash
+$ echo $TICKLE
+$
+```
+
+> `export` or `export -p` will print all environment variables.
+
+To turn the `TICKLE` local variable from the previous example back into an environment variable, you can use either of the following commands:
+
+```
+$ export TICKLE
+$ declare -x TICKLE
+```
+
+## Running a Program in a Modified Environment
+
+To start a subshell with a limited environment, preface the shell command with `env` and the `-i` or `--ignore-environment` switch:
+
+```
+$ env -i bash
+$ env
+PWD=/home/btoll/projects/benjamintoll.com
+LS_COLORS=
+LESSCLOSE=/usr/bin/lesspipe %s %s
+LESSOPEN=| /usr/bin/lesspipe %s
+SHLVL=1
+_=/usr/bin/env
+```
+
+You can also augment the environment inherited by a subshell by prefacing the `bash` command again with `env`, but this time specifying the new variables to inherit:
+
+```
+$ env ZOMBIES=are_real ./run_me.sh
+```
+
+> You can omit the `env` command in the previous example, as it's implied.
+
+## Common Environment Variables
+
+- `DISPLAY`
+- `HISTCONTROL`
+    + `ignorespace`
+        - don't save commands starting with a space
+    + `ignoredups`
+        - repeated, consecutive commands will not be saved
+    + `ignoreboth`
+        - a command that falls into the previous two categories won't be saved
+- `HISTSIZE`
+- `HISTFILESIZE`
+- `HISTFILE`
+    + defaults to `.bash_history`
+- `HOME`
+- `HOSTNAME`
+- `HOSTTYPE`
+    + the CPU architecture (`x86_64`)
+- `LANG`
+    + the locale of the system
+- `LD_LIBRARY_PATH`
+    + the location of shared libraries
+- `MAIL`
+- `MAILCHECK`
+    + the frequency in seconds that mail is checked
+- `PATH`
+- `PS1`
+    + the prompt
+- `PS2`
+    + the continuation prompt for multi-line commands (defaults to `>`)
+- `PS3`
+    + the `select` command prompt
+- `PS4`
+    + for debugging (defaults to `+`)
+- `SHELL`
+- `USER`
+
+## Aliases
+
+To unmask a command that has been masked by an alias, preface the command with a backslash (`\l`):
+
+```
+$ alias ls
+alias ls='ls -F'
+$ ls
+archetypes/           config.toml  Dockerfile  k8s/      public/    resources/
+build_and_deploy.sh*  content/     env.sh*     Makefile  README.md  static/
+$ \ls
+archetypes           config.toml  Dockerfile  k8s       public     resources
+build_and_deploy.sh  content      env.sh      Makefile  README.md  static
+```
+
+Note that the `ls` alias has added the `-F` to classify the directory entries (this appends the indicators to the appropriate entries).  This is a common alias that is provided out-of-the-box, so to speak, but many distributions.
+
+Use the backslash to "turn off" the alias to allow the original unshadowed command to run.
+
+If for some reason you wish to remove all of the aliases from your session:
+
+```
+$ unalias -a
+```
+
+Let's take a look at the difference between single and double quotes in the definition of an alias.
+
+With single quotes, the shell variable expansion is dynamic:
+
+```
+$ alias you_are_here='echo $PWD'
+$ you_are_here
+/home/btoll/projects/benjamintoll.com
+$ cd
+$ you_are_here
+/home/btoll
+```
+
+Now, redefine the alias using double quotes.  Notice now that the expansion is static and will always refer to the location in which the alias was defined:
+
+```
+$ alias you_are_here="echo $PWD"
+$ you_are_here
+/home/btoll
+$ cd -
+/home/btoll/projects/benjamintoll.com
+$ !-2
+you_are_here
+/home/btoll
+```
+
+## Functions
+
+Syntax can be either:
+
+<pre class="math">
+function FUNC_NAME {
+    ...
+}
+</pre>
+
+or:
+
+<pre class="math">
+FUNC_NAME() {
+    ...
+}
+</pre>
+
+To create local variables scoped to the function:
+
+- `local VAR`
+- `declare -A|-a|-i|-n VAR`
+
+Otherwise, the variable will be global and then part of the calling environment if the script containing the function is `source`d.
+
+## Builtin Variables
+
+These special variables are known as parameters:
+
+- `$?`
+    + the return value of the last command
+- `$$`
+    + the `PID` of the shell
+- `$!`
+    + the `PID` of the last background job
+- `$0`-`$9`
+    + positional parameters
+- `$#`
+    + the number of arguments passed to the command
+- `$@`, `$*`
+    + the arguments passed to the command
+- `$_`
+    + the last parameter of the name of the script
+- `$-`
+    + the shell options that have been set for the session
+
+## Unsetting
+
+- `unset -v`
+    + for variables
+- `unset -f`
+    + for functions
+- `unset` (with no option)
+    + first tries to unset as a variable and then failing that as a function
+
+## Testing
+
+It is highly recommended to use double quotes around any variables in case the variable is empty, in which case any command expecting an operand would throw an error without the double quotes.
+
+### Variables
+
+One operand:
+
+- `-n` - the length of `STRING` is nonzero
+- `-z` - the length of STRING is zero
+
+Two operands:
+
+- `STRING1` = `STRING2` - the strings are equal (can also use double equal sign `==`)
+- `STRING1` != `STRING2` - the strings are not equal
+- `INTEGER1 -eq INTEGER2` - `INTEGER1` is equal to `INTEGER2`
+- `INTEGER1 -ge INTEGER2` - `INTEGER1` is greater than or equal to `INTEGER2`
+- `INTEGER1 -gt INTEGER2` - `INTEGER1` is greater than `INTEGER2`
+- `INTEGER1 -le INTEGER2` - `INTEGER1` is less than or equal to `INTEGER2`
+- `INTEGER1 -lt INTEGER2` - `INTEGER1` is less than `INTEGER2`
+- `INTEGER1 -ne INTEGER2` - `INTEGER1` is not equal to `INTEGER2`
+
+> Distinct languages may have different rules for alphabetical ordering.  To obtain consistent results, regardless of the localization settings of the system where the script is being executed, it is recommended to set the environment variable `LANG` to `C`, as in `LANG=C`, before doing operations involving alphabetical ordering.
+
+### Files
+
+Here are two utilities for testing at the terminal.  However, they're mostly used in scripts:
+
+- [`test`]
+- [\[] (is a synonym of `test`)
+    > Yes, that's right, the character above is an open bracket (`[`):
+    >
+    > ```
+    > $ which [
+    > /usr/bin/[
+    > ```
+    > It's most seen in conditional checks in shell scripts, i.e.,
+    > ```
+    > if [ -d /etc/squid ]; then
+    > ...
+    > ```
+    > weeeeeeeeeeeeeeeeeeee
+
+> Also, see this astounding article [on testing] that will leave you wanting more.
+
+One operant:
+
+- `-a` - `FILE` exists
+- `-b` - `FILE` exists and is block special
+- `-c` - `FILE` exists and is character special
+- `-d` - `FILE` exists and is a directory
+- `-e` - `FILE` exists
+- `-f` - `FILE` exists and is a regular file
+- `-g` - `FILE` exists and is set-group-ID
+- `-G` - `FILE` exists and is owned by the effective group ID
+- `-h` - `FILE` exists and is a symbolic link (same as `-L`)
+- `-k` - `FILE` exists and has its sticky bit set
+- `-L` - `FILE` exists and is a symbolic link (same as `-h`)
+- `-N` - `FILE` exists and has been modified since it was last read
+- `-O` - `FILE` exists and is owned by the effective user ID
+- `-p` - `FILE` exists and is a named pipe
+- `-r` - `FILE` exists and read permission is granted
+- `-s` - `FILE` exists and has a size greater than zero
+- `-S` - `FILE` exists and is a socket
+- `-t` - file descriptor `FD` is opened on a terminal
+- `-u` - `FILE` exists and its set-user-ID bit is set
+- `-w` - `FILE` exists and write permission is granted
+- `-x` - `FILE` exists and execute (or search) permission is granted
+
+Two operands:
+
+- `FILE1 -ef FILE2` - `FILE1` and `FILE2` have the same device and `inode` numbers
+- `FILE1 -nt FILE2` - `FILE1` is newer (modification date) than `FILE2`
+- `FILE1 -ot FILE2` - `FILE1` is older than `FILE2`
+
+Is executable?
+
+```
+$ [ -x /bin/bash ]
+$ echo $?
+0
+$ test -x /bin/bash
+$ echo $?
+0
+```
+
+Is a soft link?
+
+```
+$ test -L /lib64/ld-linux-x86-64.so.2
+$ echo $?
+0
+```
+
+Is present and is a directory?
+
+```
+$ [ -d /etc ] ; echo $?
+0
+$ [ -d /etcy ] ; echo $?
+1
+```
+
+### Expressions
+
+- `( EXPRESSION )` - `EXPRESSION` is true
+- `! EXPRESSION` - `EXPRESSION` is false
+- `EXPRESSION1 -a EXPRESSION2` - both `EXPRESSION1` and `EXPRESSION2` are true
+- `EXPRESSION1 -o EXPRESSION2` - either `EXPRESSION1` or `EXPRESSION2` is true
+
+## `set -o` vs `shopt`
+
+So, what is the difference between [`set -o`] and [`shopt`], anyway?
+
+`set -o` options are those inherited from `Bourne`-style shells like [`ksh`], and the `shopt` options are those specific to `bash.
+
+The [`help`] information for `shopt` is quite telling:
+
+```
+$ help shopt
+shopt: shopt [-pqsu] [-o] [optname ...]
+    Set and unset shell options.
+
+    Change the setting of each shell option OPTNAME.  Without any option
+    arguments, list each supplied OPTNAME, or all shell options if no
+    OPTNAMEs are given, with an indication of whether or not each is set.
+
+    Options:
+      -o        restrict OPTNAMEs to those defined for use with `set -o'
+      -p        print each shell option with an indication of its status
+      -q        suppress output
+      -s        enable (set) each OPTNAME
+      -u        disable (unset) each OPTNAME
+
+    Exit Status:
+    Returns success if OPTNAME is enabled; fails if an invalid option is
+    given or OPTNAME is disabled.
+```
+
+Let's create an interactive non-login subshell.  Then, we'll print the total number of shell options from `shopt` and the number after its been restricted to just those supported by `set -o`:
+
+```
+$ bash
+$ shopt | wc -l
+53
+$ shopt -o | wc -l
+27
+```
+
+So, it looks like the `bash` shell has added support for many more shell options that aren't available in older shells.  Probably, it's important to be aware of this when writing shell scripts, and another reason why a static analysis tool like [`shellcheck`] is essential and should absolutely be part of your toolchain.
+
+For example, if you use the `pipefail` shell option (always a good idea) in your shell scripts but then have it interpreted by the [Bourne shell], `shellcheck` will give you the following error:
+
+[In POSIX sh, set option pipefail is undefined.]
+
+> Of course, I'm using `shellcheck` as a [Vim plugin] because I'm cool as hell.
+>
+> In `.vimrc`:
+>
+> ```
+> call plug#begin('~/.vim/plugged')
+> Plug 'koalaman/shellcheck'
+> call plug#end()
+> ```
+
+Lastly, you can quickly find out which shell options are enabled, that is, which ones are reported as "on" by `shopt`.
+
+```
+$ echo $BASHOPTS
+autocd:checkjobs:checkwinsize:cmdhist:complete_fullquote:expand_aliases:extquote:force_fignore:globasciiranges:globstar:histappend:hostcomplete:interactive_comments:login_shell:progcomp:promptvars:sourcepath
+```
+
+This is a read-only variable, and each word in the list is a valid argument for the `-s` option to `shopt`.
+
+## `IFS`
+
+The `IFS` environment variable stands for the Internal Field Separator.
+
+It is an array of three whitespace characters:
+
+- `[SPACE]`
+- `\t`
+- `\n`
+
+```
+$ echo ${#IFS}
+3
+$
+$ printf '%q' "$IFS"
+$' \t\n'
+$
+$ for v in "$IFS"; do printf '%q' "$v"; done
+$' \t\n'
+```
+
+## Scripting
+
+In order be able to execute a script using the filename as the argument to the interpreter (`bash foo.sh`), the read permission bit must be set.  Otherwise, a `Permission Denied` error is raised.
+
+To execute the file by its path, the execute permission bit must be enabled.
+
+The following are all equivalent (just pretend the `mclovin.sh` script already exists):
+
+```
+$ /home/btoll/mclovin.sh
+hi
+$ $(pwd)/mclovin.sh
+hi
+$ ./mclovin.sh
+hi
+```
+
+However, the script's directory must be included in the `PATH` if the pathname is to be omitted, leaving just the file name:
+
+```
+$ mclovin.sh
+-bash: mclovin.sh: command not found
+```
+
+Add the directory to the `PATH`, and you will be golden.
+
+### Local Variables
+
+The scripts also have the same special parameters as listed in the [Builtin Variables](#builtin-variables) section, with the same meaning.
+
+An interpreter is an interpreter is an interpreter, after all.
+
+Positional parameters are numeric.  The first one is the script name (`$0` and also `$BASH_ARGV0`).  Any numbers greater than nine need to be enclosed in curly brackets, such as `${10}`.  However, if your shell script is accepting that many parameters, you need to rethink some things.
+
+### Reading Input
+
+Getting input from the command-line is easy: use [`read`].
+
+Examples:
+
+```
+echo "Do you want to continue (y/n)?"
+read ANSWER
+```
+
+```
+echo "Type your first name and last name:"
+read FIRST LAST
+```
+
+```
+read -p "Type your first name and last name:" FIRST LAST
+```
+
+## Random Examples
+
+- get the length of a variable
+    ```
+    OS=$(uname -o)
+    echo "${#OS}"
+    9
+    ```
+
+- create an array (one-dimensional)
+    + `declare -a SIZES`
+    + `SIZES=( 5677 77 23 )`
+        - this both declares and defines
+    + `SIZES=( $(cut -f2 /proc/filesystems | head -3) )`
+        - use [command substitution]
+        - this works, but it will only create an array of one element
+            ```
+            echo "${SIZES[0]}"
+            sysfs
+            tmpfs
+            bdev
+            ```
+        - to get three elements, use [`mapfile`] or its synonym [`readarray`] to split at each newline (`\n`) and generate a full array
+            ```
+            mapfile -t SIZES <<< "$(cut -f2 /proc/filesystems | head -3 )"
+            echo "${SIZES[0]}"
+            sysfs
+            ```
+
+- access array elements
+    + get the first element
+        - `$SIZES`
+        - `${SIZES[0]}`
+    + change the first element
+        - `SIZES[0]=20`
+    + get the length of the third element
+        - `${#SIZES[2]}`
+    + get total length
+        - `${#SIZES[\*]}`
+        - `${#SIZES[@]}`
+    > Trying to access a non-existent array element (i.e., out-of-bounds) does not produce an error.
+
+- arithmetic
+    + the following examples use the [`expr`] and [`bc`] utilities:
+        ```
+        $ expr 5+4
+        5+4
+        $ bc <<< 5+4
+        9
+        ```
+    + `bash`
+        ```
+        $ sum=$[5+4] ; echo $sum
+        9
+        $ _32=$((8*4))
+        $ echo $_32
+        32
+        ```
+
+### `case`
+
+<pre class="math">
+case "$foo" in
+debian | ubuntu | mint )
+    echo -n "uses .deb"
+    ;;
+
+centos | fedora | opensuse )
+    echo -n "uses .rpm"
+    ;;
+\*)
+    echo -n "uses unknown package format"
+    ;;
+esac
+</pre>
+
+Note that the items to be matched in a `case` block can employ command subsitition, parameter and arithmetic expansion, etc.
+
+# Summary
+
+Continue your journey with the second installment in this titillating series, On Studying for the LPIC-1 Exam 102 (101-500), Part Two.
+
+# References
+
+- [LPIC-1 Objectives V5.0](https://wiki.lpi.org/wiki/LPIC-1_Objectives_V5.0#Objectives:_Exam_102)
+- [LPIC-1 Learning Materials](https://learning.lpi.org/en/learning-materials/102-500/)
+- [Index of Shell Builtin Commands](https://www.gnu.org/software/bash/manual/html_node/Builtin-Index.html)
+- [Differentiate Interactive login and non-interactive non-login shell](https://askubuntu.com/questions/879364/differentiate-interactive-login-and-non-interactive-non-login-shell)
+
+[LPIC-1]: https://www.lpi.org/our-certifications/lpic-1-overview
+[Topic 105: Shells and Shell Scripting]: https://learning.lpi.org/en/learning-materials/102-500/105/
+[LPIC-1 Exam 102]: https://www.lpi.org/our-certifications/exam-102-objectives
+[interactive shell]: https://www.gnu.org/software/bash/manual/html_node/Interactive-Shells.html
+[6.3.1 What is an Interactive Shell?]: https://www.gnu.org/software/bash/manual/html_node/What-is-an-Interactive-Shell_003f.html
+[`UUOC`]: https://en.wikipedia.org/wiki/Cat_(Unix)#Useless_use_of_cat
+[`isatty(3)`]: https://man7.org/linux/man-pages/man3/isatty.3.html
+[`bash`]: https://www.man7.org/linux/man-pages/man1/bash.1.html
+[`visudo`]: https://man7.org/linux/man-pages/man8/visudo.8.html
+[`useradd`]: https://man7.org/linux/man-pages/man8/useradd.8.html
+[`readonly`]: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-readonly
+[Bourne shell]: https://en.wikipedia.org/wiki/Bourne_shell
+[`declare`]: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-declare
+[`export`]: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-export
+[`test`]: https://www.man7.org/linux/man-pages/man1/test.1.html
+[\[]: https://www.man7.org/linux/man-pages/man1/test.1.html
+[on testing]: /2018/12/23/on/
+[`set -o`]: https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+[`shopt`]: https://www.gnu.org/software/bash/manual/html_node/The-Shopt-Builtin.html
+[`help`]: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-help
+[`ksh`]: http://www.kornshell.org/
+[`shellcheck`]: https://github.com/koalaman/shellcheck
+[In POSIX sh, set option pipefail is undefined.]: https://www.shellcheck.net/wiki/SC2039
+[Vim plugin]: https://github.com/junegunn/vim-plug
+[`read`]: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-read
+[command substitution]: https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html
+[`mapfile`]: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-mapfile
+[`readarray`]: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-readarray
+[`expr`]: https://man7.org/linux/man-pages/man1/expr.1.html
+[`bc`]: https://man7.org/linux/man-pages/man1/expr.1.html
+

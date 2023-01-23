@@ -1290,6 +1290,8 @@ Check out this table that determines the permissions given an octal value, homes
 
 Sadly, all good things must come to an end, like this exhilarating series and Breaking Bad.  Except Breaking Bad sucked balls.
 
+Now may be a great time to begin reading [the second series on the LPIC-1 Exam 102](/2023/01/22/on-studying-for-the-lpic-1-exam-102-102-500-part-one/)!
+
 # References
 
 - [LPIC-1 Objectives V5.0](https://wiki.lpi.org/wiki/LPIC-1_Objectives_V5.0)
