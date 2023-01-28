@@ -396,7 +396,7 @@ btoll cdrom floppy sudo audio dip video plugdev netdev bluetooth lpadmin scanner
 Print out the groups on the system:
 
 ```
-$ cat /etc/group | head -5
+$ head -5 /etc/group
 root:x:0:
 daemon:x:1:
 bin:x:2:
@@ -569,7 +569,7 @@ nodev   fusectl
 The number of interrupts per IO device for each CPU:
 
 ```
-$ cat /proc/interrupts | head
+$ head /proc/interrupts
             CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7
    1:      40542          0          0        258          0          0          0          0  IR-IO-APIC    1-edge      i8042
    8:          0          0          0          0          0          0          0          0  IR-IO-APIC    8-edge      rtc0
@@ -617,7 +617,7 @@ $ sudo cat /proc/ioports
 Used by the [`free`] utility, it reports the statistics about the memory usage on a system.
 
 ```
-$ cat /proc/meminfo | head
+$ head /proc/meminfo
 MemTotal:       32623748 kB
 MemFree:        19013216 kB
 MemAvailable:   26498260 kB
