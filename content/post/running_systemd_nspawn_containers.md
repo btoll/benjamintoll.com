@@ -51,10 +51,12 @@ Hey, ho, let's go.
 - [More Commands](#more-commands)
     + [Exporting](#exporting)
     + [List Running Containers](#list-running-containers)
+    + [List All Containers](#list-all-containers)
     + [List Transfers](#list-transfers)
     + [Querying the Container Status](#querying-the-container-status)
     + [Removing the Container](#removing-the-container)
     + [Running Miscellaneous Commands in the OS Tree](#running-miscellaneous-commands-in-the-os-tree)
+- [`fzf`](#fzf)
 - [Conclusion](#conclusion)
 - [References](#references)
 
@@ -289,6 +291,38 @@ tor-browser  container systemd-nspawn debian 11      -
 ubuntu-focal container systemd-nspawn ubuntu 20.04   -
 ```
 
+### List All Containers
+
+From the man page:
+
+<pre class="math">
+list-images
+       Show a list of locally installed container and VM images.  This enumerates all raw
+       disk images and container directories and subvolumes in /var/lib/machines/ (and
+       other search paths, see below). Use start (see above) to run a container off one
+       of the listed images.  Note that, by default, containers whose name begins withs
+       a dot (".") are not shown. To show these too, specify --all. Note that a special
+       image ".host" always implicitly exists and refers to the image the host itself is
+       booted from.
+</pre>
+
+```
+$ machinectl list-images
+NAME        TYPE      RO USAGE CREATED MODIFIED
+hugo        directory no   n/a n/a     n/a
+tor-browser directory no   n/a n/a     n/a
+
+2 images listed.
+```
+
+List all containers without the header and footer:
+
+```
+$ machinectl list-images --no-legend
+hugo        directory no n/a n/a n/a
+tor-browser directory no n/a n/a n/a
+```
+
 ### List Transfers
 
 Downloading and exporting can take a while.  Let's check the status!
@@ -354,6 +388,19 @@ tmpfs           1.6G  1.9M  1.6G   1% /run/host/incoming
 tmpfs           4.0M     0  4.0M   0% /sys/fs/cgroup
 ```
 
+## `fzf`
+
+Using the amazing command-line fuzzy finder tool ([`fzf`]), I wrote a simple `bash` function that will list all of the machine images in `/var/lib/machines` and allow you to select one.  Once the selection is made, it will create and launch the container:
+
+
+```
+nspawn() {
+    sudo systemd-nspawn --machine \
+        $(machinectl list-images --no-legend | awk '{ print $1 }' | fzf) \
+        --quiet
+}
+```
+
 ## Conclusion
 
 This article could also be called `"On Getting Rid of Docker"`, since that it is one of my goals.  After all, if you're running a Linux distro, chances are that the init system is `systemd`, so why not use `systemd-nspawn`?
@@ -389,4 +436,5 @@ Unfortunately, though, most developers don't even know that there are options ou
 [`mkosi`]: https://github.com/systemd/mkosi
 [OSI]: https://en.wikipedia.org/wiki/System_image
 [man page]: https://man.archlinux.org/man/community/mkosi/mkosi.1.en
+[`fzf`]: https://github.com/junegunn/fzf
 
