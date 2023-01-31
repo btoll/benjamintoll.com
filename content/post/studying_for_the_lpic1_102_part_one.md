@@ -7,8 +7,8 @@ date = "2023-01-22T20:14:10-05:00"
 This is a riveting series:
 
 - On Studying for the LPIC-1 Exam 102 (101-500), Part One
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Two
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Three
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Two](/2023/01/25/on-studying-for-the-lpic-1-exam-102-102-500-part-two/)
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/)
 - On Studying for the LPIC-1 Exam 102 (101-500), Part Four
 - On Studying for the LPIC-1 Exam 102 (101-500), Part Five
 - On Studying for the LPIC-1 Exam 102 (101-500), Part Six
@@ -851,7 +851,7 @@ Note that the items to be matched in a `case` block can employ command subsititi
 
 # Summary
 
-Continue your journey with the second installment in this titillating series, On Studying for the LPIC-1 Exam 102 (101-500), Part Two.
+Continue your journey with the second installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Two](/2023/01/25/on-studying-for-the-lpic-1-exam-102-102-500-part-two/).
 
 # References
 
