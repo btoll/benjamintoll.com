@@ -5,6 +5,6 @@ title = "Contact"
 ### Email
 
 <pre class="unstyled">
-benjam72 (at) yahoo (dot) com
+ben (at) benjamintoll (dot) com
 </pre>
 
