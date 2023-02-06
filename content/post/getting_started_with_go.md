@@ -17,6 +17,8 @@ date = "2022-08-05T19:13:06Z"
     + [Removing Caches](#removing-caches)
 - [Viewing Documentation](#viewing-documentation)
 - [Vim Plugin](#vim-plugin)
+- [Troubleshooting](#troubleshooting)
+- [References](#references)
 
 <!--- [Install Binaries to GOBIN](#install-binaries-to-GOBIN)-->
 
@@ -269,6 +271,10 @@ You're going to want to use [`vim-go`].  Here is how to install using [`vim-plug
         + Will install the binaries in the first defined location from the following short list:
             - `g:go_bin_path`
             - `go env GOBIN` or `$GOPATH/bin`
+
+## Troubleshooting
+
+When developing a package, it's quite often that you'll use `go run` to test the binary.  If you get `undefined` errors, make sure that you'll referencing all of the `.go` files that the binary will need.  Recall that you need to specify every file for `go run`.
 
 ## References
 
