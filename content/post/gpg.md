@@ -46,6 +46,23 @@ GitHub added the nice feature of [commit signing] with your GPG key.  Here is a 
 		ca = commit -S --amend
 		...
 
+The `signingkey` key in the `user` clause can be created by issuing:
+
+```
+$ git config --global user.signingkey B331L33T
+```
+
+If you want signing to occur for all commits, instead of adding the `-S` switch to the (pre-)existing Git command aliases, you could just issue the following command:
+
+```
+$ git config --global commit.gpgsign true
+```
+
+This will then add it to your global `gitconfig`:
+
+	[commit]
+        gpgsign = true
+
 > ## Who Needs GPG Browser Plugins?
 >
 > Encrypt and paste into web mail:
