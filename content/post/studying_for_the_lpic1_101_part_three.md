@@ -801,7 +801,7 @@ Other useful keybindings that may be interactive, i.e., `top` will ask for more 
     + the fourth brings it back
 - `W` - saves configuration settings (saved mine to "$HOME/.config/procps/toprc")
 
-Note that the summary (top) are of `top` shows much of the same information as `uptime` and `free`.
+Note that the summary (top) area of `top` shows much of the same information as `uptime` and `free` (and also [`w`]).
 
 > Other `top` variants are [`htop`] and `atop`.
 
@@ -1556,6 +1556,7 @@ Continue your journey with the fourth (and last) installment in this titillating
 [`SIGHUP`]: https://en.wikipedia.org/wiki/SIGHUP
 [`watch`]: https://man7.org/linux/man-pages/man1/watch.1.html
 [`top`]: https://man7.org/linux/man-pages/man1/top.1.html
+[`w`]: https://man7.org/linux/man-pages/man1/w.1.html
 [`htop`]: https://man7.org/linux/man-pages/man1/htop.1.html
 [`tar`]: https://man7.org/linux/man-pages/man1/tar.1.html
 [`gzip`]: https://linux.die.net/man/1/gzip

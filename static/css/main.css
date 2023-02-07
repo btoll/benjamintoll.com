@@ -48,6 +48,29 @@ blockquote blockquote {
   margin-bottom: 10px;
 }
 
+cite {
+    background: #f9f9c3;
+}
+
+table th {
+    border: #000;
+    border-bottom: solid;
+}
+
+table th:first-of-type {
+    width: 150px;
+}
+
+table th:nth-of-type(2) {
+    width: 500px;
+}
+
+table td {
+    border: #000;
+    border-bottom: dotted;
+    padding-left: 10px;
+}
+
 .wrapper {
   overflow: hidden;
   position: relative;

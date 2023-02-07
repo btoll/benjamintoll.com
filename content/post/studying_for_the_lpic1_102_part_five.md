@@ -4,27 +4,6 @@ date = "2023-02-03T20:07:57-05:00"
 
 +++
 
-<style>
-cite {
-    background: #f9f9c3;
-}
-table th {
-    border: #000;
-    border-bottom: solid;
-}
-table th:first-of-type {
-    width: 150px;
-}
-table th:nth-of-type(2) {
-    width: 500px;
-}
-table td {
-    border: #000;
-    border-bottom: dotted;
-    padding-left: 10px;
-}
-</style>
-
 This is a riveting series:
 
 - [On Studying for the LPIC-1 Exam 102 (101-500), Part One](/2023/01/22/on-studying-for-the-lpic-1-exam-102-102-500-part-one/)
@@ -32,7 +11,7 @@ This is a riveting series:
 - [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/)
 - [On Studying for the LPIC-1 Exam 102 (101-500), Part Four](/2023/02/01/on-studying-for-the-lpic-1-exam-102-102-500-part-four/)
 - On Studying for the LPIC-1 Exam 102 (101-500), Part Five
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Six
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Six](/2023/02/06/on-studying-for-the-lpic-1-exam-102-102-500-part-six/)
 
 And, so is this one!
 
@@ -72,6 +51,20 @@ This roughly covers [Topic 109: Networking Fundamentals].
         - [Lookups](#lookups)
             + [`/etc/hosts`](#etchosts)
             + [`/etc/resolv.conf`](#etcresolvconf)
+    + [`NetworkManager`](#networkmanager)
+    + [`systemd-networkd`](#systemd-networkd)
+    + [`ip`](#ip)
+        - [`address`](#address)
+        - [`link`](#link)
+        - [`route`](#route)
+    + [`netcat`](#netcat)
+    + [`netstat`](#netstat)
+    + [`ss`](#ss)
+    + [`systemd-resolved`](#systemd-resolved)
+    + [Name Resolution](#name-resolution)
+        - [`getent`](#getent)
+        - [`host`](#host)
+        - [`dig`](#dig)
 - [Summary](#summary)
 - [References](#references)
 
@@ -617,6 +610,66 @@ At this point, the remote names that are being queried are [domain names], **not
 
 > If no nameservers are defined, the default behavior is to use the nameserver on the local machine.
 
+## `NetworkManager`
+
+[`NetworkManager`] is a daemon that sits on top of [`udev`] and provides a high-level abstraction for the configuration of the network interfaces identified by the machine.
+
+If you have manually configured your interfaces in `/etc/network/interfaces`, `NetworkManager` will not manage these.  This is nice, as it will stay out of your way and not try to control every single thing.
+
+There are two command-line tools, [`nmcli`] and [`nmtui`] that are client tools to manage `NetworkManager`.  The exam focuses on the former.
+
+> `nmtui` is a [`TUI`] (text user interface) and is [`curses`]-based.  Check it out.
+
+|**Object** |**Description** |
+|:---|:---|
+|general |NetworkManager’s general status and operations. |
+|networking |Overall networking control. |
+|radio |NetworkManager radio switches. |
+|connection |NetworkManager’s connections. |
+|device |Devices managed by NetworkManager. |
+|agent |NetworkManager secret agent or polkit agent. |
+|monitor |Monitor NetworkManager changes. |
+
+```
+$ nmcli general status
+STATE      CONNECTIVITY  WIFI-HW  WIFI     WWAN-HW  WWAN
+connected  full          enabled  enabled  enabled  enabled
+```
+
+```
+$ sudo nmcli dev wifi list
+IN-USE  BSSID              SSID                 MODE   CHAN  RATE        SIGNAL  BARS  SECURITY
+        E8:AD:A6:5D:8B:EE  MySpectrumWiFie8-2G  Infra  11    195 Mbit/s  72      ▂▄▆_  WPA2
+*       E8:AD:A6:5D:8B:EF  MySpectrumWiFie8-5G  Infra  149   540 Mbit/s  60      ▂▄▆_  WPA2
+        00:CB:51:4E:CD:1E  MySpectrumWiFi18-2G  Infra  1     195 Mbit/s  29      ▂___  WPA2
+```
+
+To connect to an interface with a password but not have it appear in the `bash` history (or anywhere visible on the screen):
+
+```
+$ nmcli device wifi connect MySpectrumWiFie8-2G password $(< derpy.pwd)
+Device 'wlp3s0' successfully activated with '0ce367ad-7e16-4d9d-a20d-08f6a3b91fde'.
+```
+
+```
+$ nmcli connection show
+NAME                 UUID                                  TYPE      DEVICE
+MySpectrumWiFie8-2G  0ce367ad-7e16-4d9d-a20d-08f6a3b91fde  wifi      wlp3s0
+MySpectrumWiFie8-5G  22318b3c-63fd-4724-a756-72db97988338  wifi      --
+Proton VPN CH-UK#1   64e9efeb-57c8-4071-acce-c385e1ef51c0  vpn       --
+Wired connection 1   c44c8e71-6b35-4a41-a6a8-0a6c32275343  ethernet  --
+```
+
+> According to the `LPI` docs, the following command should have prompted me for a password when in a terminal emulator, but it did not:
+>
+> ```
+> $ nmcli device wifi connect MySpectrumWiFie8-2G
+> ```
+
+## `systemd-networkd`
+
+[`systemd-networkd`]
+
 # References
 
 - [LPIC-1 Objectives V5.0](https://wiki.lpi.org/wiki/LPIC-1_Objectives_V5.0#Objectives:_Exam_102)
@@ -625,6 +678,7 @@ At this point, the remote names that are being queried are [domain names], **not
 - [Consistent Network Device Naming Using biosdevname](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/sec-consistent_network_device_naming_using_biosdevname)
 - [Interpreting the output of lspci](https://diego.assencio.com/?index=649b7a71b35fc7ad41e03b6d0e825f07)
 - [IPROUTE2 Utility Suite Howto](http://www.policyrouting.org/iproute2.doc.html)
+- [`NetworkManager` Documentation](https://networkmanager.dev/docs/)
 
 [LPIC-1]: https://www.lpi.org/our-certifications/lpic-1-overview
 [Topic 109: Networking Fundamentals]: https://learning.lpi.org/en/learning-materials/102-500/109/
@@ -664,4 +718,11 @@ At this point, the remote names that are being queried are [domain names], **not
 [`getent`]: https://man7.org/linux/man-pages/man1/getent.1.html
 [`/etc/resolv.conf`]: https://www.man7.org/linux/man-pages/man5/resolver.5.html
 [domain names]: https://en.wikipedia.org/wiki/Domain_name
+[`NetworkManager`]: https://en.wikipedia.org/wiki/NetworkManager
+[`udev`]: https://en.wikipedia.org/wiki/Udev
+[`nmcli`]: https://networkmanager.dev/docs/api/latest/nmcli.html
+[`nmtui`]: https://networkmanager.dev/docs/api/latest/nmtui.html
+[`TUI`]: https://en.wikipedia.org/wiki/Text-based_user_interface
+[`curses`]: https://en.wikipedia.org/wiki/Curses_(programming_library)
+[`systemd-networkd`]: https://man7.org/linux/man-pages/man8/systemd-networkd.service.8.html
 

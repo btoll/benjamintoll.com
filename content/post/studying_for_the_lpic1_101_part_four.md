@@ -1240,6 +1240,13 @@ Check out this table that determines the permissions given an octal value, homes
     + applies only to files
     + make the process run with privileges of the owner
 
+> Run either of the following commands to find all the binaries with either the `SGID` or `SUID` bit.
+>
+> ```
+> $ find /usr/bin -perm /u=s,g=s
+> $ find /usr/bin -perm /6000
+> ```
+
 ## Filesystem Hierarchy Standard
 
 - `/`
