@@ -10,8 +10,8 @@ This is a riveting series:
 - [On Studying for the LPIC-1 Exam 102 (101-500), Part Two](/2023/01/25/on-studying-for-the-lpic-1-exam-102-102-500-part-two/)
 - [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/)
 - On Studying for the LPIC-1 Exam 102 (101-500), Part Four
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Five](/2023/02/03/studying_for_the_lpic1_102_part_five/)
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Six
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Five](/2023/02/03/on-studying-for-the-lpic-1-exam-102-102-500-part-five/)
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Six](/2023/02/06/on-studying-for-the-lpic-1-exam-102-102-500-part-six/)
 
 And, so is this one!
 
@@ -284,6 +284,8 @@ Frequency=-3812749
 ### `NTP`
 
 # Summary
+
+Continue your journey with the fifth installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Five](/2023/02/03/on-studying-for-the-lpic-1-exam-102-102-500-part-five/)
 
 # References
 

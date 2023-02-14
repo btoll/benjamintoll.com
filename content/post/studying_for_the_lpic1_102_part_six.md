@@ -53,6 +53,13 @@ This roughly covers [Topic 110: Security].
             + [Remote](#remote)
             + [Dynamic](#dynamic)
     + [`GPG`](#gpg)
+        - [Generating](#generating)
+        - [Listing](#listing)
+        - [Revoking](#revoking)
+        - [Encrypting](#encrypting)
+        - [Decrypting](#decrypting)
+        - [Signing](#signing)
+        - [`gpg-agent`](#gpg-agent)
 - [Summary](#summary)
 - [References](#references)
 
@@ -315,6 +322,20 @@ $ ldd $(which sshd) | grep libwrap
 #### Dynamic
 
 ## `GPG`
+
+### Generating
+
+### Listing
+
+### Revoking
+
+### Encrypting
+
+### Decrypting
+
+### Signing
+
+### `gpg-agent`
 
 # References
 

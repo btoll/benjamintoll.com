@@ -9,9 +9,9 @@ This is a riveting series:
 - [On Studying for the LPIC-1 Exam 102 (101-500), Part One](/2023/01/22/on-studying-for-the-lpic-1-exam-102-102-500-part-one/)
 - On Studying for the LPIC-1 Exam 102 (101-500), Part Two
 - [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/)
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Four
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Five
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Six
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Four](/2023/02/01/on-studying-for-the-lpic-1-exam-102-102-500-part-four/)
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Five](/2023/02/03/on-studying-for-the-lpic-1-exam-102-102-500-part-five/)
+- [On Studying for the LPIC-1 Exam 102 (101-500), Part Six](/2023/02/06/on-studying-for-the-lpic-1-exam-102-102-500-part-six/)
 
 And, so is this one!
 
@@ -159,7 +159,7 @@ Popular desktop environments:
 
 # Summary
 
-Continue your journey with the second installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/).
+Continue your journey with the third installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/).
 
 # References
 

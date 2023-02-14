@@ -670,6 +670,10 @@ Wired connection 1   c44c8e71-6b35-4a41-a6a8-0a6c32275343  ethernet  --
 
 [`systemd-networkd`]
 
+# Summary
+
+Continue your journey with the sixth and last installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Six](/2023/02/06/on-studying-for-the-lpic-1-exam-102-102-500-part-six/)
+
 # References
 
 - [LPIC-1 Objectives V5.0](https://wiki.lpi.org/wiki/LPIC-1_Objectives_V5.0#Objectives:_Exam_102)
