@@ -39,9 +39,9 @@ This roughly covers [Topic 105: Shells and Shell Scripting].
         - [Non-Interactive Non-Login](#non-interactive-non-login)
         - [Determine the Shell Type](#determine-the-shell-type)
     + [`su` and `sudo`](#su-and-sudo)
-    + [Startup Files](#startup-files)
     + [`SKEL`](#skel)
     + [Shell Variables](#shell-variables)
+        - [Quoting](#quoting)
     + [Running a Program in a Modified Environment](#running-a-program-in-a-modified-environment)
     + [Common Environment Variables](#common-environment-variables)
     + [Aliases](#aliases)
@@ -58,6 +58,7 @@ This roughly covers [Topic 105: Shells and Shell Scripting].
         - [Local Variables](#local-variables)
         - [Reading Input](#reading-input)
         - [`case`](#case)
+        - [`printf`](#printf)
     + [Random Examples](#random-examples)
 - [Summary](#summary)
 - [References](#references)
@@ -131,15 +132,11 @@ Here's some fine examples of interactive non-login shells:
     $ bash -i
     ```
 1. With the `-s` switch and positional parameters:
-    <pre class="math">
+    ```
     $ cat test.sh
     #!/usr/bin/bash
 
     echo "Today's message is: $1 $2"
-
-    </pre>
-
-    ```
     $ > test.sh bash -s -- hello world
     Today's message is: hello world
     ```
@@ -174,7 +171,7 @@ Some examples:
 
 Running a script will give you a `bash` shell of this type.  Every script will run in its own subshell, opening the shell on execution and closing it on exit.
 
-Here's an interesting property of these types of shells.  There is a variable used by the shell that's named `BASH_ENV`, and it's purpose is to contain a filename that should be `source`d to initialize the shell.
+Here's an interesting property of these types of shells.  There is a variable used by the shell that's named `BASH_ENV`, and its purpose is to contain a filename that should be `source`d to initialize the shell.
 
 Recall that non-interactive non-login shells will **not** have any initialization files run by the shell when it's launched to customize its environment, because these types of shells are primarily for shells running scripts.
 
@@ -184,19 +181,18 @@ Here's an example that's currently running in production:
 
 `scripting.rc`
 
-<pre class="math">
+```
 $ cat scripting.rc
 export COOTIES="yes, i have them"
-
-</pre>
+```
 
 `c.sh`
 
-<pre class="math">
+```
 #!/bin/bash
 
 test -n "$COOTIES" && echo "$COOTIES"
-</pre>
+```
 
 Let's first run without setting the variable:
 
@@ -216,7 +212,8 @@ weeeeeeeeeeeeeeeeeee
 
 ### Determine the Shell Type
 
-To determine what type of shell you have, use the special parameter `$0` or `$BASH_ARGV0`.  If the result is prepended by a hyphen (`-`), then it's a login shell.  If not, so it just prints `bash`, then it's not:
+To determine what type of shell you have, use the special parameter `$0` or `$BASH_ARGV0`.  If the result is prepended by a hyphen (`-`), then it's a login shell.  If it prints `bash` without a leading hyphen, then it's not:
+
 
 ```
 $ echo $0
@@ -254,23 +251,61 @@ himBCHs
 
 ## `su` and `sudo`
 
-TODO: clean this up
+With [`su`], you can run a command with substitute user and group `ID` or become the superuser root.  Both login and non-login shells can be invoked.
 
-`su`:
-- `su - user2`, `su -l user2` or `su --login user2` will start an interactive login shell as `user2`.
-- `su user2` will start an interactive non-login shell as `user2`.
-- `su - root` or `su -` will start an interactive login shell as `root`.
-- `su root` or `su` will start an interactive non-login shell as `root`.
+For example:
+- to start an interactive login shell as `kilgore`:
+    + `su - kilgore`
+    + `su -l kilgore`
+    + `su --login kilgore`
+- to start an interactive non-login shell as `kilgore`:
+    + `su kilgore`
+- to start an interactive login shell as `root`:
+    + `su - root`
+    + `su -`
+- to start an interactive non-login shell as `root`:
+    + `su root`
+    + `su`
 
-`sudo`:
+With [`sudo`], you execute command(s) as another user, commonly root.  The default `sudo` security policy plugin `sudoers` is driven by the [`/etc/sudoers`] file, which determines a user's `sudo` privileges.
 
-> [`visudo`]
+> It is important to only modify the `/etc/sudoers` file through the [`visudo`] utility, which will lock the file to prevent concurrent writes.
 
-## Startup Files
+As with `su`, `sudo` allows you to create both login and non-login shells.
+
+For example:
+- to start an interactive login shell as `kilgore`:
+    + `sudo su - kilgore`
+    + `sudo su -l kilgore`
+    + `sudo su --login kilgore`
+- to start an interactive non-login shell as `kilgore`:
+    + `sudo su kilgore`
+    + `sudo -u kilgore -s`
+- to start an interactive login shell as `root`:
+    + `sudo su - root`
+    + `sudo su -`
+    + `sudo -i`
+- to start an interactive login shell as `root` and return to the calling user after execution of the command:
+    + `sudo -i <some_command>`
+- to start an interactive non-login shell as `root`:
+    + `sudo su root`
+    + `sudo su`
+    + `sudo -s`
+    + `sudo -u root -s`
+
+The decision to use a login or non-login shell comes down to the need (or desire) to have the target user's environment invoked when temporarily "becoming" that user.  If needing the environment, choose the former.
+
+Recall that a login shell will start sourcing with the system-wide `/etc/profile` file, while a non-login shell will not, only starting its sourcing at the system-wide `/etc/bash.bashrc` file.
+
+> Add the `kilgore` user to the `sudo` group by issuing the following command:
+>
+> ```
+> $ sudo usermod -aG sudo kilore
+> ```
 
 ## `SKEL`
 
-If set the `SKEL` environment variable holds the location of the `skel` directory.  This is the location that holds the (probably hidden) files that are copied to every user's home directory if they are a regular user that needs a home directory (and is specified by the system administrator at the time the user account is created).
+If set the `SKEL` environment variable holds the location of the `skel` directory.  This is the location that holds the (probably hidden) files that are copied to every user's home directory if they are a regular user that needs a home directory and is specified by the system administrator at the time the user account is created (keep in mind that not every new account creation needs a home directory, like system accounts).
 
 `SKEL` is defined in `/etc/adduser.conf` (default values are in `/etc/default/useradd`):
 
@@ -303,7 +338,7 @@ Variables can contain the following characters:
 
 They cannot start with a number.
 
-Shell variables can be created as immutable by prefacing it with the [`readonly`] builtin (actually, this builtin was inherited from the [Bourne shell]):
+Shell variables can be created as immutable by prefacing it with the [`readonly`] builtin (inherited from the [Bourne shell]):
 
 ```
 $ readonly fudge=original
@@ -355,6 +390,39 @@ To turn the `TICKLE` local variable from the previous example back into an envir
 $ export TICKLE
 $ declare -x TICKLE
 ```
+
+### Quoting
+
+Single and double-quotes are not interchangeable (however, they sometimes are equivalent in what they do, i.e., 'i am a string with no special characters' == "i am a string with no special characters").
+
+Follow these rules, and you'll be as safe as houses:
+
+- single quotes are for literal interpretation
+- double quotes allow for variable substitution
+
+Let's see some examples:
+
+```
+$ maga="make attorneys get attorneys"
+$ echo '$maga'
+$maga
+$ echo "$maga"
+make attorneys get attorneys
+```
+
+In addition, you'll want to use double-quotes to avoid [word splitting] and pathname expansion:
+
+```
+$ hello="|    hello,    it's  me    |"
+$ echo '$hello'
+$hello
+$ echo $hello
+| hello, it's me |
+$ echo "$hello"
+|    hello,    it's  me    |
+```
+
+It's almost always a good idea to double-quote any variables in scripts so they perform this variable substitution.  Also, if a variable is empty, double-quoting will prevent a syntax error when evaluated.
 
 ## Running a Program in a Modified Environment
 
@@ -416,6 +484,11 @@ $ env ZOMBIES=are_real ./run_me.sh
 - `SHELL`
 - `USER`
 
+The following commands will all print the shell's environment variables:
+- `export`
+- `printenv`
+- `env`
+
 ## Aliases
 
 To unmask a command that has been masked by an alias, preface the command with a backslash (`\l`):
@@ -431,9 +504,22 @@ archetypes           config.toml  Dockerfile  k8s       public     resources
 build_and_deploy.sh  content      env.sh      Makefile  README.md  static
 ```
 
-Note that the `ls` alias has added the `-F` to classify the directory entries (this appends the indicators to the appropriate entries).  This is a common alias that is provided out-of-the-box, so to speak, but many distributions.
+Note that the `ls` alias has added the `-F` to classify the directory entries (this appends the indicators to the appropriate entries).  This is a common alias that is provided out-of-the-box, so to speak, by many distributions.
 
-Use the backslash to "turn off" the alias to allow the original unshadowed command to run.
+Use the backslash to temporarily "turn off" (i.e., just for that command) the alias to allow the original unshadowed command to run.
+
+However, if there is no underlying command that is being shadowed, you will get an error.  Observe:
+
+```
+$ type xkcd
+xkcd is aliased to `open https://c.xkcd.com/random/comic/'
+$ alias xkcd
+alias xkcd='open https://c.xkcd.com/random/comic/'
+$ xkcd
+( opened the page in a browser )
+$ \xkcd
+-bash: xkcd: command not found
+```
 
 If for some reason you wish to remove all of the aliases from your session:
 
@@ -490,9 +576,58 @@ To create local variables scoped to the function:
 - `local VAR`
 - `declare -A|-a|-i|-n VAR`
 
-Otherwise, the variable will be global and then part of the calling environment if the script containing the function is `source`d.
+Otherwise, the variable will be global and then part of the calling environment.
+
+Let's see an example of this.
+
+When I was a history major at university, my ancient Roman professor introduced us to a Greek king that fought the Romans.  His name was Testicles.
+
+Let's dedicate this `bash` function to Testicles.
+
+Here is its definition:
+
+```
+$ type testicles
+testicles is a function
+testicles () 
+{ 
+    local roman=0;
+    greek=1
+}
+```
+
+Note that there is a `roman` variable prefaced by the `local` keyword and a `greek` variable that is not.
+
+And now we'll use an interactive login shell to test the known variables before and after explicitly calling the function:
+
+So far, neither variable is known to the shell.
+
+```
+$ set | grep -E "^(roman|greek)"
+$ echo $roman
+
+$ echo $greek
+
+```
+
+Now, we'll call the function and see if anything has changed:
+
+```
+$ testicles
+$ echo $roman
+
+$ echo $greek
+1
+$ set | grep -E "^(roman|greek)"
+greek=1
+```
+
+Uh oh, the `greek` variable, unprefaced by the `local` keyword and thus a non-local (global) variable, is now present in the shell.  This is not good.
+
+Always use `local` in your `bash` functions, children.
 
 ## Builtin Variables
+
 
 These special variables are known as parameters:
 
@@ -509,7 +644,7 @@ These special variables are known as parameters:
 - `$@`, `$*`
     + the arguments passed to the command
 - `$_`
-    + the last parameter of the name of the script
+    + the last parameter or the name of the script
 - `$-`
     + the shell options that have been set for the session
 
@@ -771,6 +906,42 @@ read FIRST LAST
 read -p "Type your first name and last name:" FIRST LAST
 ```
 
+### `case`
+
+<pre class="math">
+case "$foo" in
+debian | ubuntu | mint )
+    echo -n "uses .deb"
+    ;;
+
+centos | fedora | opensuse )
+    echo -n "uses .rpm"
+    ;;
+\*)
+    echo -n "uses unknown package format"
+    ;;
+esac
+</pre>
+
+Note that the items to be matched in a `case` block can employ command subsitition, parameter and arithmetic expansion, etc.
+
+### `printf`
+
+Many [programming languages have a `printf` function], or something similarly-named that operates like it, that formats and prints data.  You will not be surprised that `bash` has a shell builtin called [`printf`] that allows for the same functionality.
+
+Here is an example from the `LPIC-` documentation:
+
+```
+$ OS=$(uname -o)
+$ FREE=$(( 1000 * `sed -nre '2s/[^[:digit:]]//gp' < /proc/meminfo` ))
+$ MSG='Operating system:\t%s\nUnallocated RAM:\t%d MB\n'
+$ printf "$MSG" $OS $(( $FREE / 1024**2 ))
+Operating system:       GNU/Linux
+Unallocated RAM:        19375 MB
+```
+
+> `printf` is short for **print f**ormatted.
+
 ## Random Examples
 
 - get the length of a variable
@@ -830,25 +1001,6 @@ read -p "Type your first name and last name:" FIRST LAST
         32
         ```
 
-### `case`
-
-<pre class="math">
-case "$foo" in
-debian | ubuntu | mint )
-    echo -n "uses .deb"
-    ;;
-
-centos | fedora | opensuse )
-    echo -n "uses .rpm"
-    ;;
-\*)
-    echo -n "uses unknown package format"
-    ;;
-esac
-</pre>
-
-Note that the items to be matched in a `case` block can employ command subsitition, parameter and arithmetic expansion, etc.
-
 # Summary
 
 Continue your journey with the second installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Two](/2023/01/25/on-studying-for-the-lpic-1-exam-102-102-500-part-two/).
@@ -859,6 +1011,9 @@ Continue your journey with the second installment in this titillating series, [O
 - [LPIC-1 Learning Materials](https://learning.lpi.org/en/learning-materials/102-500/)
 - [Index of Shell Builtin Commands](https://www.gnu.org/software/bash/manual/html_node/Builtin-Index.html)
 - [Differentiate Interactive login and non-interactive non-login shell](https://askubuntu.com/questions/879364/differentiate-interactive-login-and-non-interactive-non-login-shell)
+- [Writing Shell Scripts](https://www.netmeister.org/blog/writing-shell-scripts.html)
+- [Bash Pitfalls](http://mywiki.wooledge.org/BashPitfalls)
+- [Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
 
 [LPIC-1]: https://www.lpi.org/our-certifications/lpic-1-overview
 [Topic 105: Shells and Shell Scripting]: https://learning.lpi.org/en/learning-materials/102-500/105/
@@ -868,12 +1023,17 @@ Continue your journey with the second installment in this titillating series, [O
 [`UUOC`]: https://en.wikipedia.org/wiki/Cat_(Unix)#Useless_use_of_cat
 [`isatty(3)`]: https://man7.org/linux/man-pages/man3/isatty.3.html
 [`bash`]: https://www.man7.org/linux/man-pages/man1/bash.1.html
+[`su`]: https://man7.org/linux/man-pages/man1/su.1.html
+[`sudo`]: https://man7.org/linux/man-pages/man8/sudo.8.html
+[`/etc/sudoers`]: https://man7.org/linux/man-pages/man5/sudoers.5.html
 [`visudo`]: https://man7.org/linux/man-pages/man8/visudo.8.html
 [`useradd`]: https://man7.org/linux/man-pages/man8/useradd.8.html
 [`readonly`]: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-readonly
 [Bourne shell]: https://en.wikipedia.org/wiki/Bourne_shell
 [`declare`]: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-declare
 [`export`]: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-export
+[shell parameter expansion]: https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+[word splitting]: https://www.gnu.org/software/bash/manual/html_node/Word-Splitting.html
 [`test`]: https://www.man7.org/linux/man-pages/man1/test.1.html
 [\[]: https://www.man7.org/linux/man-pages/man1/test.1.html
 [on testing]: /2018/12/23/on/
@@ -890,4 +1050,6 @@ Continue your journey with the second installment in this titillating series, [O
 [`readarray`]: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-readarray
 [`expr`]: https://man7.org/linux/man-pages/man1/expr.1.html
 [`bc`]: https://man7.org/linux/man-pages/man1/expr.1.html
+[programming languages have a `printf` function]: https://en.wikipedia.org/wiki/Printf_format_string#Programming_languages_with_printf
+[`printf`]: https://man7.org/linux/man-pages/man1/printf.1.html
 

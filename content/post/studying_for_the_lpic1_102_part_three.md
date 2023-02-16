@@ -314,6 +314,8 @@ These files cannot be edited directly.  Instead, use either the command-line too
 
 The [`/etc/passwd`] file contains basic information about users, formatted by seven colon-delimited fields.
 
+It will have default permissions of `0644`.
+
 Let's look at an entry in the file and break it down:
 
 ```
@@ -360,6 +362,8 @@ Weeeeeeeeeeeeeeeeeeeeeeeeeee
 
 The [`/etc/group`] file contains basic information about groups, formatted by four colon-delimited fields.
 
+It will have default permissions of `0644`.
+
 Let's take at one of the groups in this file to which I belong, shall we?  We shall.
 
 ```
@@ -377,6 +381,8 @@ Let's break down those four colon-separated fields:
 ### `/etc/shadow`
 
 The [`/etc/shadow`] file contains encrypted user passwords, formatted by nine colon-delimited fields.  It is only readable by `root` and privileged users.
+
+It will have default permissions of `0640`.
 
 Let's take a look at an entry and do that explaining stuff for the nine fields:
 
@@ -400,6 +406,8 @@ Note that the last three fields are empty.
 ### `/etc/gshadow`
 
 The [`/etc/gshadow`] file contains encrypted group passwords, formatted by four colon-delimited fields.  It is only readable by `root` and privileged users.
+
+It will have default permissions of `0640`.
 
 ```
 $ sudo grep audio /etc/gshadow
