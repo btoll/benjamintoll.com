@@ -8,3 +8,8 @@ title = "Contact"
 ben (at) benjamintoll (dot) com
 </pre>
 
+### GPG
+
+- [download](/benjamintoll.com.pub)
+- [view](/benjamintoll.com.pub.txt)
+
