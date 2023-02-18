@@ -46,13 +46,55 @@ git config --local --add hooks.pre-commit.hook link-scanner.sh
 
 Uses [GitHub Actions] to scan all the embedded links in the markdown files (i.e., the articles) in the repository.  Uses the [`link-scanner`] tool.
 
-## Misc
+## Starting the server
 
-### Create a New Post
+### Use a simple alias
+
+In `.bash_aliases`:
 
 ```
-hugo new post/intro.md
+alias serve="( cd $HOME/projects/benjamintoll.com/public/ ; python -m http.server &> /dev/null & ) ; echo 'Server running on http://127.0.0.1:8000/'"
 ```
+
+### `systemd`
+
+Create the service unit:
+
+`/lib/systemd/system/benjamintoll.com.service`
+
+```
+[Unit]
+Description=benjamintoll.com website
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=python -m http.server --directory /home/btoll/projects/benjamintoll.com/public 8000
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Have `systemd` reload all of its `unit` config files.  This will "tell" it about the new service:
+
+```
+$ sudo systemctl daemon-reload
+```
+
+Start the service:
+
+```
+$ sudo systemctl start benjamintoll.com
+```
+
+Start the service on boot:
+
+```
+$ sudo systemctl enable benjamintoll.com
+```
+
+> Note that I've left off the `.service` suffix.
 
 [GitHub Actions]: https://docs.github.com/en/actions
 [`link-scanner`]: https://github.com/btoll/link-scanner
