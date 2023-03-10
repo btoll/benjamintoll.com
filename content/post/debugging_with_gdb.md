@@ -42,7 +42,7 @@ int main(void) {
 
 The first thing is to compile the program [with debugging support]:
 
-	gcc -ggdb3 stack_example.c -o stack_example 
+	gcc -ggdb3 stack_example.c -o stack_example
 
 Alternatively, you could do:
 
@@ -53,7 +53,7 @@ which runs:
 	cc -ggdb3 stack_example.c -o stack_example
 
 Note that `cc` is symlinked to `gcc`.
- 
+
 > The `-ggdb3` switch provides the most debugging information possible.  The switch is an aggregation of `-ggdb`, which builds for GDB using the most expressive format available ([DWARF], [stabs], or falls back to native format if neither is supported), and `-g3`, which is the fourth and highest level of debugging information (zero-based).
 
 Here is the stack in relation to the other memory segments:
@@ -95,7 +95,7 @@ Then, launch GDB with the produced executable (use `-q` for quiet output if it p
 ```
 $ gdb stack_example
 Reading symbols from stack_example...done.
-(gdb) 
+(gdb)
 ```
 
 You can view the code by using the `list` or `l` command:
@@ -112,12 +112,12 @@ You can view the code by using the `list` or `l` command:
 8           buf[2] = 'T';
 9       }
 10
-(gdb) 
+(gdb)
 11      int main(void) {
 12          foo(1, 2, 'a', 'b');
 13      }
 14
-(gdb) 
+(gdb)
 ```
 
 Let's get started by seeing the disassembly of the `main` function:
@@ -134,9 +134,9 @@ Dump of assembler code for function main:
    0x00005555555546a0 <+24>:    call   0x660 <foo>	// Calls foo().
    0x00005555555546a5 <+29>:    mov    eax,0x0		// Pushes return value into eax register.
    0x00005555555546aa <+34>:    pop    rbp		// Start of function epilogue.
-   0x00005555555546ab <+35>:    ret    
+   0x00005555555546ab <+35>:    ret
 End of assembler dump.
-(gdb) 
+(gdb)
 ```
 
 > The GNU assembler is using Intel syntax here rather than the default AT&T.  Instead of setting the syntax every time I run GDB, I put the directive in my [.gdbinit] file.
@@ -155,7 +155,7 @@ Let's set a couple of breakpoints (`b` or `break`) and start inspecting the prog
 Breakpoint 1 at 0x68c: file stack_example.c, line 12.
 (gdb) b foo
 Breakpoint 2 at 0x672: file stack_example.c, line 5.
-(gdb) 
+(gdb)
 ```
 To view all the breakpoints (`info break` or just `i b`):
 
@@ -164,7 +164,7 @@ To view all the breakpoints (`info break` or just `i b`):
 Num     Type           Disp Enb Address            What
 1       breakpoint     keep y   0x000055555555468c in main at stack_example.c:12
 2       breakpoint     keep y   0x0000555555554672 in foo at stack_example.c:5
-(gdb) 
+(gdb)
 ```
 
 Now we can run the program by typing `run` or `r` at the prompt:
@@ -175,7 +175,7 @@ Starting program: /home/btoll/sandbox/c/hacking_the_art_of_exploitation/stack_ex
 
 Breakpoint 1, main () at stack_example.c:12
 12          foo(1, 2, 'a', 'b');
-(gdb) 
+(gdb)
 ```
 
 This will halt the execution of the program where we've set the first breakpoint.  We'll take note of the current position of the base pointer and shortly see its importance (`i r` is shorthand for `info register`):
@@ -188,7 +188,7 @@ rbp            0x7fffffffe0f0   0x7fffffffe0f0
 0x7fffffffe0f0: 0x555546b0
 (gdb) p $rbp
 $1 = (void *) 0x7fffffffe0f0
-(gdb) 
+(gdb)
 
 ```
 
@@ -201,7 +201,7 @@ And then execute the next four instructions so that the instruction pointer is r
 0x00005555555546a0      12          foo(1, 2, 'a', 'b');
 (gdb) x/i $rip
 => 0x5555555546a0 <main+24>:    call   0x555555554660 <foo>
-(gdb) 
+(gdb)
 ```
 
 Let's inspect the values of the four CPU registers where the compiler moved `foo`'s function parameters:
@@ -212,7 +212,7 @@ ecx            0x62     98
 edx            0x61     97
 esi            0x2      2
 edi            0x1      1
-(gdb) 
+(gdb)
 ```
 
 > If you need a refresher on x86 syntax, see the primer at the end of the post.
@@ -225,7 +225,7 @@ Continuing.
 
 Breakpoint 2, foo (a=1, b=2, c=97 'a', d=98 'b') at stack_example.c:5
 5           eleet = 31337;
-(gdb) 
+(gdb)
 ```
 
 Now that we're in the `foo` function, we can start looking at its stack frame.  Let's print out the top of the stack down into the `main` stack frame:
@@ -236,7 +236,7 @@ Now that we're in the `foo` function, we can start looking at its stack frame.  
 0x7fffffffe0b0: 0x555546b0      0x00005555      0x55554530      0x00005555
 0x7fffffffe0c0: 0xffffe0d0      0x00007fff      0x555546a5      0x00005555
 0x7fffffffe0d0: 0x555546b0      0x00005555      0xf7a5a2e1      0x00007fff
-(gdb) 
+(gdb)
 ```
 
 Here we can already see that the `foo` function parameters are already in the stack frame starting at memory address `0x7fffffffe0a0` (we'll see why shortly when inspecting the assembly code):
@@ -260,7 +260,7 @@ You can also examine them by name (note the use of the  `address-of` operator):
 0x7fffffffe0ac: 0x00000001
 (gdb) x &d
 0x7fffffffe0a0: 0x00000062
-(gdb) 
+(gdb)
 ```
 
 > You can use tab completion in GDB for known symbols.
@@ -272,7 +272,7 @@ You can also see the same memory addresses pointing to the contents of `a` and `
 0x7fffffffe0ac: 0x00000001
 (gdb) x $rbp-32
 0x7fffffffe0a0: 0x00000062
-(gdb) 
+(gdb)
 
 ```
 
@@ -285,7 +285,7 @@ Moving past the function arguments, we can see 32 bytes that the compiler has al
 0x5555555546a5 <main+29>:       0x000000b8
 (gdb) x/i 0x00005555555546a5
    0x5555555546a5 <main+29>:    mov    eax,0x0
-(gdb) 
+(gdb)
 ```
 
 If at first you don't see them in the dump from above, that's because they are in little endian byte order, which is how values are stored in x86 architecture.  More on [endianness] later.
@@ -310,9 +310,9 @@ Dump of assembler code for function foo:
    0x0000555555554681 <+33>:    mov    BYTE PTR [rbp-0xc],0x54
    0x0000555555554685 <+37>:    nop
    0x0000555555554686 <+38>:    pop    rbp
-   0x0000555555554687 <+39>:    ret    
+   0x0000555555554687 <+39>:    ret
 End of assembler dump.
-(gdb) 
+(gdb)
 ```
 
 By the way, it's easy to forget the code we're currently debugging, and there are several options to refresh your memory about where you are in the program.
@@ -340,7 +340,7 @@ To view the current frame (`frame` or `f`):
 (gdb) f
 #0  foo (a=1, b=2, c=97 'a', d=98 'b') at stack_example.c:5
 5           eleet = 31337;
-(gdb) 
+(gdb)
 
 ```
 
@@ -350,7 +350,7 @@ To view the stack frames (`backtrace` or `bt`):
 (gdb) bt
 #0  foo (a=1, b=2, c=97 'a', d=98 'b') at stack_example.c:5
 #1  0x00005555555546a5 in main () at stack_example.c:12
-(gdb) 
+(gdb)
 ```
 
 You can also jump to different frames, but that is beyond the scope of this post.  See `help` for a list of everything you can do.
@@ -366,7 +366,7 @@ We can tell where the debugger halted in the function by the arrow in the first 
 ```
 (gdb) x/xw $rbp-4
 0x7fffffffe0bc: 0x00005555
-(gdb) 
+(gdb)
 ```
 
 If we step to the next instruction and again inspect the contents of the `0x7fffffffe0bc` memory address, we see that the value of 0x7a69 has indeed been assigned to the `eleet` variable.  We can confirm this by examining the 4-byte offset from the `rbp` register and by the memory address of the variable itself.
@@ -378,7 +378,7 @@ If we step to the next instruction and again inspect the contents of the `0x7fff
 0x7fffffffe0bc: 0x00007a69
 (gdb) x &eleet
 0x7fffffffe0bc: 0x00007a69
-(gdb) 
+(gdb)
 ```
 
 And just as a sanity, let's verify that `0x7a69` is what we think it is by running it through a [command-line calculator]:
@@ -395,7 +395,7 @@ Next we see the character array that's being assigned in the function.  Let's st
 0x7fffffffe0b0: 0x414346b0      0x00005554      0x55554530      0x00007a69
 0x7fffffffe0c0: 0xffffe0d0      0x00007fff      0x555546a5      0x00005555
 0x7fffffffe0d0: 0x555546b0      0x00005555      0xf7a5a2e1      0x00007fff
-(gdb) 
+(gdb)
 ```
 
 Now we can finally see the full stack frame.  `foo`'s function params are at the top of the stack as noted prior, but now we can see all of the [automatic variables] in the space allocated by the compiler between the function params and the frame pointer.  Let's have a closer look.
@@ -405,7 +405,7 @@ Again, the arguments passed to the `foo` function start at location `0x7fffffffe
 ```
 (gdb) x/xb 0x7fffffffe0b0                                                                      │
 0x7fffffffe0b0: 0xb0
-(gdb) 
+(gdb)
 ```
 
 Indeed, if we look even closer, we see that the bytes that make up the contents of the buffer aren't next to each other or even in the right order!  What's going on here?
@@ -415,7 +415,7 @@ Indeed, if we look even closer, we see that the bytes that make up the contents 
 0x7fffffffe0b0: 0x414346b0      0x00005554
 (gdb) x/4xh 0x7fffffffe0b0
 0x7fffffffe0b0: 0x46b0  0x4143  0x5554  0x0000
-(gdb) 
+(gdb)
 ```
 
 The answer, of course, is that GDB is printing out the bytes in little endian order.  We'll have to list them as individual bytes to see them in the correct order:
@@ -424,7 +424,7 @@ The answer, of course, is that GDB is printing out the bytes in little endian or
 (gdb) x/16xb 0x7fffffffe0b0
 0x7fffffffe0b0: 0xb0    0x46    0x43    0x41    0x54    0x55    0x00    0x00
 0x7fffffffe0b8: 0x30    0x45    0x55    0x55    0x69    0x7a    0x00    0x00
-(gdb) 
+(gdb)
 ```
 
 Now that's what we would expect to see.  Also notice that the buffer starts two bytes in from that address at `0x7fffffffe0b2`.  This can be confirmed by referencing the variable by name:
@@ -433,7 +433,7 @@ Now that's what we would expect to see.  Also notice that the buffer starts two 
 0x7fffffffe0b2: 0x55544143
 (gdb) x/3xb buf
 0x7fffffffe0b2: 0x43    0x41    0x54
-(gdb) 
+(gdb)
 ```
 
 I'm going to finish this post by talking about environment variables.  All environment variables are accessible on the bottom of the stack at high memory addresses.  You can see this by yourself by changing the above simple program to accept a command-line argument that will allow you to access its memory address in GDB.
@@ -479,7 +479,7 @@ Reading symbols from stack_example...done.
 8           buf[0] = 'C';
 9           buf[1] = 'A';
 10          buf[2] = 'T';
-(gdb) 
+(gdb)
 11      }
 12
 13      int main(int argc, char **argv) {
@@ -496,7 +496,7 @@ Breakpoint 1, main (argc=2, argv=0x7fffffffe1a8) at stack_example_env_var_test.c
 15          foo(1, 2, 'a', 'b');
 (gdb) x/s e
 0x7fffffffedf0: "foo"
-(gdb) 
+(gdb)
 ```
 
 This tells us that `TESTVAR` env var is at the bottom of the stack at memory address `0x7fffffffedf0`. We need to determine how far that is from the current base pointer, which we can easily accomplish by doing some simple arithmetic:
@@ -504,7 +504,7 @@ This tells us that `TESTVAR` env var is at the bottom of the stack at memory add
 ```
 (gdb) p e-$rbp
 $1 = 3376
-(gdb) 
+(gdb)
 ```
 
 Ok, it's 3376 bytes below the base pointer in process memory.  Remember that the stack grows downward towards lower memory addresses, so to access the higher address at the bottom of the stack we need to use addition (I know, it's counter-intuitive).
@@ -533,7 +533,7 @@ To make sure that we definitely hit the correct memory address, we'll start prin
 0x7fffffffeff8: ""
 0x7fffffffeff9: ""
 0x7fffffffeffa: ""
-(gdb) 
+(gdb)
 ```
 
 And there it is.  There are quicker ways to determine the address, but I find it's instructive to learn this way since it incorporates many of the things discussed in this post.  And in a future post, I'll show how it's possible to exploit a program by injecting shellcode into an enviroment variable and getting the program to run it.
@@ -542,22 +542,22 @@ And there it is.  There are quicker ways to determine the address, but I find it
 > ```
 > General purpose registers:
 > 	eax, ecx, edx
-> 
+>
 > Special purpose registers:
 > 	rbp = base pointer
 >	rsp = stack pointer
 >	rip = next instruction pointer
-> 
+>
 > Command:
 >	i = info
  = examine
-> 
+>
 > Format:
 > 	x = hexadecimal
 > 	o = octal
 > 	u = unsigned base-10
 > 	t = binary
-> 
+>
 > Size:
 > 	b = byte, one byte, 8 bits
 > 	h = halfword, two bytes, 16 bits
