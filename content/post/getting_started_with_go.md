@@ -12,12 +12,16 @@ date = "2022-08-05T19:13:06Z"
     + [Removing Dependencies](#removing-dependencies)
     + [Listing Dependencies](#listing-dependencies)
 - [Managing Binaries](#managing-binaries)
-    + [Adding Binaries](#adding-binaries)
+    + [Creating Binaries](#creating-binaries)
 - [Managing Caches](#managing-caches)
     + [Removing Caches](#removing-caches)
+- [Publishing](#publishing)
 - [Viewing Documentation](#viewing-documentation)
 - [Vim Plugin](#vim-plugin)
 - [Troubleshooting](#troubleshooting)
+- [Programming](#programming)
+    + [`init` function](#init-function)
+    + [Embedding Static Files](#embedding-static-files)
 - [References](#references)
 
 <!--- [Install Binaries to GOBIN](#install-binaries-to-GOBIN)-->
@@ -195,7 +199,7 @@ $ go list -m -u all
 
 ## Managing Binaries
 
-### Adding Binaries
+### Creating Binaries
 
 Build and install binary in `GOBIN`:
 
@@ -240,16 +244,55 @@ GOCACHE="/home/btoll/.cache/go-build"
 GOMODCACHE="/home/btoll/go/pkg/mod"
 ```
 
+## Publishing
+
+If you do not add a license to your repository, the Go package repository will not be able to display your documentation.
+
+```
+$ go mod tidy
+$ git tag v0.1.0
+$ git push origin v0.1.0
+$ GOPROXY=proxy.golang.org go list -m github.com/btoll/trivial@v0.1.0
+```
+
+To [read more about publishing], read the docs.
+
+> You can search for packages at [the Go package repository].
+
 ## Viewing Documentation
+
+To get the `godoc` package and install it:
+
+```
+$ go get golang.org/x/tools/cmd/godoc
+$ go install golang.org/x/tools/cmd/godoc
+```
+
+You'll then see the `godoc` binary in `$GOPATH/bin`.
 
 ```
 $ godoc --help
 ```
 
-It's possible to load docs locally via a builtin web server, which will also include your own types.
+It's possible to load docs locally via a builtin web server, which will also include your own types.  For example, go to the root directory of your package and run:
 
 ```
 $ godoc -http :3030
+using module mode; GOMOD=/home/btoll/projects/trivial/go.mod
+```
+
+> The default port is `6060`, so if that's acceptable, you can just run `godoc` by itself.
+
+You'll then see your package listed under the "Third party" header.
+
+Optionally, browse to the package:
+
+`http://localhost:6060/pkg/github.com/btoll/trivial/trivial/`
+
+To include the Playground, use the `-play` switch:
+
+```
+$ godoc -play
 ```
 
 ## Vim Plugin
@@ -276,6 +319,43 @@ You're going to want to use [`vim-go`].  Here is how to install using [`vim-plug
 
 When developing a package, it's quite often that you'll use `go run` to test the binary.  If you get `undefined` errors, make sure that you'll referencing all of the `.go` files that the binary will need.  Recall that you need to specify every file for `go run`.
 
+## Programming
+
+### `init` function
+
+Everybody knows that the `main` function is the first function that is run in the `main` package.  However, there is a function that is run before the `main` function, if defined.
+
+This is the [niladic] `init` function, and you can define one in every file.  They will all get run before the `main` function in the `main` package.
+
+You can [read more about the `init` function] in the Go docs.
+
+### Embedding Static Files
+
+Since Go 1.16, it's been possible to [embed] static files, whether one or many, into the binary.  This is a great addition to the language, and it solves the problem of trying to deploy these static files alongside the generated binary.
+
+Here is an example of embedding a directory of `html` template files in an executable (excerpted from my [`trivial` package]):
+
+<pre class="math">
+import (
+	"embed"
+	...
+)
+
+//go:embed templates/*.gohtml
+var templateFiles embed.FS
+
+func NewSocketServer(uri URI) *SocketServer {
+	fmt.Printf("created new websocket server `%s`\n", uri)
+	return &SocketServer{
+		Location: uri,
+		Games:    make(map[string]*Game),
+		Tpl: template.Must(template.ParseFS(templateFiles, "templates/*.gohtml")),
+	}
+}
+</pre>
+
+Weeeeeeeeeeeeeeee
+
 ## References
 
 - [Download and install](https://go.dev/doc/install)
@@ -291,6 +371,12 @@ When developing a package, it's quite often that you'll use `go run` to test the
 [`go.mod`]: https://go.dev/doc/modules/gomod-ref
 [`go.sum`]: https://go.dev/doc/modules/managing-source#repository
 [from the docs]: https://go.dev/doc/modules/managing-source#repository
+[read more about publishing]: https://go.dev/doc/modules/publishing
+[the Go package repository]: https://pkg.go.dev
 [`vim-go`]: https://github.com/fatih/vim-go
 [`vim-plug`]: https://github.com/junegunn/vim-plug
+[niladic]: https://en.wiktionary.org/wiki/niladic
+[read more about the `init` function]: https://go.dev/doc/effective_go#init
+[embed]: https://pkg.go.dev/embed
+[`trivial` package]: https://pkg.go.dev/github.com/btoll/trivial
 
