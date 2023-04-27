@@ -60,6 +60,17 @@ This roughly covers [Topic 108: Essential System Services].
         - [Deleting Old Journals](#deleting-old-journals)
         - [Forwarding to `syslogd`](#forwarding-to-syslogd)
     + [Mail](#mail)
+        - [`MTA`s](#mtas)
+            + [Sending an Email](#sending-an-email)
+        - [Mail Locations](#mail-locations)
+        - [`MUA`s](#muas)
+        - [Aliases](#aliases)
+    + [`CUPS`](#cups)
+        - [Adding Printers](#adding-printers)
+        - [Managing Printers](#managing-printers)
+        - [Submitting Print Jobs](#submitting-print-jobs)
+        - [Managing Print Jobs](#managing-print-jobs)
+        - [Removing Printers](#removing-printers)
 - [Summary](#summary)
 - [References](#references)
 
@@ -658,10 +669,8 @@ There are various conventions for (re)naming the archived log files, but a commo
 
 For example:
 
-TODO: remove the backslash below
-
 ```
-$ ls /var/log/messages\*
+$ ls /var/log/messages*
 /var/log/messages    /var/log/messages.2.gz  /var/log/messages.4.gz
 /var/log/messages.1  /var/log/messages.3.gz
 ```
@@ -925,39 +934,367 @@ Also, for the `Storage=` option, have a value other than `none`.
 
 ## Mail
 
-In a terminal, start the `MTA` ([`sendmail`]):
+The [Mail Transfer Agent] (`MTA`), also known as the Message Transfer Agent, is a program running as a system service which sends mail message to local user inboxes as well as transferring mail messages to other user accounts on the network (by default, an `MTA` will only accept messages to local recipients).  An `MTA` is all that is needed to send and receive mail on a network.
+
+Networked machines that want to send and receive mail will each need to be running an `MTA` daemon.  However, it is more common for machines to use a webmail rather than running a local `MTA` daemon.  Note, though, that any remote user account will need proper authentication in order to retrieve the email.
+
+Connections will use [`SMTP`] to facilitate the requests, and the remote `MTA` is often referred to as the `SMTP` server.
+
+> The `MTA` will usually store the messages in the [`mbox` format], which is a single text file containing all email messages in sequence.  Mail clients (`MUA`, or mail user agent) such as Thunderbird, Evolution and KMail are often used to read the email instead of accessing this file directly.
+
+So, how does the local `MTA` know where to send the email?  It will determine the destination by looking at the domain name and querying `DNS` for its [`MX` record] (i.e., its mail exchanger record), which will contain the `IP` address of the `MTA` handling email for that particular domain.
+
+Some domains will have more than one `MX` record, and in those cases the `MTA` will try to send the mail in order of their priority values.  If the recipient's email address doesn't have a domain or the domain doesn't have an `MX` record, then the node is treated as being on the local network, that is, the name after the ampersand (&) is assumed to be a host name.
+
+```
+$ dig +short benjamintoll.com mx
+10 mail.protonmail.ch.
+20 mailsec.protonmail.ch.
+```
+### `MTA`s
+
+Traditionally, Linux has used [`Sendmail`] as its `MTA`.  Other common ones are `Postfix`, `qmail` and `Exim`.  These latter software packages are often used in place of `Sendmail` as they are easier to use and easier to configure advanced features, and they can be used as drop-in replacements for `Sendmail` if they are branded as `Sendmail`-compatible.
+
+If the `MTA` is running but not accepting network connections, it will only be able to deliver email messages to local nodes.  For `Sendmail`, some distributions may have a configuration file in `/etc/mail/sendmail.mc` that can be edited with the network `IP` address to allow non-local connections.  Of course, don't forget about the security implications of this!
+
+There may be a line in the config file that looks like the following:
+
+```
+DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl
+```
+
+Let's look at an example that uses `Sendmail` and `SMTP` protocol commands to send an email message.
+
+### Sending an Email
+
+In a terminal, start the `MTA` (`Sendmail`):
 
 ```
 $ sudo sendmail
 ```
 
-In another, use [`ncat`] (`nc`) to send an email to a user on the system:
+In another, use [`ncat`] (`nc`) to send an email to a user on the system (the `SMTP` commands and email message content are in bold):
 
-```
+<pre>
 $ nc 127.0.0.1 25
 220 kilgore-trout.benjamintoll.com ESMTP Postfix (Debian/GNU)
-HELO 127.0.0.1
+<b>HELO 127.0.0.1</b>
 250 kilgore-trout.benjamintoll.com
-MAIL FROM: btoll
+<b>MAIL FROM: btoll</b>
 250 2.1.0 Ok
-RCPT TO: btoll
+<b>RCPT TO: btoll</b>
 250 2.1.5 Ok
-DATA
+<b>DATA</b>
 354 End data with <CR><LF>.<CR><LF>
-Subject: ello kiddies
+<b>Subject: ello kiddies</b>
 
-hi btoll, this is testing your MTA
-.
+<b>Hi btoll, you are a true hero.</b>
+<b>.</b>
 250 2.0.0 Ok: queued as C819E364C0E
-QUIT
+<b>QUIT</b>
 221 2.0.0 Bye
 ^C
 You have new mail in /var/mail/btoll
-```
+</pre>
 
 > Note that I'm sending an email to myself on the same machine, so the `MTA` is local.  This isn't always the case, and often you would use `ncat` to establish a connection to a different `MTA`, perhaps on another subnet, where the recipient has an account.  The local `MTA` would be the exchange initiator.
 
-weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Here is the same example using the `Sendmail` binary instead of `SMTP` commands, which is a bit nicer than having to remember the protocol:
+
+```
+sudo sendmail btoll
+From: btoll
+To: btoll
+Subject: Sender MTA test
+
+Hi btoll, you are a true hero.
+.
+kilgore-trout ~~> ~/projects/benjamintoll.com:master
+$ echo $?
+0
+You have new mail in /var/mail/btoll
+kilgore-trout ~~> ~/projects/benjamintoll.com:master
+$ mail
+"/var/mail/btoll": 1 message 1 new
+>N   1 btoll@kilgore-trou Thu Apr 27 01:21  12/504   Sender MTA test
+? 1
+Return-Path: <root@kilgore-trout.benjamintoll.com>
+X-Original-To: btoll
+Delivered-To: btoll@kilgore-trout.benjamintoll.com
+Received: by kilgore-trout.benjamintoll.com (Postfix, from userid 0)
+        id F114F364C80; Thu, 27 Apr 2023 01:21:26 -0400 (EDT)
+From: btoll@kilgore-trout.benjamintoll.com
+To: btoll@kilgore-trout.benjamintoll.com
+Subject: Sender MTA test
+Message-Id: <20230427052126.F114F364C80@kilgore-trout.benjamintoll.com>
+Date: Thu, 27 Apr 2023 01:20:53 -0400 (EDT)
+
+Hi btoll, you are a true hero.
+? q
+Saved 1 message in /home/btoll/mbox
+Held 0 messages in /var/mail/btoll
+
+```
+
+Again, I'm sending it to myself, because I have no friends.  Then, I'm accessing the email through the `mail` program before exiting it.
+
+If there was a failure when trying to deliver this message, then the [`mailq`] command, executed with elevated privileges, will show all of the undelivered messages.
+
+> The `sendmail -bp` command is equivalent to `mailq`.  Present regardless of the `MTA` being used, it's an example of how most `MTA`s provide backwards-compatibility with these traditional mail administration commands.
+
+As mentioned before, email destination hosts are tried by the `MTA` in order of their priority values.  If none of the destination hosts are reachable, the message will stay in the local outbox queue to be sent later.  If configured to do so, the `MTA` may check periodically if the message can be sent by trying to reach the destination `MTA`s.  Note that a `Sendmail`-compatible `MTA` can force a new attempt by issuing `sendmail -q`.
+
+### Mail Locations
+
+Incoming messages are usually stored in `/var/spool/mail/{user}` but may be hard linked to `/var/mail/{user}` by `MTA`s like Postfix:
+
+```
+$ ls -i /var/spool/mail/btoll /var/mail/btoll
+3436880 /var/mail/btoll  3436880 /var/spool/mail/btoll
+```
+
+The default location of the outbox queue is `/var/spool/mqueue/`, but, again, different `MTA`s will do different things.  `Postfix`, for example, stores its directory structure in `/var/spool/postfix/`.
+
+### `MUA`s
+
+Mail (or Message) User Agents are programs that take care of communicating with the `MTA` under the hood.  It presents an easy-to-use user interface to manage the email.
+
+`MUA`s include `Thunderbird` and `Evolution`.  Even webmail is a type of `MUA`.  Of course, there are console mail programs like `mail` (provided by the `mailx` package) or [`GNU Mailutils`].
+
+The `mail` command has two modes:
+- send mode
+    + if an email address is provided, it automatically enters send mode
+        ```
+        $ mail -s "Maintenance fail" henry@lab3.campus <<<"The maintenance script failed at `date`"
+        ```
+- normal mode
+    + otherwise, it enters normal (read) mode
+
+### Aliases
+
+By default, email accounts on a Linux system will use the account name.  For example, my user name `btoll` will have an account at `btoll@localhost` or `btoll@kilgore-trout`.  Privileged users can change this default mapping for system accounts in [`/etc/aliases`].
+
+These aliases are virtual email addresses, where the messages are redirected to existing local mailboxes.  After an alias is added or modified in `/etc/aliases`, it's necessary to run the [`newaliases`] command which updates the `MTA`'s aliases database.
+
+> The `sendmail -bi` or `sendmail -I` can also be used to update the `MTA`'s aliases database.
+
+In addition to redirecting an email to a local mailbox using an alias, it is also possible to have other destinations for the email:
+
+- an external address
+- a full path to a file
+    + the path must start with `/`
+    + messages to this alias will be appended to the file
+- a command to process the message
+    + must start with the pipe character (`|`)
+    + any special characters must be enclosed with double quotes
+    + example:
+        - `subscribe: |subscribe.sh`
+    + if `Sendmail` is running in restricted shell mode, the allowed commands should be in `/etc/smrsh`
+- an include file
+    + an alias can have multiple destinations (separated by commas), so it may be more convenient to put them all in one location
+    + example:
+        - `subscribe: :include:/var/local/destinations`
+
+Unprivileged users can add aliases in their home directory in the [`.forward`] file.  Since the aliases only affect their one and only user account (mailbox), only the destination part (as described above) is necessary.
+
+Redirection rules are added one per line.  The `.forward` file must be writable only by its owner, and it's not necessary to run `newaliases` or any of the `sendmail` commands after updating.
+
+## `CUPS`
+
+The [Common UNIX Printing System] (`CUPS`) allows for printing and printer management.  Here are some files that are used for its configuration:
+
+- `/etc/cups/cupsd.conf`
+    + contains the configuration settings for the `CUPS` service itself
+    + same syntax as used for configuring apache
+    + it controls access to the various print queues, enabling the `CUPS` web interface, the level of logging, etc.
+- `/etc/printcap`
+    + the legacy file that was used by the [Line Printer Daemon protocol] (`LPD`) before `CUPS`
+    + specifies a file that is filled with a list of local print queues
+    + `CUPS` may still create this file for backwards compatibility
+    + often a symlink to `/run/cups/printcap`
+- `/etc/cups/printers.conf`
+    + this file contains each printer that is configured to be used by the `CUPS` system
+    + each printer is enclused within `<Printer></Printer>` stanzas and lists the printers found within `/etc/printcap`
+    > No modifications to the `/etc/cups/printers.conf` file should be made at the command line while the `CUPS` service is running.
+- `/etc/cups/ppd`
+    + a directory that holds the [PostScript Printer Description] (`PPD`) files for the printers that use them
+    + each printer’s operating capabilities will be stored within a `PPD` file
+    + they are plain text files and follow a specific format
+- `/var/logs/cups/`
+    + the directory of the `CUPS` log files
+        - `access_log`
+            + keeps a record of access to the `CUPS` web interface as well as actions taken within it, such as printer management
+        - `page_log`
+            + keeps track of print jobs that have been submitted to the print queues managed by the `CUPS` installation
+        - `error_log`
+            + contains messages about print jobs that have failed and other errors recorded by the web interface
+
+There is a web interface at `http://localhost:631` for `CUPS`.
+
+### Adding Printers
+
+You can add a printer using the aforementioned web interface.  Also, the legacy command [`lpadmin`] can be used to add and configure printers and classes.
+
+In addition, the deprecated command [`lpinfo`] can show the available devices or drivers.  Usually, though, the `lpadmin` command is used to let `CUPS` choose the best driver using the `-m` option.
+
+For example, here's adding a printer and having `CUPS` choose the best `PPD` file to use:
+
+```
+$ sudo lpadmin -p ENVY-4510 -L "office" -v socket://192.168.150.25 -m everywhere
+$
+$ lpinfo --make-and-model "HP Envy 4510" -m
+hplip:0/ppd/hplip/HP/hp-envy_4510_series-hpijs.ppd HP Envy 4510 Series hpijs, 3.17.10
+hplip:1/ppd/hplip/HP/hp-envy_4510_series-hpijs.ppd HP Envy 4510 Series hpijs, 3.17.10
+hplip:2/ppd/hplip/HP/hp-envy_4510_series-hpijs.ppd HP Envy 4510 Series hpijs, 3.17.10
+drv:///hpcups.crv/hp-envy_4510_series.ppd HP Envy 4510 Series, hpcups 3.17.10
+everywhere IPP Everywhere
+```
+
+> Future versions of `CUPS` have deprecated drivers and will instead focus on using [`IPP`] (Internet Printing Protocol) and standard file formats.  `IPP` can perform the same tasks that a print driver is used for.
+>
+> `IPP`, just like the `CUPS` web interface, utilizes network port 631 with the `TCP` protocol.
+
+Lastly, set a default printer using the [`lpoptions`] command:
+
+```
+$ lpoptions -d ENVY-4510
+```
+
+### Managing Printers
+
+Share the printer on the network:
+
+```
+$ sudo lpadmin -p FRONT-DESK -o printer-is-shared=true
+```
+
+Configure a print queue to only accept or deny jobs from specific users:
+
+```
+$ sudo lpadmin -p FRONT-DESK -u allow:carol,frank,grace
+$ sudo lpadmin -p FRONT-DESK -u deny:dave
+```
+
+Precede group names with an ampersand (`@`):
+
+```
+$ sudo lpadmin -p FRONT-DESK -u deny:@sales,@marketing
+```
+
+Error policies can be defined:
+
+- `abort-job`
+- `retry-job`
+- `retry-current-job`
+- `stop-printer`
+
+Here is an example of a print job aborting if an error is detected:
+
+```
+$ sudo lpadmin -p FRONT-DESK -o printer-error-policy=abort-job
+```
+
+### Submitting Print Jobs]
+
+Use the [`lpr`] command to send a print job to a printer's queue.  The following command will send a job to the default printer, as determined by the `/etc/cups/printers.conf` file:
+
+```
+$ lpr derp.txt
+```
+
+To specify a printer:
+
+```
+$ lpr -P FRONT-DESK derp.txt
+```
+
+Use [`lpstat`] to print `CUPS` status information:
+
+```
+$ lpstat -p -d
+printer FRONT-DESK is idle.  enabled since Mon 03 Aug 2020 10:33:07 AM EDT
+printer PostScript_oc0303387803 disabled since Sat 07 Mar 2020 08:33:11 PM EST -
+	reason unknown
+printer ENVY-4510 is idle.  enabled since Fri 31 Jul 2020 10:08:31 AM EDT
+system default destination: ENVY-4510
+```
+
+It's easy to modify how the document should be printed.
+
+- `landscape`
+- `two-sided-long-edge`
+- `two-sided-short-edge`
+- `media`
+- `collate`
+- `page-ranges`
+- `fit-to-page`
+- `outputorder`
+
+Examples:
+
+```
+$ lpr -P ACCOUNTING-LASERJET -o landscape -o media=A4 -o two-sided-short-edge finance-report.pdf
+$ lpr -#7 -o collate=true status-report.pdf
+```
+
+> The [`lp`] command can also be used.  It is mostly compatible with `lpr`.
+
+### Managing Print Jobs
+
+Each job sent to a printer queue gets a job ID, and they can be listed by using the [`lpq`] command:
+
+```
+$ lpq -a
+```
+
+> `lpstat` and `lp -o` will also list printer queues.
+
+Use the [`lprm`] command to cancel a job:
+
+```
+$ lprm [job_id]
+```
+
+If a printer fails, you can move the job to another printer queue using the [`lpmove`] command (needs escalated privileges):
+
+```
+$ sudo lpmove ACCOUNTING-LASERJET-20 FRONT-DESK
+```
+
+Delete all jobs:
+
+```
+$ lprm -
+```
+
+> Alternatively, use the [`cancel`] command.
+>
+> A specific print job can be cancelled by its job ID prepended by the printer name:
+>
+>     $ cancel ACCOUNTING-LASERJET-20
+
+### Removing Printers
+
+Before removing a printer, it may be helpful to list out all of the printers use the `-v` switch of the `lpstat` executable:
+
+```
+$ lpstat -v
+device for FRONT-DESK: socket://192.168.150.24
+device for ENVY-4510: socket://192.168.150.25
+device for PostScript_oc0303387803: ///dev/null
+```
+
+As a privileged user, you can reject the printer and give a reason why using [`cupsreject`]:
+
+```
+$ sudo cupsreject -r "Printer to be removed" FRONT-DESK
+```
+
+This is good practice and lets all users know that a printer is no longer accepting new jobs.  Then, remove the printer using the the `lpadmin` binary and the `-x` switch:
+
+```
+$ sudo lpadmin -x FRONT-DESK
+```
 
 # Summary
 
@@ -1022,6 +1359,30 @@ Continue your journey with the fifth installment in this titillating series, [On
 [`systemd-cat`]: https://www.man7.org/linux/man-pages/man1/systemd-cat.1.html
 [`/etc/machine-id`]: https://man7.org/linux/man-pages/man5/machine-id.5.html
 [`wall`]: https://man7.org/linux/man-pages/man1/wall.1.html
-[`sendmail`]: https://man7.org/linux/man-pages/man8/sendmail.8.html
+[`Sendmail`]: https://man7.org/linux/man-pages/man8/sendmail.8.html
 [`ncat`]: https://man7.org/linux/man-pages/man1/ncat.1.html
+[Mail Transfer Agent]: https://en.wikipedia.org/wiki/Message_transfer_agent
+[`SMTP`]: https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
+[`mbox` format]: https://en.wikipedia.org/wiki/Mbox
+[`MX` record]: https://en.wikipedia.org/wiki/MX_record
+[`mailq`]: https://manpages.org/mailq
+[`GNU Mailutils`]: https://mailutils.org/manual/index.html
+[`/etc/aliases`]: https://man7.org/linux/man-pages/man5/aliases.5.html
+[`newaliases`]: https://man7.org/linux/man-pages/man8/newaliases.8.html
+[`.forward`]: https://www.man7.org/linux/man-pages/man5/forward.5.html
+[Common UNIX Printing System]: https://en.wikipedia.org/wiki/CUPS
+[Line Printer Daemon protocol]: https://en.wikipedia.org/wiki/Line_Printer_Daemon_protocol
+[PostScript Printer Description]: https://en.wikipedia.org/wiki/PostScript_Printer_Description
+[`lpadmin`]: https://man7.org/linux/man-pages/man8/lpadmin.8.html
+[`lpinfo`]: https://man7.org/linux/man-pages/man8/lpinfo.8.html
+[`IPP`]: https://en.wikipedia.org/wiki/Internet_Printing_Protocol
+[`lpoptions`]: https://man7.org/linux/man-pages/man1/lpoptions.1.html
+[`lpr`]: https://man7.org/linux/man-pages/man1/lpr.1.html
+[`lpstat`]: https://man7.org/linux/man-pages/man1/lpstat.1.html
+[`lp`]: https://man7.org/linux/man-pages/man1/lp.1.html
+[`lpq`]: https://man7.org/linux/man-pages/man1/lpq.1.html
+[`lprm`]: https://man7.org/linux/man-pages/man1/lprm.1.html
+[`cancel`]: https://man7.org/linux/man-pages/man1/cancel.1.html
+[`lpmove`]: https://man7.org/linux/man-pages/man8/lpmove.8.html
+[`cupsreject`]: https://man7.org/linux/man-pages/man8/cupsaccept.8.html
 
