@@ -84,8 +84,8 @@ This roughly covers [Topic 105: Shells and Shell Scripting].
 A great way to see which initialization files are `source`d by `bash` for a particular invocation of a shell is to append an `echo` statement to each global file:
 
 ```
-echo "hello from /etc/profile" | sudo tee -a /etc/profile
-echo "hello from /etc/bash.bashrc" | sudo tee -a /etc/bash.bashrc
+echo "echo hello from /etc/profile" | sudo tee -a /etc/profile
+echo "echo hello from /etc/bash.bashrc" | sudo tee -a /etc/bash.bashrc
 ```
 
 ### Interactive Login
@@ -103,15 +103,16 @@ The following files are sourced, in order:
 1. `/etc/profile`
     + the system-wide profile file for the Bourne shell and Bourne compatible shells
     + sets `PATH` and `PS1`
+1. `/etc/bash.bashrc`
 1. if they exist, scripts in `/etc/profile.d/` get executed by `/etc/profile`
-1. `$HOME/.bash_profile`
-    - or `$HOME/.bash_login`
-    - or `$HOME/.profile`
-        + this will `source` `$HOME/.bashrc`
-        + appends `$HOME/bin` to `PATH`
+1. `$HOME/{.bash_profile,.bash_login,.profile}`
+    + this will `source` `$HOME/.bashrc`
+    + appends `$HOME/bin` to `PATH`
 1. `$HOME/.bash_logout`
 
-> To start an interactive login shell that doesn't source any configuration files, use the `--noprofile` switch.
+> To start an interactive login shell that doesn't source any configuration files, use the `--noprofile` switch (will still source `/etc/bash.bashrc` and `$HOME/.bashrc`, though).
+>
+> So, it appears to behave like an interactive non-login shell.
 
 ### Interactive Non-Login
 
@@ -121,7 +122,7 @@ A general definition of an [interactive shell] is one that reads from and writes
 >
 > From [6.3.1 What is an Interactive Shell?]
 
-Here's some fine examples of interactive non-login shells:
+Here are some fine examples of interactive non-login shells:
 
 1. Subshell:
     ```
@@ -141,7 +142,7 @@ Here's some fine examples of interactive non-login shells:
     Today's message is: hello world
     ```
 
-    > Note that this examples does not suffer from [`UUOC`].
+    > Note that this example does not suffer from [`UUOC`].
 
 The following files are sourced, in order:
 
@@ -177,7 +178,7 @@ Recall that non-interactive non-login shells will **not** have any initializatio
 
 So, if you need the shell to have a custom environment, put it in `BASH_ENV`.  Note, however, that it should be an absolute path to the file because the shell doesn't consult the `PATH` variable for any lookups.
 
-Here's an example that's currently running in production:
+Here's an example that's currently running in production at `benjamintoll.com`:
 
 `scripting.rc`
 
@@ -249,6 +250,54 @@ himBCHs
 
 > The special parameter `$-` displays the shell options that have been set for the session.  Since both of the previous examples are interactive, they both report the `-i` switch.
 
+Interestingly, the `${PS1-}` `bash` shell variable will also tell you if the shell is interactive or not:
+
+```
+$ echo ${PS1-}
+$(tput bold)$(tput setaf 4)\h $(tput setaf 2)|$SHLVL:$0| $(tput setaf 3)~~> \[$(tput bold)\]\[$(tput setaf 6)\]\w\[\]:\[$(tput bold)\]\[$(tput setaf 8)\]$(git branch 2> /dev/null | grep "^*" | colrm 1 2)\[$(tput sgr0)\]\n$
+```
+
+However, if you run it in a script, it won't echo anything.  This is another way of demonstrating that running `bash` shell scripts are non-interactive non-login.
+
+> Note that the `PS*` variables are shell variables and **not** environment variables.  In other words, they are explicitly set by a script and are **not** inherited by any child processes.
+>
+> For instance, you'll never see any `PS*` variables exported.
+
+I stumbled across this when viewing the system's `/etc/profile` script:
+
+```
+$ head -25 /etc/profile
+
+
+
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+if [ "$(id -u)" -eq 0 ]; then
+  PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+else
+  PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"
+fi
+export PATH
+
+if [ "${PS1-}" ]; then
+  if [ "${BASH-}" ] && [ "$BASH" != "/bin/sh" ]; then
+    # The file bash.bashrc already sets the default PS1.
+    # PS1='\h:\w\$ '
+    if [ -f /etc/bash.bashrc ]; then
+      . /etc/bash.bashrc
+    fi
+  else
+    if [ "$(id -u)" -eq 0 ]; then
+      PS1='# '
+    else
+      PS1='$ '
+```
+
+Interesting, no?
+
+Also, notice that the `PS1` shell variable is explicitly set.
+
 ## `su` and `sudo`
 
 With [`su`], you can run a command with substitute user and group `ID` or become the superuser root.  Both login and non-login shells can be invoked.
@@ -269,6 +318,8 @@ For example:
 
 With [`sudo`], you execute command(s) as another user, commonly root.  The default `sudo` security policy plugin `sudoers` is driven by the [`/etc/sudoers`] file, which determines a user's `sudo` privileges.
 
+This is especially useful when you can't login as the root account.
+
 > It is important to only modify the `/etc/sudoers` file through the [`visudo`] utility, which will lock the file to prevent concurrent writes.
 
 As with `su`, `sudo` allows you to create both login and non-login shells.
@@ -281,19 +332,27 @@ For example:
 - to start an interactive non-login shell as `kilgore`:
     + `sudo su kilgore`
     + `sudo -u kilgore -s`
+        - If no command is specified for the `-s` (shell) switch, an interactive shell is executed.
 - to start an interactive login shell as `root`:
     + `sudo su - root`
     + `sudo su -`
     + `sudo -i`
+        - The `-i` switch tells it to run as an interactive login shell.
 - to start an interactive login shell as `root` and return to the calling user after execution of the command:
     + `sudo -i <some_command>`
+        - The `-i` switch tells it to run as an interactive login shell.
 - to start an interactive non-login shell as `root`:
     + `sudo su root`
     + `sudo su`
     + `sudo -s`
     + `sudo -u root -s`
+        - If no command is specified for the `-s` (shell) switch, an interactive shell is executed.
 
-The decision to use a login or non-login shell comes down to the need (or desire) to have the target user's environment invoked when temporarily "becoming" that user.  If needing the environment, choose the former.
+The decision to use a login or non-login shell comes down to the need and the use case.  If you want to have `/etc/profile` executed and anything else that it sources (such as anything in `/etc/profile.d/` and `/etc/.bash_profile` in the user's home directory), then choose an option that invokes a login shell.
+
+> What's [the difference between `sudo su -` and `su -`]?
+>
+> With `sudo su -` you will be asked to authenticate with your own user password, while you will be expected to know the root user's password for the latter command.
 
 Recall that a login shell will start sourcing with the system-wide `/etc/profile` file, while a non-login shell will not, only starting its sourcing at the system-wide `/etc/bash.bashrc` file.
 
@@ -305,7 +364,7 @@ Recall that a login shell will start sourcing with the system-wide `/etc/profile
 
 ## `SKEL`
 
-If set the `SKEL` environment variable holds the location of the `skel` directory.  This is the location that holds the (probably hidden) files that are copied to every user's home directory if they are a regular user that needs a home directory and is specified by the system administrator at the time the user account is created (keep in mind that not every new account creation needs a home directory, like system accounts).
+If set, the `SKEL` environment variable holds the location of the `skel` directory.  This is the location that holds the (probably hidden) files that are copied to every user's home directory when their account is created.  They must be a regular user (as opposed to a system account) that needs a home directory and is specified by the system administrator at the time the user account is created (keep in mind that not every new account creation needs a home directory, like system accounts).
 
 `SKEL` is defined in `/etc/adduser.conf` (default values are in `/etc/default/useradd`):
 
@@ -327,6 +386,8 @@ $ ls -A /etc/skel/
 ```
 
 Any directories and files created in this location (or any location specified in the `-k` option to [`useradd`]) will also get these custom entries when their account is created with a home directory.
+
+> Why is this environment variable (probably) not set in your environment?  Because the env var is only created when an account is created and doesn't outlive the subprocess.
 
 ## Shell Variables
 
@@ -395,7 +456,7 @@ $ declare -x TICKLE
 
 Single and double-quotes are not interchangeable (however, they sometimes are equivalent in what they do, i.e., 'i am a string with no special characters' == "i am a string with no special characters").
 
-Follow these rules, and you'll be as safe as houses:
+Follow these rules, and you'll be [as safe as houses]:
 
 - single quotes are for literal interpretation
 - double quotes allow for variable substitution
@@ -422,7 +483,7 @@ $ echo "$hello"
 |    hello,    it's  me    |
 ```
 
-It's almost always a good idea to double-quote any variables in scripts so they perform this variable substitution.  Also, if a variable is empty, double-quoting will prevent a syntax error when evaluated.
+It's almost always a good idea to double-quote any variables in scripts so variable substitution occurs and word splitting is avoided.  Further, if a variable is empty, double-quoting will prevent a syntax error when evaluated.
 
 ## Running a Program in a Modified Environment
 
@@ -442,7 +503,7 @@ _=/usr/bin/env
 You can also augment the environment inherited by a subshell by prefacing the `bash` command again with `env`, but this time specifying the new variables to inherit:
 
 ```
-$ env ZOMBIES=are_real ./run_me.sh
+$ env ZOMBIES=are_real ./run_away.sh
 ```
 
 > You can omit the `env` command in the previous example, as it's implied.
@@ -506,7 +567,7 @@ build_and_deploy.sh  content      env.sh      Makefile  README.md  static
 
 Note that the `ls` alias has added the `-F` to classify the directory entries (this appends the indicators to the appropriate entries).  This is a common alias that is provided out-of-the-box, so to speak, by many distributions.
 
-Use the backslash to temporarily "turn off" (i.e., just for that command) the alias to allow the original unshadowed command to run.
+Use the backslash to temporarily "turn off" (i.e., just for that command) the alias to allow the original command, now unshadowed, to run.
 
 However, if there is no underlying command that is being shadowed, you will get an error.  Observe:
 
@@ -580,7 +641,7 @@ Otherwise, the variable will be global and then part of the calling environment.
 
 Let's see an example of this.
 
-When I was a history major at university, my ancient Roman professor introduced us to a Greek king that fought the Romans.  His name was Testicles.
+When I was a history major at university, my ancient Roman professor introduced us to a Greek warrior that fought the Romans.  His name was Testicles (pronounced `test-ee-klees`).
 
 Let's dedicate this `bash` function to Testicles.
 
@@ -589,8 +650,8 @@ Here is its definition:
 ```
 $ type testicles
 testicles is a function
-testicles () 
-{ 
+testicles ()
+{
     local roman=0;
     greek=1
 }
@@ -631,22 +692,16 @@ Always use `local` in your `bash` functions, children.
 
 These special variables are known as parameters:
 
-- `$?`
-    + the return value of the last command
-- `$$`
-    + the `PID` of the shell
-- `$!`
-    + the `PID` of the last background job
-- `$0`-`$9`
-    + positional parameters
-- `$#`
-    + the number of arguments passed to the command
-- `$@`, `$*`
-    + the arguments passed to the command
-- `$_`
-    + the last parameter or the name of the script
-- `$-`
-    + the shell options that have been set for the session
+|**Variable** |**Description** |
+|:---|:---|
+|`$?` |the return value of the last command|
+|`$$` |the `PID` of the shell|
+|`$!` |the `PID` of the last background job|
+|`$0`-`$9` |positional parameters|
+|`$#` |the number of arguments passed to the command|
+|`$@` or `$*` |the arguments passed to the command|
+|`$_` |the last parameter or the name of the script|
+|`$-` |the shell options that have been set for the session|
 
 ## Unsetting
 
@@ -666,18 +721,20 @@ It is highly recommended to use double quotes around any variables in case the v
 One operand:
 
 - `-n` - the length of `STRING` is nonzero
-- `-z` - the length of STRING is zero
+- `-z` - the length of `STRING` is zero
 
 Two operands:
 
-- `STRING1` = `STRING2` - the strings are equal (can also use double equal sign `==`)
-- `STRING1` != `STRING2` - the strings are not equal
-- `INTEGER1 -eq INTEGER2` - `INTEGER1` is equal to `INTEGER2`
-- `INTEGER1 -ge INTEGER2` - `INTEGER1` is greater than or equal to `INTEGER2`
-- `INTEGER1 -gt INTEGER2` - `INTEGER1` is greater than `INTEGER2`
-- `INTEGER1 -le INTEGER2` - `INTEGER1` is less than or equal to `INTEGER2`
-- `INTEGER1 -lt INTEGER2` - `INTEGER1` is less than `INTEGER2`
-- `INTEGER1 -ne INTEGER2` - `INTEGER1` is not equal to `INTEGER2`
+|**Operands** |**Description** |
+|:---|:---|
+|`STRING1` = `STRING2`| the strings are equal (can also use double equal sign `==`) |
+|`STRING1` != `STRING2`| the strings are not equal |
+|`INTEGER1 -eq INTEGER2`| `INTEGER1` is equal to `INTEGER2` |
+|`INTEGER1 -ge INTEGER2`| `INTEGER1` is greater than or equal to `INTEGER2` |
+|`INTEGER1 -gt INTEGER2`| `INTEGER1` is greater than `INTEGER2` |
+|`INTEGER1 -le INTEGER2`| `INTEGER1` is less than or equal to `INTEGER2` |
+|`INTEGER1 -lt INTEGER2`| `INTEGER1` is less than `INTEGER2` |
+|`INTEGER1 -ne INTEGER2`| `INTEGER1` is not equal to `INTEGER2` |
 
 > Distinct languages may have different rules for alphabetical ordering.  To obtain consistent results, regardless of the localization settings of the system where the script is being executed, it is recommended to set the environment variable `LANG` to `C`, as in `LANG=C`, before doing operations involving alphabetical ordering.
 
@@ -693,44 +750,49 @@ Here are two utilities for testing at the terminal.  However, they're mostly use
     > $ which [
     > /usr/bin/[
     > ```
-    > It's most seen in conditional checks in shell scripts, i.e.,
+    > It's mostly seen in conditional checks in shell scripts, i.e.,
     > ```
-    > if [ -d /etc/squid ]; then
+    > if [ -d /etc/squid ]
+    > then
     > ...
     > ```
     > weeeeeeeeeeeeeeeeeeee
 
 > Also, see this astounding article [on testing] that will leave you wanting more.
 
-One operant:
+One operand:
 
-- `-a` - `FILE` exists
-- `-b` - `FILE` exists and is block special
-- `-c` - `FILE` exists and is character special
-- `-d` - `FILE` exists and is a directory
-- `-e` - `FILE` exists
-- `-f` - `FILE` exists and is a regular file
-- `-g` - `FILE` exists and is set-group-ID
-- `-G` - `FILE` exists and is owned by the effective group ID
-- `-h` - `FILE` exists and is a symbolic link (same as `-L`)
-- `-k` - `FILE` exists and has its sticky bit set
-- `-L` - `FILE` exists and is a symbolic link (same as `-h`)
-- `-N` - `FILE` exists and has been modified since it was last read
-- `-O` - `FILE` exists and is owned by the effective user ID
-- `-p` - `FILE` exists and is a named pipe
-- `-r` - `FILE` exists and read permission is granted
-- `-s` - `FILE` exists and has a size greater than zero
-- `-S` - `FILE` exists and is a socket
-- `-t` - file descriptor `FD` is opened on a terminal
-- `-u` - `FILE` exists and its set-user-ID bit is set
-- `-w` - `FILE` exists and write permission is granted
-- `-x` - `FILE` exists and execute (or search) permission is granted
+|**Operand** |**Description** |
+|:---|:---|
+|`-a` |`FILE` exists|
+|`-b` |`FILE` exists and is block special|
+|`-c` |`FILE` exists and is character special|
+|`-d` |`FILE` exists and is a directory|
+|`-e` |`FILE` exists|
+|`-f` |`FILE` exists and is a regular file|
+|`-g` |`FILE` exists and is set-group-ID|
+|`-G` |`FILE` exists and is owned by the effective group ID|
+|`-h` |`FILE` exists and is a symbolic link (same as `-L`)|
+|`-k` |`FILE` exists and has its sticky bit set|
+|`-L` |`FILE` exists and is a symbolic link (same as `-h`)|
+|`-N` |`FILE` exists and has been modified since it was last read|
+|`-O` |`FILE` exists and is owned by the effective user ID|
+|`-p` |`FILE` exists and is a named pipe|
+|`-r` |`FILE` exists and read permission is granted|
+|`-s` |`FILE` exists and has a size greater than zero|
+|`-S` |`FILE` exists and is a socket|
+|`-t` |`FD` is opened on a terminal|
+|`-u` |`FILE` exists and its set-user-ID bit is set|
+|`-w` |`FILE` exists and write permission is granted|
+|`-x` |`FILE` exists and execute (or search) permission is granted|
 
 Two operands:
 
-- `FILE1 -ef FILE2` - `FILE1` and `FILE2` have the same device and `inode` numbers
-- `FILE1 -nt FILE2` - `FILE1` is newer (modification date) than `FILE2`
-- `FILE1 -ot FILE2` - `FILE1` is older than `FILE2`
+|**Operands** |**Description** |
+|:---|:---|
+|`FILE1 -ef FILE2`| `FILE1` and `FILE2` have the same device and `inode` numbers |
+|`FILE1 -nt FILE2`| `FILE1` is newer (modification date) than `FILE2` |
+|`FILE1 -ot FILE2`| `FILE1` is older than `FILE2` |
 
 Is executable?
 
@@ -854,7 +916,15 @@ $' \t\n'
 
 ## Scripting
 
-In order be able to execute a script using the filename as the argument to the interpreter (`bash foo.sh`), the read permission bit must be set.  Otherwise, a `Permission Denied` error is raised.
+In order be able to execute a script using the filename as the argument to the interpreter (i.e., `bash foo.sh`), the read permission bit must be set.  Otherwise, a `Permission Denied` error is raised:
+
+```
+$ bash hello.sh
+hi
+$ chmod 200 foo.sh
+$ bash foo.sh
+bash: foo.sh: Permission denied
+```
 
 To execute the file by its path, the execute permission bit must be enabled.
 
@@ -876,15 +946,13 @@ $ mclovin.sh
 -bash: mclovin.sh: command not found
 ```
 
-Add the directory to the `PATH`, and you will be golden.
+Add the directory to the `PATH`, and you will be golden, perhaps even [the golden god].
 
 ### Local Variables
 
 The scripts also have the same special parameters as listed in the [Builtin Variables](#builtin-variables) section, with the same meaning.
 
-An interpreter is an interpreter is an interpreter, after all.
-
-Positional parameters are numeric.  The first one is the script name (`$0` and also `$BASH_ARGV0`).  Any numbers greater than nine need to be enclosed in curly brackets, such as `${10}`.  However, if your shell script is accepting that many parameters, you need to rethink some things.
+Positional parameters are numeric.  The first one is the script name (`$0` or `$BASH_ARGV0`).  Any numbers greater than nine need to be enclosed in curly brackets, such as `${10}`.  However, if your shell script is accepting that many parameters, you need to rethink some things.
 
 ### Reading Input
 
@@ -929,7 +997,7 @@ Note that the items to be matched in a `case` block can employ command subsititi
 
 Many [programming languages have a `printf` function], or something similarly-named that operates like it, that formats and prints data.  You will not be surprised that `bash` has a shell builtin called [`printf`] that allows for the same functionality.
 
-Here is an example from the `LPIC-` documentation:
+Here is an example from the `LPIC-1` documentation:
 
 ```
 $ OS=$(uname -o)
@@ -987,8 +1055,8 @@ Unallocated RAM:        19375 MB
 - arithmetic
     + the following examples use the [`expr`] and [`bc`] utilities:
         ```
-        $ expr 5+4
-        5+4
+        $ expr 5 + 4
+        9
         $ bc <<< 5+4
         9
         ```
@@ -1052,4 +1120,7 @@ Continue your journey with the second installment in this titillating series, [O
 [`bc`]: https://man7.org/linux/man-pages/man1/expr.1.html
 [programming languages have a `printf` function]: https://en.wikipedia.org/wiki/Printf_format_string#Programming_languages_with_printf
 [`printf`]: https://man7.org/linux/man-pages/man1/printf.1.html
+[the difference between `sudo su -` and `su -`]: https://askubuntu.com/questions/678750/difference-between-sudo-su-and-su
+[as safe as houses]: https://www.youtube.com/watch?v=snILjFUkk_A
+[the golden god]: https://www.youtube.com/watch?v=n5_-HnVhKlw
 
