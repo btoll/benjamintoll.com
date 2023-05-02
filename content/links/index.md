@@ -14,6 +14,10 @@ title = "Links"
 - [Memory Game]
 - [Music Theory]
 - [Scale Buddy]
+- Trivia
+    + [`trivial`]
+    + [`trivial-admin`]
+    + [`awesome-trivia`]
 
 ## Online Tools
 - [Italian Dictionary]
@@ -42,6 +46,9 @@ title = "Links"
 [Memory Game]: /memory-game
 [Music Theory]: /music-theory
 [Scale Buddy]: https://github.com/btoll/scale_buddy
+[`trivial`]: https://github.com/btoll/trivial
+[`trivial-admin`]: https://github.com/btoll/trivial-admin
+[`awesome-trivia`]: https://github.com/btoll/awesome-trivia
 
 [Italian Dictionary]: https://italy.benjamintoll.com
 [CSSCompress]: /tools/css_compress/
