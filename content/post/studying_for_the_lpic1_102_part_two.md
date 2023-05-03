@@ -86,7 +86,7 @@ Essentially, `X` provides the basic framework for a GUI environment, and each pe
 
 > The predecessor to `X` was a windowing system called `W`, and it was jointly developed by MIT, IBM and DEC.  The software came directly out of the [Project Athena] project in 1984.
 >
-> The name `X` was chosen, as it's the next letter after `W`.
+> The name `X` was chosen simply because it's the next letter after `W`.
 
 ### Architecture
 
@@ -96,7 +96,7 @@ Essentially, `X` provides the basic framework for a GUI environment, and each pe
 
 Each client communicates to the server its window location and size on the screen, and the server draws and moves the windows on the display device and interacts with the mouse and keyboard.
 
-Importantly, each client determines what its display looks like, what goes into it and how its designed (different toolkits like [`GTK+`] and [`Qt`] give displays a distinct look and feel).  The server doesn't determine any of it, only handling the aformentioned tasks of drawing and moving, etc.
+Importantly, each client determines what its display looks like, what goes into it and how it's designed (different toolkits like [`GTK+`] and [`Qt`] give displays a distinct look and feel).  The server doesn't determine any of it, only handling the aformentioned tasks of drawing and moving, etc.
 
 Here is a visual image of the `X` Window system architecture:
 
@@ -116,7 +116,7 @@ The remote `X` client application will then make a connection to the user's loca
 
 ### Display Managers
 
-A [display manager] is a graphical login to a system that is launched after the computer boots.  Common display managers are [`LightDM`] and [`GDM`], is also the component that starts the `X` server.  It is also responsible for keeping it up and running.
+A [display manager] is a graphical login to a system that is launched after the computer boots.  Common display managers are [`LightDM`] and [`GDM`], and it is also the component that starts the `X` server.  Indeed, the display manager is also responsible for keeping it up and running.
 
 On my Debian machine, I can find out which display manager I'm using by looking at the contents of `/etc/X11/default-display-manager`:
 
@@ -144,7 +144,7 @@ hostname:displaynumber.screennumber
 
 It will also instruct a graphical application where it should be rendered on which host (if using a remote `X` connection).
 
-Here are brief description of each composite part:
+Here are brief descriptions of each composite part:
 
 - `hostname`
     + refers to the name of the system that displays the application
@@ -177,10 +177,11 @@ If there is more than one screen in use, their names would look like the followi
 
 - `:0.0`
 - `:0.1`
+- `:0.2`
 
-As mentioned above, an application opened on one screen cannot be moved to the other.  The two screens are independent of one another.
+As mentioned above, an application opened on one screen cannot be moved to the other two.  The three screens are independent of one another.
 
-To display an application on a specific screen, augments its environment by specifying its `DISPLAY`:
+To display an application on a specific screen, augment its environment by specifying its `DISPLAY` name:
 
 ```
 $ DISPLAY=:0.1 thunderbird &
@@ -293,6 +294,7 @@ Here are some of the common stanzas, accompanied by a brief description of each:
         > You can also modify an input at runtime using the `setxkbmap` command, but this of course will only last the session.
         > This command makes use of the [`X` keyboard extension] (`XKB`), an example of a feature of `X` that was enabled by its modular design allowing for [extensions](#extensions).
         >
+        > Here's an example of a runtime command that I've often used in my `bash` scripts that will change the function of the `CAPS LOCK` key to that of the `CTRL` key:
         > ```
         > $ setxkbmap -option caps:ctrl_modifier
         > ```
@@ -303,7 +305,7 @@ Here are some of the common stanzas, accompanied by a brief description of each:
         $ localectl list-x11-keymap-variants [layout]
         $ localectl list-x11-keymap-options
         ```
-        > The `--no-convert` option is used here to prevent `localectl` from modifying the host's console keymap.
+        > The `--no-convert` option can be used to prevent `localectl` from modifying the host's console keymap.
 
 - `Monitor`
     + this section describes the physical monitor in use and where it's connected
@@ -357,6 +359,8 @@ Remote=no
 Service=login
 ```
 
+> The [`loginctl`] command may be used to introspect and control the state of the `systemd` login manager.
+
 ## Wayland
 
 [Wayland] is a newer display protocol intended to replace the `X` Window System.  It is meant to be lighter on system resources and have a smaller installation footprint than `X`.  The project began in 2010.
@@ -398,7 +402,7 @@ The [window manager] is probably the most important component of a desktop envir
 
 > There are different kinds of window managers, such as [compositing], [stacking] and [tiling].
 
-A desktop environments have a common theme (look and feel) that is generally determined by and influenced by the widget toolkit that was used to develop it.  For example, the application launcher, taskbar and window decoration will all have a similar look and feel, as they relied on a particular widget toolkit to assemble their visual interfaces.
+A desktop environment has a common theme (look and feel) that is generally determined by and influenced by the widget toolkit that was used to develop it.  For example, the application launcher, taskbar and window decoration will all have a similar look and feel, as they relied on a particular widget toolkit to assemble their visual interfaces.
 
 > [Widgets] are informative or interactive visual elements.
 
@@ -417,7 +421,7 @@ Regardless of the desktop environment chosen, they will usually all provide a co
 
 A large body of specifications for desktop interoperability is maintained by the [`freedesktop.org`] organization, which hosts the development of free and open source software.  They are focused on interoperability and shared technology for open-source graphical and desktop systems.
 
-Although adopting of the full specification isn't mandatory, many desktop environments implement many of them.  Here are some:
+Although adoption of the full specification isn't mandatory, many desktop environments implement many of them.  Here are some:
 
 - directory locations
     + where the personal settings and other user-specific files are located
@@ -443,8 +447,9 @@ Although adopting of the full specification isn't mandatory, many desktop enviro
 
 - exchanging data between applications and desktops
 
-> The specifications are often called `XDG` specifications, as an acronym for the `Cross-Desktop Group`.  Users may recogize the acronym, as many environment variables are prefaced with it.  Here are some on my system:
+> The specifications are often called `XDG` specifications, as an acronym for the `Cross-Desktop Group`.
 >
+> Users may recognize the acronym, as many environment variables are prefaced with it.  Here are some on my system:
 > ```
 > $ printenv | ag xdg
 > XDG_SEAT=seat0
@@ -459,7 +464,7 @@ Although adopting of the full specification isn't mandatory, many desktop enviro
 
 ### `X` Forwarding
 
-Remote desktop sessions are supported natively by `X` by the [`X Display Manager Control Protocol`] (`XDMCP`).  Note that there security concerns, as well as it is bandwidth-intensive.  Further, `X` needs to be installed on both ends of the connection.
+Remote desktop sessions are supported natively by `X` by the [`X Display Manager Control Protocol`] (`XDMCP`).  Note that there are security concerns, as well as it is bandwidth-intensive.  Further, `X` needs to be installed on both ends of the connection.
 
 ### Virtual Network Computing
 
@@ -489,15 +494,15 @@ Lastly, [`Simple Protocol for Independent Computing Environments`] (`SPICE`) com
 
 ### Universal Access Modules
 
-Most of the Linux distributions have similar accessibility features, and they can be customized with a configuration module found in the settings manager that come with the desktop environment.
+Most of the Linux distributions have similar accessibility features, and they can be customized with a configuration module found in the settings manager that comes with the desktop environment.
 
-For instance, in [`GNOME`], they are available through the accessiblity settings module `Universal Access`.  [`KDE`] and others have them in different places and through other names, but they are all provide a core set of functionality that help people with all kinds of disabillities (for example, replace the audial bell with a visual one).
+For instance, in [`GNOME`], they are available through the accessiblity settings module `Universal Access`.  [`KDE`] and others have them in different places and through other names, but they all provide a core set of functionality that help people with all kinds of disabillities (for example, replace the audial bell with a visual one).
 
 ### Keyboard
 
 The following features address accessibility issues that help with mobility difficulties with key combinations, key auto repeat rate and unintended key presses, which can all be significant obstacles for users with reduced hand mobility.
 
-> The slow keys, stick keys, bounce keys and mouse keys are accessibility features provided by `AccessX`, a resource within the `X` keyboard extension of the `X` Window System.  `AccessX` settings can also be modified from the command line, with the `xkbset` command.
+> The slow keys, sticky keys, bounce keys and mouse keys are accessibility features provided by `AccessX`, a resource within the `X` keyboard extension of the `X` Window System.  `AccessX` settings can also be modified from the command line, with the [`xkbset`] command.
 >
 > In addition, things like keyboard rate can be set with [`kbdrate`].
 
@@ -511,7 +516,7 @@ The `Control` key instead can be pressed and released, followed by a separate pr
 
 In addition, `KDE` offers the `Locking Keys` accessibility option, where the user can toggle the `Alt`, `Ctrl` and `Shift` keys, similar to the `Caps Lock` behavior.
 
-> Sticky keys and slow keys can be turned on and off (toggled) by enabling `Activation Gestures`, which are toggled by pressing the `Shift` key five consecutive times (to toggle sticky keys) and holding down the `Shift key for eight consecutive seconds (toggling slow keys).
+> Sticky keys and slow keys can be turned on and off (toggled) by enabling `Activation Gestures`, which are toggled by pressing the `Shift` key five consecutive times (to toggle sticky keys) and holding down the `Shift` key for eight consecutive seconds (toggling slow keys).
 
 #### Bounce Keys
 
@@ -624,4 +629,6 @@ Continue your journey with the third installment in this titillating series, [On
 [`kbdrate`]: https://man7.org/linux/man-pages/man8/kbdrate.8.html
 [`onboard`]: https://www.systutorials.com/docs/linux/man/1-onboard/
 [`Orca`]: https://en.wikipedia.org/wiki/Orca_(assistive_technology)
+[`loginctl`]: https://www.man7.org/linux/man-pages/man1/loginctl.1.html
+[`xkbset`]: https://manpages.org/xkbset
 
