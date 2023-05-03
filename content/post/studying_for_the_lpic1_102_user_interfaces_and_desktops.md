@@ -1,17 +1,17 @@
 +++
-title = "On Studying for the LPIC-1 Exam 102 (102-500), Part Two"
+title = "On Studying for the LPIC-1 Exam 102: User Interfaces and Desktops"
 date = "2023-01-25T23:26:35-05:00"
 
 +++
 
 This is a riveting series:
 
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part One](/2023/01/22/on-studying-for-the-lpic-1-exam-102-102-500-part-one/)
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Two
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/)
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Four](/2023/02/01/on-studying-for-the-lpic-1-exam-102-102-500-part-four/)
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Five](/2023/02/03/on-studying-for-the-lpic-1-exam-102-102-500-part-five/)
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Six](/2023/02/06/on-studying-for-the-lpic-1-exam-102-102-500-part-six/)
+- [On Studying for the LPIC-1 Exam 102: Shells and Shell Scripting](/2023/01/22/on-studying-for-the-lpic-1-exam-102-shells-and-shell-scripting/)
+- On Studying for the LPIC-1 Exam 102: User Interfaces and Desktops
+- [On Studying for the LPIC-1 Exam 102: Administrative Tasks](/2023/01/26/on-studying-for-the-lpic-1-exam-102-administrative-tasks/)
+- [On Studying for the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-studying-for-the-lpic-1-exam-102-essential-system-services/)
+- [On Studying for the LPIC-1 Exam 102: Networking Fundamentals](/2023/02/03/on-studying-for-the-lpic-1-exam-102-networking-fundamentals/)
+- [On Studying for the LPIC-1 Exam 102: Security](/2023/02/06/on-studying-for-the-lpic-1-exam-102-security/)
 
 And, so is this one!
 
@@ -575,7 +575,7 @@ There's also a `Zoom` feature, where options like magnification ratio, position 
 
 # Summary
 
-Continue your journey with the third installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/).
+Continue your journey with the third installment in this titillating series, [On Studying for the LPIC-1 Exam 102: Administrative Tasks](/2023/01/26/on-studying-for-the-lpic-1-exam-102-administrative-tasks/).
 
 # References
 

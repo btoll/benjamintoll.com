@@ -1,17 +1,17 @@
 +++
-title = "On Studying for the LPIC-1 Exam 102 (102-500), Part Five"
+title = "On Studying for the LPIC-1 Exam 102: Networking Fundamentals"
 date = "2023-02-03T20:07:57-05:00"
 
 +++
 
 This is a riveting series:
 
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part One](/2023/01/22/on-studying-for-the-lpic-1-exam-102-102-500-part-one/)
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Two](/2023/01/25/on-studying-for-the-lpic-1-exam-102-102-500-part-two/)
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Three](/2023/01/26/on-studying-for-the-lpic-1-exam-102-102-500-part-three/)
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Four](/2023/02/01/on-studying-for-the-lpic-1-exam-102-102-500-part-four/)
-- On Studying for the LPIC-1 Exam 102 (101-500), Part Five
-- [On Studying for the LPIC-1 Exam 102 (101-500), Part Six](/2023/02/06/on-studying-for-the-lpic-1-exam-102-102-500-part-six/)
+- [On Studying for the LPIC-1 Exam 102: Shells and Shell Scripting](/2023/01/22/on-studying-for-the-lpic-1-exam-102-shells-and-shell-scripting/)
+- [On Studying for the LPIC-1 Exam 102: User Interfaces and Desktops](/2023/01/25/on-studying-for-the-lpic-1-exam-102-user-interfaces-and-desktops/)
+- [On Studying for the LPIC-1 Exam 102: Administrative Tasks](/2023/01/26/on-studying-for-the-lpic-1-exam-102-administrative-tasks/)
+- [On Studying for the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-studying-for-the-lpic-1-exam-102-essential-system-services/)
+- On Studying for the LPIC-1 Exam 102: Networking Fundamentals
+- [On Studying for the LPIC-1 Exam 102: Security](/2023/02/06/on-studying-for-the-lpic-1-exam-102-security/)
 
 And, so is this one!
 
@@ -672,7 +672,7 @@ Wired connection 1   c44c8e71-6b35-4a41-a6a8-0a6c32275343  ethernet  --
 
 # Summary
 
-Continue your journey with the sixth and last installment in this titillating series, [On Studying for the LPIC-1 Exam 102 (101-500), Part Six](/2023/02/06/on-studying-for-the-lpic-1-exam-102-102-500-part-six/)
+Continue your journey with the sixth and last installment in this titillating series, [On Studying for the LPIC-1 Exam 102: Security](/2023/02/06/on-studying-for-the-lpic-1-exam-102-security/).
 
 # References
 

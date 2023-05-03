@@ -51,6 +51,9 @@ blockquote blockquote {
 cite {
     background: #f9f9c3;
 }
+table {
+    margin-bottom: 10px;
+}
 table th {
     border: #000;
     border-bottom: solid;
