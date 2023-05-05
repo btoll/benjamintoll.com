@@ -1,15 +1,15 @@
 +++
-title = "On Studying for the LPIC-1 Exam 101 (101-500), Part Four"
+title = "On the LPIC-1 Exam 101: Devices, Linux Filesystems, FHS"
 date = "2023-01-20T00:25:10-05:00"
 
 +++
 
 This is a riveting series:
 
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part One](/2023/01/13/on-studying-for-the-lpic-1-exam-101-101-500-part-one/)
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part Two](/2023/01/15/on-studying-for-the-lpic-1-exam-101-101-500-part-two/)
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part Three](/2023/01/18/on-studying-for-the-lpic-1-exam-101-101-500-part-three/)
-- On Studying for the LPIC-1 Exam 101 (101-500), Part Four
+- [On the LPIC-1 Exam 101: System Architecture](/2023/01/13/on-the-lpic-1-exam-101-system-architecture/)
+- [On the LPIC-1 Exam 101: Linux Installation and Package Management](/2023/01/15/on-the-lpic-1-exam-101-linux-installation-and-package-management/)
+- [On the LPIC-1 Exam 101: GNU and Unix Commands](/2023/01/18/on-the-lpic-1-exam-101-gnu-and-unix-commands/)
+- On the LPIC-1 Exam 101: Devices, Linux Filesystems, FHS
 
 ---
 
@@ -1297,7 +1297,7 @@ Check out this table that determines the permissions given an octal value, homes
 
 Sadly, all good things must come to an end, like this exhilarating series and Breaking Bad.  Except Breaking Bad sucked balls.
 
-Now may be a great time to begin reading [the second series on the LPIC-1 Exam 102](/2023/01/22/on-studying-for-the-lpic-1-exam-102-102-500-part-one/)!
+Now may be a great time to begin reading [the second series on the LPIC-1 Exam 102](/2023/01/22/on-the-lpic-1-exam-102-shells-and-shell-scripting/)!
 
 # References
 
@@ -1311,8 +1311,8 @@ Now may be a great time to begin reading [the second series on the LPIC-1 Exam 1
 
 [LPIC-1]: https://www.lpi.org/our-certifications/lpic-1-overview
 [LPIC-1 Exam 101]: https://www.lpi.org/our-certifications/exam-101-objectives
-[Topic 102: Linux Installation and Package Management]: /2023/01/15/on-studying-for-the-lpic-1-exam-101-101-500-part-two/
-[bootloaders]: /2023/01/15/on-studying-for-the-lpic-1-exam-101-101-500-part-two/#bootloaders
+[Topic 102: Linux Installation and Package Management]: /2023/01/15/on-the-lpic-1-exam-101-linux-installation-and-package-management/
+[bootloaders]: /2023/01/15/on-the-lpic-1-exam-101-linux-installation-and-package-management/#bootloaders
 [`systemd`]: https://systemd.io/
 [`/etc/fstab`]: https://man7.org/linux/man-pages/man5/fstab.5.html
 [World Wide Name]: https://en.wikipedia.org/wiki/World_Wide_Name

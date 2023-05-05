@@ -1,21 +1,21 @@
 +++
-title = "On Studying for the LPIC-1 Exam 102: Security"
+title = "On the LPIC-1 Exam 102: Security"
 date = "2023-02-06T19:31:41-05:00"
 
 +++
 
 This is a riveting series:
 
-- [On Studying for the LPIC-1 Exam 102: Shells and Shell Scripting](/2023/01/22/on-studying-for-the-lpic-1-exam-102-shells-and-shell-scripting/)
-- [On Studying for the LPIC-1 Exam 102: User Interfaces and Desktops](/2023/01/25/on-studying-for-the-lpic-1-exam-102-user-interfaces-and-desktops/)
-- [On Studying for the LPIC-1 Exam 102: Administrative Tasks](/2023/01/26/on-studying-for-the-lpic-1-exam-102-administrative-tasks/)
-- [On Studying for the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-studying-for-the-lpic-1-exam-102-essential-system-services/)
-- [On Studying for the LPIC-1 Exam 102: Networking Fundamentals](/2023/02/03/on-studying-for-the-lpic-1-exam-102-networking-fundamentals/)
-- On Studying for the LPIC-1 Exam 102: Security
+- [On the LPIC-1 Exam 102: Shells and Shell Scripting](/2023/01/22/on-the-lpic-1-exam-102-shells-and-shell-scripting/)
+- [On the LPIC-1 Exam 102: User Interfaces and Desktops](/2023/01/25/on-the-lpic-1-exam-102-user-interfaces-and-desktops/)
+- [On the LPIC-1 Exam 102: Administrative Tasks](/2023/01/26/on-the-lpic-1-exam-102-administrative-tasks/)
+- [On the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-the-lpic-1-exam-102-essential-system-services/)
+- [On the LPIC-1 Exam 102: Networking Fundamentals](/2023/02/03/on-the-lpic-1-exam-102-networking-fundamentals/)
+- On the LPIC-1 Exam 102: Security
 
 And, so is this one!
 
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part One](/2023/01/13/on-studying-for-the-lpic-1-exam-101-101-500-part-one/)
+- [On the LPIC-1 Exam 101 (101-500), Part One](/2023/01/13/on-the-lpic-1-exam-101-system-architecture/)
 
 ---
 
@@ -997,6 +997,10 @@ Like its cousin `gpg`, the `gpg-agent` has a switch to dump all of its available
 ```
 $ gpg-agent --dump-options
 ```
+
+# Summary
+
+Congratulations, you're now an expert in what I think is important to know about the `LPIC-1` exam.
 
 # References
 

@@ -1,15 +1,15 @@
 +++
-title = "On Studying for the LPIC-1 Exam 101 (101-500), Part One"
+title = "On the LPIC-1 Exam 101: System Architecture"
 date = "2023-01-13T00:25:10-05:00"
 
 +++
 
 This is a riveting series:
 
-- On Studying for the LPIC-1 Exam 101 (101-500), Part One
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part Two](/2023/01/15/on-studying-for-the-lpic-1-exam-101-101-500-part-two/)
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part Three](/2023/01/18/on-studying-for-the-lpic-1-exam-101-101-500-part-three/)
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part Four](/2023/01/20/on-studying-for-the-lpic-1-exam-101-101-500-part-four/)
+- On the LPIC-1 Exam 101: System Architecture
+- [On the LPIC-1 Exam 101: Linux Installation and Package Management](/2023/01/15/on-the-lpic-1-exam-101-linux-installation-and-package-management/)
+- [On the LPIC-1 Exam 101: GNU and Unix Commands](/2023/01/18/on-the-lpic-1-exam-101-gnu-and-unix-commands/)
+- [On the LPIC-1 Exam 101: Devices, Linux Filesystems, FHS](/2023/01/20/on-the-lpic-1-exam-101-devices-linux-filesystems-fhs/)
 
 ---
 
@@ -841,7 +841,7 @@ Dump the kernel [ring buffer] to view the system initialization logs.
 
 # Summary
 
-Continue your journey with the second installment in this titillating series, [On Studying for the LPIC-1 Exam 101 (101-500), Part Two](/2023/01/15/on-studying-for-the-lpic-1-exam-101-101-500-part-two/).
+Continue your journey with the second installment in this titillating series, [On the LPIC-1 Exam 101: Linux Installation and Package Management](/2023/01/15/on-the-lpic-1-exam-101-linux-installation-and-package-management/).
 
 # References
 

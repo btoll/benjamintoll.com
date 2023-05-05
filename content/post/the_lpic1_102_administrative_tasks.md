@@ -1,21 +1,21 @@
 +++
-title = "On Studying for the LPIC-1 Exam 102: Administrative Tasks"
+title = "On the LPIC-1 Exam 102: Administrative Tasks"
 date = "2023-01-26T18:09:51-05:00"
 
 +++
 
 This is a riveting series:
 
-- [On Studying for the LPIC-1 Exam 102: Shells and Shell Scripting](/2023/01/22/on-studying-for-the-lpic-1-exam-102-shells-and-shell-scripting/)
-- [On Studying for the LPIC-1 Exam 102: User Interfaces and Desktops](/2023/01/25/on-studying-for-the-lpic-1-exam-102-user-interfaces-and-desktops/)
-- On Studying for the LPIC-1 Exam 102: Administrative Tasks
-- [On Studying for the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-studying-for-the-lpic-1-exam-102-essential-system-services/)
-- [On Studying for the LPIC-1 Exam 102: Networking Fundamentals](/2023/02/03/on-studying-for-the-lpic-1-exam-102-networking-fundamentals/)
-- [On Studying for the LPIC-1 Exam 102: Security](/2023/02/06/on-studying-for-the-lpic-1-exam-102-security/)
+- [On the LPIC-1 Exam 102: Shells and Shell Scripting](/2023/01/22/on-the-lpic-1-exam-102-shells-and-shell-scripting/)
+- [On the LPIC-1 Exam 102: User Interfaces and Desktops](/2023/01/25/on-the-lpic-1-exam-102-user-interfaces-and-desktops/)
+- On the LPIC-1 Exam 102: Administrative Tasks
+- [On the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-the-lpic-1-exam-102-essential-system-services/)
+- [On the LPIC-1 Exam 102: Networking Fundamentals](/2023/02/03/on-the-lpic-1-exam-102-networking-fundamentals/)
+- [On the LPIC-1 Exam 102: Security](/2023/02/06/on-the-lpic-1-exam-102-security/)
 
 And, so is this one!
 
-- [On Studying for the LPIC-1 Exam 101 (101-500), Part One](/2023/01/13/on-studying-for-the-lpic-1-exam-101-101-500-part-one/)
+- [On the LPIC-1 Exam 101 (101-500), Part One](/2023/01/13/on-the-lpic-1-exam-101-system-architecture/)
 
 ---
 
@@ -217,7 +217,7 @@ Here are some common options:
 
 Use the [`passwd`] utility to change a user's password.  Must be `root` to be able to change any user's password on the system.
 
-Interestingly, the `passwd` binary has its [`SUID`](/2023/01/20/on-studying-for-the-lpic-1-exam-101-101-500-part-four/#special-permissions) bit set.  Without this, a regular user would not be able to change their own password.
+Interestingly, the `passwd` binary has its [`SUID`](/2023/01/20/on-the-lpic-1-exam-101-101-500-devices-linux-filesystems-filesystem-hierarchy-standard/#special-permissions) bit set.  Without this, a regular user would not be able to change their own password.
 
 ```
 $ ls -l $(which passwd)
@@ -333,7 +333,7 @@ Here are some common options:
 
 ## Skeleton Directory
 
-See [`SKEL`](/2023/01/22/on-studying-for-the-lpic-1-exam-102-shells-and-shell-scripting/#skel).
+See [`SKEL`](/2023/01/22/on-the-lpic-1-exam-102-shells-and-shell-scripting/#skel).
 
 ## Important User and Group Files
 
@@ -1152,7 +1152,7 @@ Lastly, [`iconv`] is a utility to convert from one character set encoding to ano
 
 # Summary
 
-Continue your journey with the fourth installment in this titillating series, [On Studying for the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-studying-for-the-lpic-1-exam-102-essential-system-services/).
+Continue your journey with the fourth installment in this titillating series, [On the LPIC-1 Exam 102: Essential System Services](/2023/02/01/on-the-lpic-1-exam-102-essential-system-services/).
 
 # References
 
