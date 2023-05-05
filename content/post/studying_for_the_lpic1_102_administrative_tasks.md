@@ -80,23 +80,27 @@ This roughly covers [Topic 107: Administrative Tasks].
 
 ## `/etc/login.defs`
 
-The [`/etc/login.defs`] file defines the configuration parameters that control both the users and the groups.
+The [`/etc/login.defs`] file defines the configuration parameters that control both the users and the groups.  It is a required file.
 
-Here are some of the ones that are the most impactful:
+Here are some of the parameters that are the most impactful:
 
-- `UID_MIN` and `UID_MAX` - The range of user IDs that can be assigned to new ordinary users.
-- `GID_MIN` and `GID_MAX` - The range of group IDs that can be assigned to new ordinary groups.
-- `CREATE_HOME` - Specify whether a home directory should be created by default for new users.
-- `USERGROUPS_ENAB` - Specify whether the system should by default create a new group for each new user account with the same name as the user, and whether deleting the user account should also remove the user’s primary group if it no longer contains members.
-- `MAIL_DIR` - The mail spool directory.
-- `PASS_MAX_DAYS` - The maximum number of days a password may be used.
-- `PASS_MIN_DAYS` - The minimum number of days allowed between password changes.
-- `PASS_MIN_LEN` - The minimum acceptable password length.
-- `PASS_WARN_AGE` - The number of warning days before a password expires.
+|**Parameter** |**Description** |
+|:---|:---|
+|`UID_MIN` and `UID_MAX` |The range of user IDs that can be assigned to new ordinary users. |
+|`GID_MIN` and `GID_MAX` |The range of group IDs that can be assigned to new ordinary groups. |
+|`CREATE_HOME` |Specify whether a home directory should be created by default for new users. |
+|`USERGROUPS_ENAB` |Specify whether the system should by default create a new group for each new user account with the same name as the user, and whether deleting the user account should also remove the user’s primary group if it no longer contains members. |
+|`MAIL_DIR` |The mail spool directory. |
+|`PASS_MAX_DAYS` |The maximum number of days a password may be used. |
+|`PASS_MIN_DAYS` |The minimum number of days allowed between password changes. |
+|`PASS_MIN_LEN` |The minimum acceptable password length. |
+|`PASS_WARN_AGE` |The number of warning days before a password expires. |
+
+But different utilities will use access and use different parameters (see [`/etc/default/useradd`]).
 
 ## Users
 
-The default values used by both the user and group utilities are set in `/etc/default/useradd` and [`/etc/login.defs`].
+The default values used by both the user and group utilities are set in [`/etc/default/useradd`] and [`/etc/login.defs`].
 
 ### `useradd`
 
@@ -106,23 +110,31 @@ By default, a same-named group will also be created.  In addition, the `UID` wil
 
 There are many options, but here are the most commonly-used ones:
 
-- `-c`, `--comment` - create with custom comments (i,e., the full name of the user)
-- `-d`, `--home-dir` - create with a custom home directory
-- `-e`, `--expiredate` - create by setting a specific date on which it will be disabled
-- `-f`, `--inactive` - create by setting the number of days after a password expires during which the user should update the password (otherwise the account will be disabled)
-- `-g`, `--gid` - create with a specific `GID`
-- `-G`, `--groups` - create by adding it to multiple secondary groups
-- `-k`, `--skel` - create by copying the skeleton files from a specific custom directory (this option is only valid if the `-m` or `--create-home` option is specified)
-- `-K`, `--key` - overrides `/etc/login.defs` defaults (`UID_MIN`, `UID_MAX`, `UMASK`, `PASS_MAX_DAYS` and others)
-    + `-K PASS_MAX_DAYS=-1` or `-K UID_MIN=100 -K UID_MAX=499`
-- `-m`, `--create-home` - create with its home directory (if it does not exist)
-- `-M`, `--no-create-home` - create without its home directory
-- `-s`, `--shell` - create with a specific login shell
-- `-u`, `--uid` - create with a specific `UID`
-    + must be unique, unless the `-o` option is used
+|**Option** |**Description** |
+|:---|:---|
+|`-c`, `--comment`|create with custom comments (i,e., the full name of the user) |
+|`-d`, `--home-dir`|create with a custom home directory |
+|`-e`, `--expiredate`|create by setting a specific date on which it will be disabled |
+|`-f`, `--inactive`|create by setting the number of days after a password expires during which the user should update the password (otherwise the account will be disabled) |
+|`-g`, `--gid`|create with a specific `GID` |
+|`-G`, `--groups`|create by adding it to multiple secondary groups |
+|`-k`, `--skel`|create by copying the skeleton files from a specific custom directory (this option is only valid if the `-m` or `--create-home` option is specified) |
+|`-K`, `--key`|overrides `/etc/login.defs` defaults (`UID_MIN`, `UID_MAX`, `UMASK`, `PASS_MAX_DAYS` and others) <sup>1</sup>|
+|`-m`, `--create-home`|create with its home directory (if it does not exist) |
+|`-M`, `--no-create-home`|create without its home directory |
+|`-s`, `--shell`|create with a specific login shell |
+|`-u`, `--uid`|create with a specific `UID` <sup>2</sup>|
+|`-Z`, `--selinux-user`|the `SELinux` user for the user's login <sup>3</sup>|
+
+- <sup>1</sup>
+    + for example:
+        - `-K PASS_MAX_DAYS=-1`
+        - `-K UID_MIN=100 -K UID_MAX=499`
+- <sup>2</sup>
+    + must be unique, unless the `-o` (or `--non-unique`) option is used
     + the value must be non-negative
     + the default is to use the smallest `ID` value greater than or equal to `UID_MIN` and greater than every other user (defined in [`/etc/login.defs`])
-- `-Z`, `--selinux-user` - the `SELinux` user for the user's login
+- <sup>3</sup>
     + the default is to leave blank and have the system select the default `SELinux` user
 
 Also, invoking `useradd` with only the `-D` (also, `--defaults`) switch will display the default values:
@@ -138,7 +150,7 @@ SKEL=/etc/skel
 CREATE_MAIL_SPOOL=no
 ```
 
-So, the newly-created user account will get these defaults plus whatever ones are specified on the command-line.  Of course, any given options will override the defaults if there is a conflict.
+So, the newly-created user account will get these defaults plus whichever ones are specified on the command line.  Of course, any given options will override the defaults, if there is a conflict.
 
 > Any groups to which the new user will belong **must** already exist.
 
@@ -150,42 +162,56 @@ When using this utility, the password and group databases are updated with the n
 
 The [`usermod`] utility is used to change attributes of an extant account.  Here are some of the most common options:
 
-- `-c`, `--comment` - add a brief comment to the specified user account
-- `-d`, `--home` - change the home directory of the specified user account
+|**Option** |**Description** |
+|:---|:---|
+|`-c`, `--comment`|add a brief comment to the specified user account |
+|`-d`, `--home`|change the home directory of the specified user account <sup>1</sup>|
+|`-e`, `--expiredate`|set the expiration date of the specified user account |
+|`-f`, `--inactive`|set the number of days after a password expires during which the user should update the password (otherwise the account will be disabled) |
+|`-g`, `--gid`|change the primary group of the specified user account (the group must exist) |
+|`-G`, `--groups`|add secondary groups to the specified user account <sup>2</sup>|
+|`-l`, `--login`|change the login name of the specified user account |
+|`-L`, `--lock`|lock the specified user account <sup>3</sup>|
+|`-m`, `--move-home`|move the content of the user's home directory <sup>4</sup>|
+|`-s`, `--shell`|change the login shell of the specified user account |
+|`-u`, `--uid`|change the `UID` of the specified user account |
+|`-U`, `--unlock`|unlock the specified user account <sup>5</sup>|
+|`-Z`, `--selinux-user`|the new `SELinux` user for the user's login <sup>6</sup>|
+
+- <sup>1</sup>
     + when used with the `-m` (also, `--move-home`) option, the contents of the current home directory are moved to the new home directory, which is created if it does not already exist
-- `-e`, `--expiredate` - set the expiration date of the specified user account
-- `-f`, `--inactive` - set the number of days after a password expires during which the user should update the password (otherwise the account will be disabled)
-- `-g`, `--gid` - change the primary group of the specified user account (the group must exist)
-- `-G`, `--groups` - add secondary groups to the specified user account
+- <sup>2</sup>
     + each group must exist and must be separated from the next by a comma, with no intervening whitespace
     + if used alone, this option removes all existing groups to which the user belongs
     + when used with the `-a` (also, `--append`) option, it simply appends new secondary groups to the existing ones
-- `-l`, `--login` - change the login name of the specified user account
-- `-L`, `--lock` - lock the specified user account
+- <sup>3</sup>
     + puts an exclamation mark in front of the encrypted password within the `/etc/shadow` file
     + this disables access with a password
-- `-m`, `--move-home` - move the content of the user's home directory
+- <sup>4</sup>
     + only valid when coupled with the `-d` (or `--home`) option
-- `-s`, `--shell` - change the login shell of the specified user account
-- `-u`, `--uid` - change the `UID` of the specified user account
-- `-U`, `--unlock` - unlock the specified user account
-    + this removes the exclamation mark in front of the encrypted password with the `/etc/shadow` file
-- `-Z`, `--selinux-user` - the new `SELinux` user for the user's login
+- <sup>5</sup>
+    + this removes the exclamation mark in front of the encrypted password in the `/etc/shadow` file
+- <sup>6</sup>
+    + A blank `SEUSER` will remove the `SELinux` user mapping for user `LOGIN` (if any)
 
-Many of them perform the same actions as those of the `useradd` utility.
+> Many of them perform the same actions as those of the `useradd` utility.
 
 ### `userdel`
 
-The [`userdel`] tool
+Let's now briefly look at the  [`userdel`] tool.
 
 When using this utility, the password and group databases remove references to this account.
 
 Here are some common options:
 
-- `-r`, `--remove` - files in the user's home directory will be removed along with the home directory itself and the user's mail spool
+|**Option** |**Description** |
+|:---|:---|
+|`-r`, `--remove`|files in the user's home directory will be removed along with the home directory itself and the user's mail spool <sup>1</sup>|
+|`-Z`, `--selinux-user`|remove any `SELinux` user mapping for the user's login. |
+
+- <sup>1</sup>
     + files located in other file systems will have to be searched for and deleted manually
     + the mail spool is defined by the `MAIL_DIR` variable in the `login.defs` file
-- `-Z`, `--selinux-user` - remove any `SELinux` user mapping for the user's login.`
 
 ## `passwd`
 
@@ -202,15 +228,17 @@ By far, the most common use case for this utility is just to call it as a regula
 
 However, it is possible to pass it a number of options that can change the user password expiry information, much like the [`chage`] utility:
 
-- `-d` - delete the password of a user account (thus disabling the user)
-- `-e` - force the user account to change the password
-- `-i` - the number of days of inactivity after a password expires during which the user should update the password (otherwise the account will be disabled)
-- `-l` - lock the user account (the encrypted password is prefixed with an exclamation mark in the `/etc/shadow` file)
-- `-n` - the minimum password lifetime
-- `-S` - output information about the password status of a specific user account
-- `-u` - unlock the user account (the exclamation mark is removed from the password field in the `/etc/shadow` file)
-- `-x` - the maximum password lifetime
-- `-w` - the number of days of warning before the password expires during which the user is warned that the password must be changed
+|**Option** |**Description** |
+|:---|:---|
+|`-d`|delete the password of a user account (thus disabling the user) |
+|`-e`|force the user account to change the password |
+|`-i`|the number of days of inactivity after a password expires during which the user should update the password (otherwise the account will be disabled) |
+|`-l`|lock the user account (the encrypted password is prefixed with an exclamation mark in the `/etc/shadow` file) |
+|`-n`|the minimum password lifetime |
+|`-S`|output information about the password status of a specific user account |
+|`-u`|unlock the user account (the exclamation mark is removed from the password field in the `/etc/shadow` file) |
+|`-x`|the maximum password lifetime |
+|`-w`|the number of days of warning before the password expires during which the user is warned that the password must be changed |
 
 ## `chage`
 
@@ -220,12 +248,14 @@ Much of the same information that we just saw can be modified with the [`passwd`
 
 Here are some useful options:
 
-- `-d` - Set the last password change for a user account.
-- `-E` - Set the expiration date for a user account.
-- `-I` - Set the number of days of inactivity after a password expires during which the user should update the password (otherwise the account will be disabled).
-- `-m` - Set the minimum password lifetime for a user account.
-- `-M` - Set the maximum password lifetime for a user account.
-- `-W` - Set the number of days of warning before the password expires during which the user is warned that the password must be changed.
+|**Option** |**Description** |
+|:---|:---|
+|`-d`|Set the last password change for a user account. |
+|`-E`|Set the expiration date for a user account. |
+|`-I`|Set the number of days of inactivity after a password expires during which the user should update the password (otherwise the account will be disabled). |
+|`-m`|Set the minimum password lifetime for a user account. |
+|`-M`|Set the maximum password lifetime for a user account. |
+|`-W`|Set the number of days of warning before the password expires during which the user is warned that the password must be changed. |
 
 In addition, a user can list their expiry information.  This is the only thing that a regular user can do with the [`chage`] utility.
 
@@ -285,7 +315,7 @@ Interestingly, a group cannot be deleted if it is the primary group of any user 
 
 ### `gpasswd`
 
-The [`gpasswd`] utility can be used to remove a password that had been assigned to a group upon its creation.  In practice, though, this is rarely a good idea, as all members of the group would need to know the password.  And as everyone knows, people can't be trusted with anything.
+The [`gpasswd`] utility can be used to remove a password that had been assigned to a group upon its creation.  In practice, though, this it is rarely a good idea to assign a password to a group, as all members of the group would then need to know the password.  And as everyone knows, people can't be trusted with anything.
 
 Additionally, `gpasswd` can be used to administer `/etc/group` by assigning and removing users to groups and adding group administrators.
 
@@ -295,16 +325,15 @@ Here are some common options:
 - `-d`, `--delete` - remove the user from the named group
 - `-r`, `--remove-password` - remove the password from the named group
     + the group password will be empty
-    + only group members will be allowed to use [`newgrp`] to join the named group
+    + only group members with a password will be allowed to use [`newgrp`] to join the named group
 - `-R`, `--restrict` - restrict the access to the named group
     + the group password is set to "!"
-    + only group members with a password will be allowed to use `newgrp` to join the named group
 - `-A`, `--administrators` - set the list of administrative users
 - `-M`, `--members` - set the list of group members
 
 ## Skeleton Directory
 
-See [`SKEL`](/2023/01/22/on-studying-for-the-lpic-1-exam-102-102-500-part-one/#skel).
+See [`SKEL`](/2023/01/22/on-studying-for-the-lpic-1-exam-102-shells-and-shell-scripting/#skel).
 
 ## Important User and Group Files
 
@@ -523,7 +552,7 @@ By default, the output will be emailed to the user that owns the `crontab`.  A c
 
 #### User Crontabs
 
-A user [`crontab(5)`] is a text file in which a user can define jobs to run for any purpose that suits them.  It is managed via the [`crontab(1)`] utility and has a very specific format, which we'll look momentarily.
+A user [`crontab(5)`] is a text file in which a user can define jobs to run for any purpose that suits them.  It is managed via the [`crontab(1)`] utility and has a very specific format, which we'll look at momentarily.
 
 `crontab(1)` is the tool that acts as a frontend to the user's `crontab(5)` file.  On my system (Debian `bullseye`), this file resides in `/var/spool/cron/crontabs/`, although it may be different depending on the Linux distribution.
 
@@ -539,7 +568,7 @@ Common switches to `crontab(1)`:
         $ sudo ls /var/spool/cron/crontabs/
         btoll
         ```
-    + uses the editor specified the either `VISUAL` or `EDITOR` to edit the `crontab` (if neither are defined, then the default editor at `/usr/bin/editor` is used -- probably [`nano`])
+    + uses the editor specified by either the `VISUAL` or `EDITOR` environment variable to edit the `crontab` (if neither are defined, then the default editor at `/usr/bin/editor` is used -- probably [`nano`])
         ```
         $ readlink -f /usr/bin/editor
         /usr/bin/nano
@@ -558,7 +587,7 @@ Common switches to `crontab(1)`:
 - `-r` - remove the `crontab`
 - `-u` - its value is the user's `crontab` to be edited (needs privileged permissions)
 
-And here is an example of a `tar` command will run every Monday at 5am:
+And here is an example of a `tar` command that will run every Monday at 5am:
 
 ```
 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
@@ -589,13 +618,13 @@ Multiple values can be expressed using the following special characters:
 
 > There are nice web-based utilities like [`crontab guru`] that can assist in making sure that you get the exact time that you want.
 
-Note that it's **always** preferable to use edit a user's `crontab` using the [`crontab(5)`] tool rather than editing them directly in  `/var/spool/cron/crontabs/` (usually, the permissions on the `crontab` files themselves only allow them to be edited using `crontab(1)`).
+Note that it's **always** preferable to edit a user's `crontab` using the [`crontab(5)`] tool rather than editing them directly in  `/var/spool/cron/crontabs/` (usually, the permissions on the `crontab` files themselves only allow them to be edited using `crontab(1)`).
 
 #### System Crontabs
 
 Unlike, user `crontab`s, system `crontab`s can only be edited by a privileged user.  The main system `crontab` is `/etc/crontab` and others can be installed in `/etc/cron.d/`.
 
-In addition, there are also location in which you can place scripts to be run by `cron` (and `anacron`, to be precise).  These are in the following directories:
+In addition, there are also locations in which you can place scripts to be run by `cron` (and `anacron`, to be precise).  These are in the following directories:
 
 - `/etc/cron.daily/`
 - `/etc/cron.hourly/`
@@ -655,9 +684,9 @@ ls: cannot access '/etc/cron.deny': No such file or directory
 
 > If one or both do exist, they should contain a list of users, one per line.
 
-If `cron.allow` exists, then all listed users have access to `crontab`.  Note that if the same user appears in both files that they will be allowed to created cron jobs, because `cron` won't check `cron.deny` if the given user is in `cron.allow`.
+If `cron.allow` exists, then all listed users have access to `crontab`.  Note that if the same user appears in both files that they will be allowed to created cron jobs, because `cron` won't check `cron.deny` if the given user is first found in `cron.allow`.
 
-Inversely, if only `cron.deny` exists, they only the listed users are denied created cron jobs.
+Inversely, if only `cron.deny` exists, then only the listed users are denied created cron jobs.
 
 ### `anacron`
 
@@ -676,7 +705,7 @@ Interesting how `cron` will test for the `anacron` binary for all scripts except
 
 ### `systemd.timer`
 
-Of course, `systemd` would have units that to control and manage timers.  These units are called, well, *timers*, and you can see a list of all the timers currently in memory using the `list-timers` command:
+Of course, `systemd` would have units to control and manage timers.  These units are called, well, *timers*, and you can see a list of all the timers currently in memory using the `list-timers` command:
 
 ```
 $ systemctl list-timers
@@ -770,9 +799,7 @@ You would enable and start the timer unit like you would any other unit:
 
 Also, make sure you invoke `systemctl daemon-reload` whenever you modify a unit.
 
-In addition to real-time timers, `systemd` also supports, monotonic timers, which are timers that define jobs that are scheduled after a previously-defined event has occurred, like system boot.
-
-TODO an example of monotonic timers
+In addition to real-time timers, `systemd` also supports monotonic timers, which are timers that define jobs that are scheduled after a previously-defined event has occurred, like system boot.
 
 To mimic a `cron` job, you'd want to use the `OnCalendar` field in the `[Timer]` clause, which has the following format:
 
@@ -948,7 +975,7 @@ ExecStart=
 ExecStart="/usr/bin/date"
 ```
 
-Once the timer expires and the command is run, both the timer and the service are removed from they system.  It's like they never even existed, just like most Republican party fever dreams.
+Once the timer expires and the command is run, both the timer and the service are removed from they system.  It's like they never even existed, just like decency and respect in the modern Republican party.
 
 Lastly, as usual, the output will go to the journal.
 
@@ -962,7 +989,7 @@ Time zones are divided respective to their offset relative to UTC.  For example,
 
 > UTC is the GMT+0 time zone.
 
-The time zone can be defined either as the full descriptive name or an offset or in the [Posix TZ format].  Mine has the former:
+The time zone can be defined either as the full descriptive name or an offset or in the [POSIX TZ format].  Mine has the former:
 
 ```
 $ cat /etc/timezone
@@ -1026,24 +1053,24 @@ Local time is now:      Tue Jan 31 15:23:00 EST 2023.
 Universal Time is now:  Tue Jan 31 20:23:00 UTC 2023.
 ```
 
-> You can also reconfigure the `locales` package to make sure you have all of the locale package for any particular time zone in which you are interested:
+> You can also reconfigure the `locales` package to make sure you have the locale package for any particular time zone in which you are interested:
 >
 > ```
-> dpkg-reconfigure locales
+> $ sudo dpkg-reconfigure locales
 > ```
 
 Of course, I'm assuming that both the `tzdata` and the `locales` packages have already been installed.  If they haven't been, simply install them and walk through the menus.
 
 For packages that have already been downloaded, reconfiguring allows you to reset the defaults or choose different ones without having to remove and re-install the package.
 
-For user applications, setting the [localtime] for the system configures the system-wide time zone for the local system.  It should be a [symbolic link] pointing to one of the time zone data files in `/usr/share/zoneinfo/`.  Mine is already set up correctly, but if it wasn't I would use [`ln`] like usual to create the soft link.
-
-Incidentally, the `timedatectl` utility changes the settings of `/etc/localtime` from the command-line during runtime.
+For user applications, setting the [`localtime`] for the system configures the system-wide time zone for the local system.  It should be a symbolic link pointing to one of the time zone data files in `/usr/share/zoneinfo/`.  Mine is already set up correctly, but if it wasn't I would use [`ln`] like usual to create the soft link.
 
 ```
 $ readlink -f /etc/localtime
 /usr/share/zoneinfo/America/New_York
 ```
+
+Incidentally, the `timedatectl` utility changes the settings of `/etc/localtime` from the command-line during runtime.
 
 ### Language and Character Encoding
 
@@ -1056,7 +1083,7 @@ en_US.UTF-8
 
 The format is *language code* underscore (`_`) *region code* period (`.`) *character encoding*.  So, in the following example, `en` is the language code, `US` is the region code and [`UTF-8`] is the character encoding.
 
-`UTF`, of course, is intended to encompass and replace limited character encoding sets like [`ASCII`] (American Standard Code for Information Interchange), which only allow for characters that can fit in 7 bits (the eighth bit was for extended sets, and [just about everybody had their own]).
+`UTF`, of course, is intended to encompass and replace limited character encoding sets like [`ASCII`] (American Standard Code for Information Interchange), which only allow for characters that can fit in 7 bits (the eighth bit was for extended sets, and [just about everybody had their own], even your [Uncle Jack]).
 
 > The region code follows the [`ISO-3166`] standard.
 
@@ -1139,6 +1166,7 @@ Continue your journey with the fourth installment in this titillating series, [O
 [`adduser`]: https://linux.die.net/man/8/adduser
 [`passwd`]: https://man7.org/linux/man-pages/man1/passwd.1.html
 [`/etc/login.defs`]: https://man7.org/linux/man-pages/man5/login.defs.5.html
+[`/etc/default/useradd`]: https://man7.org/linux/man-pages/man5/login.defs.5.html#CROSS_REFERENCES
 [`usermod`]: https://man7.org/linux/man-pages/man8/usermod.8.html
 [`userdel`]: https://man7.org/linux/man-pages/man8/userdel.8.html
 [`chage`]: https://man7.org/linux/man-pages/man1/chage.1.html
@@ -1173,7 +1201,7 @@ Continue your journey with the fourth installment in this titillating series, [O
 [prime meridian]: https://en.wikipedia.org/wiki/Prime_meridian
 [Coordinated Universal Time]: https://en.wikipedia.org/wiki/Coordinated_Universal_Time
 [`timedatectl`]: https://man7.org/linux/man-pages/man1/timedatectl.1.html
-[Posix TZ format]: https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
+[POSIX TZ format]: https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
 [Eastern Time Zone]: https://en.wikipedia.org/wiki/Eastern_Time_Zone
 [`tzselect`]: https://man7.org/linux/man-pages/man8/tzselect.8.html
 [`localtime`]: https://man7.org/linux/man-pages/man5/localtime.5.html
@@ -1181,6 +1209,7 @@ Continue your journey with the fourth installment in this titillating series, [O
 [`UTF-8`]: https://en.wikipedia.org/wiki/UTF-8
 [`ASCII`]: https://en.wikipedia.org/wiki/ASCII
 [just about everybody had their own]: https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/
+[Uncle Jack]: https://www.youtube.com/watch?v=LfSfzRJOlTg
 [`ISO-3166`]: https://www.iso.org/iso-3166-country-codes.html
 [`localectl`]: https://man7.org/linux/man-pages/man1/localectl.1.html
 [`locale`]: https://man7.org/linux/man-pages/man1/locale.1.html
