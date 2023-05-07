@@ -118,6 +118,7 @@ There are way too many formatting options to list here, you should see the man p
 - `-R`, `--rfc-email`
     + formats in [RFC 5322]
 - `--rfc-3339`
+    + formats in [RFC 3339]
 
 
 Using formatting sequences, print the current hour and minute in military time:
@@ -220,19 +221,13 @@ set-timezone [TIMEZONE]
 
 List the time zones using `timedatectl list-timezones`.  Remember, you can use the [`tzselect`] tool to select yours.
 
-You can also use `timedatectl set-ntp` to enable or disable `NTP`, if you feel like living on the edge.
+You can also use `timedatectl set-ntp` to enable `NTP` (or to disable, if you feel like living on the edge).
 
 When setting the time zone without using `timedatectl`, simply create a symlink to the appropriate file in `/usr/share/zoneinfo` to the system [`/etc/localtime`] file:
 
 ```
 $ ln -s /usr/share/zoneinfo/America/Toronto /etc/localtime
 ```
-
-> The `LPIC-1` docs advise setting the hardware clock from the system clock after updating the time zone in the way just described.
->
-> ```
-> $ sudo hwclock --systohc
-> ```
 
 Also, you can use `date` or `hwclock` to set the date and time on a system that doesn't use `systemd` for its system initialization.
 
@@ -244,7 +239,7 @@ $ sudo date +%Y%m%d -s "20111125"
 $ sudo date +%T -s "13:11:00"
 ```
 
-> The `LPIC-1` docs advise setting the hardware clock from the system clock after updating the date and time in the way just described.
+> The `LPIC-1` docs advise setting the hardware clock from the system clock after updating the date and time in the ways just described.
 >
 > ```
 > $ sudo hwclock --systohc
@@ -266,13 +261,13 @@ $ sudo hwclock --set --date "4/12/2019 11:15:19"
 
 ## Network Time Protocols
 
-The best clocks to synchronize to are a reference or [atomic clock].  [`SNTP`] (Simple Network Time Protocal) and `NTP` are both networking protocols that allow for clock synchronization with these reference clocks, although the public are not allowed direct access to them.
+The best clocks to use for synchronizing are a reference or [atomic clock].  [`SNTP`] (Simple Network Time Protocal) and `NTP` are both networking protocols that allow for clock synchronization with these reference clocks, although the public are not allowed direct access to them.
 
 ![X_Windows](/images/ntp_stratums.png)
 
 ### `SNTP`
 
-If your system initialization service is `systemd`, then by default its using `SNTP`, not `NTP`.  `SNTP` is a lighter-weight protocol, and pratically it means that your system will not serve `NTP` to other machines.
+If your system initialization service is `systemd`, then by default it is using `SNTP`, not `NTP`.  `SNTP` is a lighter-weight protocol, the main difference being that your system will not serve `NTP` to other machines.
 
 `SNTP` is used only when the [`systemd-timesync`] daemon is active.  To check its status:
 
@@ -323,7 +318,7 @@ TODO
 
 ## `rsyslog`
 
-Logs are generated from the moment that the kernel is loaded into memory onwards.  Logging has traditionally been handled by [`syslog`], [`syslog-ng`] (New Generation) and [`rsyslog`] (rocket-fast syslog).  The exam seems to focus solely on `rsyslog`, so we will, too.
+Logs are generated from the moment that the kernel is loaded into memory onwards.  Logging has traditionally been handled by [`syslog`], [`syslog-ng`] (New Generation) and [`rsyslog`] (rocket-fast syslog).  The exam seems to focus solely on `rsyslog`, and so we will, too.
 
 One of the advantages of `rsyslog` over its predecessors is its [`Reliable Event Logging Protocol`] (`RELP`) support.  It is often used in environments which cannot tolerate message loss, such as the financial industry.
 
@@ -331,13 +326,13 @@ One of the advantages of `rsyslog` over its predecessors is its [`Reliable Event
 
 > The kernel writes its messages to an in-memory ring buffer.
 
-`rsyslog` has a client-server model.  In most situations, both the client and server are on the same machine (such as the laptop in which I'm now typing), but often the logs are sent to a centralized remote server (or perhaps servers) for aggregation.  The messages themselves are in a particular format, which we'll see shortly.
+`rsyslog` has a client-server model.  In most situations, both the client and server are on the same machine (such as the laptop on which I'm now typing), but often the logs are sent to a centralized remote server (or perhaps servers) for aggregation.  The messages themselves are in a particular format, which we'll see shortly.
 
 > The `rsyslog` daemon works together with [`klogd`] which manages kernel messages.
 
 ### Log Types
 
-Logs are variable data, so they'll be found in `/var` under `/var/log/`.  They can be rougly classified into system logs and service or program logs.
+Logs are variable data, so they'll be found in `/var` under `/var/log/`.  They can be roughly classified into system logs and service or program logs.
 
 #### System Logs
 
@@ -377,7 +372,7 @@ Next, let's turn our attention to service or program logs:
     + `access_log`
     + `error_log`
     + `page_log`
-- `/var/log/apache2/`, `/var/log/httpd`
+- `/var/log/{apache2,httpd}/`
     + `access_log`
     + `error_log`
     + `other_vhosts_access.log`
@@ -390,7 +385,7 @@ Next, let's turn our attention to service or program logs:
     + `log.smbd`
 - `/var/log/dpkg.log`
     + containing information related to dpkg packages
-    + Debian-derivatives
+    + only exists for Debian distributions
 
 ### Reading Logs
 
@@ -400,7 +395,7 @@ Next, let's turn our attention to service or program logs:
 
 > By default, [`logrotate`] will use `gzip` for compression.
 
-In addition, you can use your old friends [`head`], [`tail`] (often with the `-f|--follow` switch) and [`grep`].
+In addition, you can use your old friends [`head`], [`tail`] (often with `-f` or `--follow`) and [`grep`].
 
 #### Format
 
@@ -450,6 +445,13 @@ Most of the logs are textual, but some are binary.  Here are some examples and t
 
 1. Applications, services and the kernel write messages in special files (sockets and memory buffers), e.g. `/dev/log` or `/dev/kmsg`.
 
+    ```
+    $ readlink -f /dev/log
+    /run/systemd/journal/dev-log
+    $ file $(!!)
+    file $(readlink -f /dev/log)
+    /run/systemd/journal/dev-log: socket
+    ```
 1. `rsyslogd` gets the information from the sockets or memory buffers.
 
 1. depending on the rules found in [`/etc/rsyslog.conf`] and/or the files in `/etc/ryslog.d/`, `rsyslogd` moves the information to the corresponding log file (typically found in `/var/log`)
@@ -464,7 +466,7 @@ $ systemctl list-sockets --all
 
 The configuration log for `rsyslogd` can be found in [`/etc/rsyslog.conf`].  It (usually) consists of three sections:
 
-- `MODULES
+- `MODULES`
     + includes module support for logging, message capability and `UDP` and `TCP` log reception:
         ```
         #################
@@ -594,9 +596,9 @@ The configuration log for `rsyslogd` can be found in [`/etc/rsyslog.conf`].  It 
 
 So, what's the rule format?
 
-`facility>.<priority> <action>`
+`<facility>.<priority> <action>`
 
-Let's break down some examples:
+Let's break down some examples [like it's 1984].
 
 #### Examples
 
@@ -610,7 +612,9 @@ Regardless of the priority (like in globbing, the asterisk matches everything), 
 *.*;auth,authpriv.none		-/var/log/syslog
 ```
 
-All messages, irrespective of their priority (*), from all facilities (*) (discarding those from `auth` or `authpriv` because of the `.none` suffix), will be written to `/var/log/syslog` (the hyphen `-` before the path prevents excessive disk writes).
+All messages, irrespective of their priority (\*), from all facilities (\*) (discarding those from `auth` or `authpriv` because of the `.none` suffix), will be written to `/var/log/syslog`.
+
+> The hyphen `-` before the path prevents excessive disk writes.
 
 Note the semicolon `;` to split the selector and the comma `,` to concatenate two facilities in the same rule (`auth`, `authpriv`).
 
@@ -625,7 +629,7 @@ Messages from the `mail` facility with a priority level of `error` or higher (`c
     mail.none		-/var/log/debug
 ```
 
-Messages from all facilities with the `debug` priority and no other `=` will be written to `/var/log/debug`, excluding any messages coming from the `auth`, `authpriv`, `news` and `mail` facilities (note the syntax: `;\`).
+Messages from all facilities with the `debug` priority and no other (`=`) will be written to `/var/log/debug`, excluding any messages coming from the `auth`, `authpriv`, `news` and `mail` facilities (note the syntax: `;\`).
 
 #### `logger`
 
@@ -643,7 +647,7 @@ Let's check out how we can send log messages to a remote `rsyslogd` server.
 - ensure that the `rsyslogd` server is running on the remote machine
 - create a file that loads the module and starts the `tcp` server on port 514 (for example, `SUSE` ships with a file for this, `/etc/rsyslog.d/remote.conf`)
 - restart the `rsyslogd` service
-    + `systemctl restart rsyslog
+    + `systemctl restart rsyslog`
 - open port 514 in the firewall
 - by creating a `template` and adding a `filter condition`, the logs can be written to a particular location on the remote server (instead of defaulting to `/var/log/syslog`) and be filtered by `IP` address
     + for example, the following can be added either to `/etc/rsyslog.conf` or `/etc/rsyslog.d/remote.conf` on the remote server:
@@ -675,7 +679,7 @@ $ ls /var/log/messages*
 /var/log/messages.1  /var/log/messages.3.gz
 ```
 
-For the next rotation, the oldest logfile will be deleted (`/var/log/messages.4.gz`), and the others will be incremented.  All but the current and `/var/log/messages.1` will be `gzip` compressed.
+For the next rotation, the oldest logfile will be deleted (`/var/log/messages.4.gz`), and the others will be incremented.  All but the current log file and `/var/log/messages.1` will be `gzip` compressed.
 
 `logrotate` is run as an automated process or cron job daily through the script `/etc/cron.daily/logrotate` and reads the configuration file `/etc/logrotate.conf`.
 
@@ -823,13 +827,13 @@ Using the `+` operator behaves like a `logical OR`:
 $ sudo journalctl PRIORITY=3 + SYSLOG_FACILITY=0
 ```
 
-> See [`systemd.journal-fields`] for more information.
-
 Providing two values for the same field will find all matching entries for either value:
 
 ```
 $ sudo journalctl PRIORITY=1 PRIORITY=3
 ```
+
+> See [`systemd.journal-fields`] for more information.
 
 ### `systemd-cat`
 
@@ -936,7 +940,7 @@ Also, for the `Storage=` option, have a value other than `none`.
 
 The [Mail Transfer Agent] (`MTA`), also known as the Message Transfer Agent, is a program running as a system service which sends mail message to local user inboxes as well as transferring mail messages to other user accounts on the network (by default, an `MTA` will only accept messages to local recipients).  An `MTA` is all that is needed to send and receive mail on a network.
 
-Networked machines that want to send and receive mail will each need to be running an `MTA` daemon.  However, it is more common for machines to use a webmail rather than running a local `MTA` daemon.  Note, though, that any remote user account will need proper authentication in order to retrieve the email.
+Networked machines that want to send and receive mail will each need to be running an `MTA` daemon.  However, it is more common for machines to use webmail rather than running a local `MTA` daemon.  Note, though, that any remote user account will need proper authentication in order to retrieve the email.
 
 Connections will use [`SMTP`] to facilitate the requests, and the remote `MTA` is often referred to as the `SMTP` server.
 
@@ -944,7 +948,7 @@ Connections will use [`SMTP`] to facilitate the requests, and the remote `MTA` i
 
 So, how does the local `MTA` know where to send the email?  It will determine the destination by looking at the domain name and querying `DNS` for its [`MX` record] (i.e., its mail exchanger record), which will contain the `IP` address of the `MTA` handling email for that particular domain.
 
-Some domains will have more than one `MX` record, and in those cases the `MTA` will try to send the mail in order of their priority values.  If the recipient's email address doesn't have a domain or the domain doesn't have an `MX` record, then the node is treated as being on the local network, that is, the name after the ampersand (&) is assumed to be a host name.
+Some domains will have more than one `MX` record, and in those cases the `MTA` will try to send the mail in order of their priority values.  If the recipient's email address doesn't have a domain or the domain doesn't have an `MX` record, then the node is treated as being on the local network (that is, the name after the ampersand (&) is assumed to be a host name).
 
 ```
 $ dig +short benjamintoll.com mx
@@ -953,15 +957,15 @@ $ dig +short benjamintoll.com mx
 ```
 ### `MTA`s
 
-Traditionally, Linux has used [`Sendmail`] as its `MTA`.  Other common ones are `Postfix`, `qmail` and `Exim`.  These latter software packages are often used in place of `Sendmail` as they are easier to use and easier to configure advanced features, and they can be used as drop-in replacements for `Sendmail` if they are branded as `Sendmail`-compatible.
+Traditionally, Linux has used [`Sendmail`] as its `MTA`.  Other common ones are `Postfix`, `qmail` and `Exim`.  These latter software packages are often used in place of `Sendmail` as they are easier to use and easier to configure advanced features (which `Sendmail` may not support), and they can be used as drop-in replacements for `Sendmail` if they are branded as `Sendmail`-compatible.
 
 If the `MTA` is running but not accepting network connections, it will only be able to deliver email messages to local nodes.  For `Sendmail`, some distributions may have a configuration file in `/etc/mail/sendmail.mc` that can be edited with the network `IP` address to allow non-local connections.  Of course, don't forget about the security implications of this!
 
-There may be a line in the config file that looks like the following:
-
-```
-DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl
-```
+> To support remote mail connections, look for a line in the config file like the following:
+>
+> ```
+> DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl
+> ```
 
 Let's look at an example that uses `Sendmail` and `SMTP` protocol commands to send an email message.
 
@@ -973,7 +977,7 @@ In a terminal, start the `MTA` (`Sendmail`):
 $ sudo sendmail
 ```
 
-In another, use [`ncat`] (`nc`) to send an email to a user on the system (the `SMTP` commands and email message content are in bold):
+In another, use [`ncat`] (`nc`) to send an email to a user on the system.  Since this is the manual way of sending mail, we'll need to type the `SMTP` commands ourselves when talking to the `SMTP` server instead of having an `MUA` handle those details for us (`SMTP` protocol commands and email message content are in bold):
 
 <pre>
 $ nc 127.0.0.1 25
@@ -999,7 +1003,7 @@ You have new mail in /var/mail/btoll
 
 > Note that I'm sending an email to myself on the same machine, so the `MTA` is local.  This isn't always the case, and often you would use `ncat` to establish a connection to a different `MTA`, perhaps on another subnet, where the recipient has an account.  The local `MTA` would be the exchange initiator.
 
-Here is the same example using the `Sendmail` binary instead of `SMTP` commands, which is a bit nicer than having to remember the protocol:
+Here is the same example using the `Sendmail` binary instead of `SMTP` commands, which is a bit nicer than having to remember the protocol commands yourself:
 
 ```
 sudo sendmail btoll
@@ -1036,13 +1040,13 @@ Held 0 messages in /var/mail/btoll
 
 ```
 
-Again, I'm sending it to myself, because I have no friends.  Then, I'm accessing the email through the `mail` program before exiting it.
+Again, I'm sending it to myself, because I have no friends.  Then, I'm accessing the email through the `mail` program.
 
 If there was a failure when trying to deliver this message, then the [`mailq`] command, executed with elevated privileges, will show all of the undelivered messages.
 
 > The `sendmail -bp` command is equivalent to `mailq`.  Present regardless of the `MTA` being used, it's an example of how most `MTA`s provide backwards-compatibility with these traditional mail administration commands.
 
-As mentioned before, email destination hosts are tried by the `MTA` in order of their priority values.  If none of the destination hosts are reachable, the message will stay in the local outbox queue to be sent later.  If configured to do so, the `MTA` may check periodically if the message can be sent by trying to reach the destination `MTA`s.  Note that a `Sendmail`-compatible `MTA` can force a new attempt by issuing `sendmail -q`.
+As mentioned before, email destination hosts are tried by the `MTA` in order of their priority values as discovered by doing a `DNS` query for the `MX` record(s).  If none of the destination hosts are reachable, the message will stay in the local outbox queue to be sent later.  If configured to do so, the `MTA` may check periodically if the message can be sent by trying to reach the destination `MTA`s.  Note that a `Sendmail`-compatible `MTA` can force a new attempt by issuing `sendmail -q`.
 
 ### Mail Locations
 
@@ -1053,11 +1057,15 @@ $ ls -i /var/spool/mail/btoll /var/mail/btoll
 3436880 /var/mail/btoll  3436880 /var/spool/mail/btoll
 ```
 
+Note that the [inode] numbers are the same, so we know that it's a hard link.
+
 The default location of the outbox queue is `/var/spool/mqueue/`, but, again, different `MTA`s will do different things.  `Postfix`, for example, stores its directory structure in `/var/spool/postfix/`.
 
 ### `MUA`s
 
 Mail (or Message) User Agents are programs that take care of communicating with the `MTA` under the hood.  It presents an easy-to-use user interface to manage the email.
+
+> By "under the hood", I mean that the `MUA` will communicate with the `MTA` using the `SMTP` protocol.
 
 `MUA`s include `Thunderbird` and `Evolution`.  Even webmail is a type of `MUA`.  Of course, there are console mail programs like `mail` (provided by the `mailx` package) or [`GNU Mailutils`].
 
@@ -1076,7 +1084,7 @@ By default, email accounts on a Linux system will use the account name.  For exa
 
 These aliases are virtual email addresses, where the messages are redirected to existing local mailboxes.  After an alias is added or modified in `/etc/aliases`, it's necessary to run the [`newaliases`] command which updates the `MTA`'s aliases database.
 
-> The `sendmail -bi` or `sendmail -I` can also be used to update the `MTA`'s aliases database.
+> The `sendmail -bi` or `sendmail -I` commands and switches can also be used to update the `MTA`'s aliases database.
 
 In addition to redirecting an email to a local mailbox using an alias, it is also possible to have other destinations for the email:
 
@@ -1095,9 +1103,9 @@ In addition to redirecting an email to a local mailbox using an alias, it is als
     + example:
         - `subscribe: :include:/var/local/destinations`
 
-Unprivileged users can add aliases in their home directory in the [`.forward`] file.  Since the aliases only affect their one and only user account (mailbox), only the destination part (as described above) is necessary.
+Unprivileged users can add aliases in their home directory in the [`.forward`] file.  Since the aliases only affect their one and only user account (mailbox), only the destination (as described above) is necessary.
 
-Redirection rules are added one per line.  The `.forward` file must be writable only by its owner, and it's not necessary to run `newaliases` or any of the `sendmail` commands after updating.
+Redirection rules are added one per line.  The `.forward` file must be writable only by its owner, and it's not necessary to run `newaliases` or any of the previous `sendmail` commands after updating.
 
 ## `CUPS`
 
@@ -1129,7 +1137,7 @@ The [Common UNIX Printing System] (`CUPS`) allows for printing and printer manag
         - `error_log`
             + contains messages about print jobs that have failed and other errors recorded by the web interface
 
-There is a web interface at `http://localhost:631` for `CUPS`.
+There is a web interface at <a href="http://localhost:631">`http://localhost:631`</a> for `CUPS`.
 
 ### Adding Printers
 
@@ -1194,7 +1202,7 @@ Here is an example of a print job aborting if an error is detected:
 $ sudo lpadmin -p FRONT-DESK -o printer-error-policy=abort-job
 ```
 
-### Submitting Print Jobs]
+### Submitting Print Jobs
 
 Use the [`lpr`] command to send a print job to a printer's queue.  The following command will send a job to the default printer, as determined by the `/etc/cups/printers.conf` file:
 
@@ -1275,7 +1283,7 @@ $ lprm -
 
 ### Removing Printers
 
-Before removing a printer, it may be helpful to list out all of the printers use the `-v` switch of the `lpstat` executable:
+Before removing a printer, it may be helpful to list out all of the printers using the `-v` switch of the `lpstat` executable:
 
 ```
 $ lpstat -v
@@ -1298,6 +1306,8 @@ $ sudo lpadmin -x FRONT-DESK
 
 # Summary
 
+Well, that was mostly boring as hell.
+
 Continue your journey with the fifth installment in this titillating series, [On the LPIC-1 Exam 102: Networking Fundamentals](/2023/02/03/on-the-lpic-1-exam-102-networking-fundamentals/).
 
 # References
@@ -1315,6 +1325,7 @@ Continue your journey with the fifth installment in this titillating series, [On
 [`date`]: https://man7.org/linux/man-pages/man1/date.1.html
 [Coordinated Universal Time]: https://www.timeanddate.com/time/aboututc.html
 [RFC 5322]: https://www.rfc-editor.org/rfc/rfc5322
+[RFC 3339]: https://www.rfc-editor.org/rfc/rfc3339
 [ISO 8601]: https://en.wikipedia.org/wiki/ISO_8601
 [Year 2038 problem]: https://en.wikipedia.org/wiki/Year_2038_problem
 [integer overflow]: https://en.wikipedia.org/wiki/Integer_overflow
@@ -1385,4 +1396,6 @@ Continue your journey with the fifth installment in this titillating series, [On
 [`cancel`]: https://man7.org/linux/man-pages/man1/cancel.1.html
 [`lpmove`]: https://man7.org/linux/man-pages/man8/lpmove.8.html
 [`cupsreject`]: https://man7.org/linux/man-pages/man8/cupsaccept.8.html
+[like it's 1984]: https://en.wikipedia.org/wiki/Breakin'
+[inode]: /2019/11/19/on-inodes/
 
