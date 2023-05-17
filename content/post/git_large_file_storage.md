@@ -30,7 +30,7 @@ At the time of this writing, the latest version is 3.1.1: https://github.com/git
 
 After downloading it, extract the archive and execute the `install.sh` script.  This will install the pre-compiled Go binary `git-lfs` and run the following command:
 
-```
+```bash
 $ git lfs install
 Updated git hooks.
 Git LFS initialized.
@@ -38,19 +38,19 @@ Git LFS initialized.
 
 Running this adds the following section to the global Git config file (`.gitconfig`):
 
-<pre class="math">
+```ini
 [filter "lfs"]
         clean = git-lfs clean -- %f
         smudge = git-lfs smudge -- %f
         process = git-lfs filter-process
         required = true
-</pre>
+```
 
 Of course, you don't *have* to run the install script.  If you look at its contents, it's actually quite simple and really only saves a couple of manual steps.
 
 Further, it doesn't install the man files located in the archive's `man/` directory.  If you're interested in installing those, you'll have to do that yourself:
 
-```
+```bash
 $ sudo install --mode 0644 man/*1 /usr/local/man/man1
 $ sudo install --mode 0644 man/*5 -D --target-directory /usr/local/man/man5
 ```
@@ -59,7 +59,7 @@ $ sudo install --mode 0644 man/*5 -D --target-directory /usr/local/man/man5
 
 Now, view the man pages!
 
-```
+```bash
 $ man git-lfs-update
 $ man 5 git-lfs-config
 ```
@@ -103,7 +103,7 @@ $ tree -aI .git
 
 Note that the paths are relative to the root of the repository.
 
-```
+```bash
 $ git lfs track "hugo/hugo.tar.xz"
 Tracking "hugo/hugo.tar.xz"
 ```
@@ -112,7 +112,7 @@ The first time that `git-lfs-track` is called, it will create a `.gitattributes`
 
 Tracking another file will add another entry to the `.gitattributes` file.
 
-```
+```bash
 $ git lfs track "tor-browser/tor-browser.tar.xz"
 Tracking "tor-browser/tor-browser.tar.xz"
 
@@ -123,7 +123,7 @@ tor-browser/tor-browser.tar.xz filter=lfs diff=lfs merge=lfs -text
 
 Let's verify that it's tracking the paths that we just added:
 
-```
+```bash
 $ git lfs track
 Listing tracked patterns
     hugo/hugo.tar.xz (.gitattributes)
@@ -133,7 +133,7 @@ Listing excluded patterns
 
 We'll now add and commit the new files:
 
-```
+```bash
 git add *.tar.xz .gitattributes
 git commit -m 'Added nspawn container tarballs'
 ```
@@ -142,7 +142,7 @@ Now that the objects have been committed to the database, the tool is aware of t
 
 Running the next command will verify the files and/or file patterns that are being tracked:
 
-```
+```bash
 $ git lfs ls-files
 bfd840fa63 * hugo/hugo.tar.xz
 68540ee38c * tor-browser/tor-browser.tar.xz
@@ -164,7 +164,7 @@ So, can we download the large file from the remote repository like we're used to
 
 We can prove this using [`curl`].  We'll turn on `verbose` output to get extra info when dumping the header information for all of the redirects.  Each hop will be prefaced with the text `< location` (at the beginning of new line), so a simple pipeline to a tool that can do textual searches will do the trick:
 
-```
+```bash
 $ curl -vIL https://github.com/btoll/machines/raw/master/tor-browser/tor-browser.tar.xz 2>&1 \
     | ag "^< location:"
 < location: https://media.githubusercontent.com/media/btoll/machines/master/tor-browser/tor-browser.tar.xz
@@ -178,21 +178,21 @@ Let's drill down into the Git object database to verify that Git itself is only 
 
 Before we do, let's see the size of the large file on disk (in bytes):
 
-```
+```bash
 $ stat --format=%s tor-browser/tor-browser.tar.xz
 201371436
 ```
 
 Now, let's get the contents of the `tree` object from the latest commit of the branch pointed to by `HEAD`.  First, we'll verify that the last commit contains the objects we're interested in.
 
-```
+```bash
 $ git log -1 HEAD --oneline
 f3c7847 (HEAD -> master, origin/master) Added nspawn container tarballs
 ```
 
 That indeed contains the tarballs, so let's drill into the commit's `tree` object:
 
-```
+```bash
 $ git cat-file -p master^{tree}
 100644 blob bfbf5761375d136171d57bd47a65561cc4763cdc    .gitattributes
 040000 tree 340818d02e10f3367f36e2816e9c02c9abc6472b    hugo
@@ -201,7 +201,7 @@ $ git cat-file -p master^{tree}
 
 And take a look at the `tree` object that represents `tor-browser`:
 
-```
+```bash
 $ git cat-file -p 65ce727
 100644 blob 6a7707ceea144076d2fa9d20307bfd0b2e743163    .Dockerignore
 100644 blob 7d21223cd1f1053bbc3a76c46a44c977038a9481    Dockerfile
@@ -213,7 +213,7 @@ $ git cat-file -p 65ce727
 
 Finally, let's see the size of the `tor-browser.tar.xz` in bytes.  Again, this is the pointer to the large file stored on the aforementioned server:
 
-```
+```bash
 $ git cat-file -s d82da0c
 134
 ```
@@ -224,7 +224,7 @@ As a sanity to assure ourselves that the Git blob objects are indeed storing a r
 
 Is the size of the shell script `install_tor_browser.sh` in the working directory the same as that of the `blob` boject in the Git object database?
 
-```
+```bash
 $ stat --format=%s tor-browser/install_tor_browser.sh
 1335
 
@@ -247,7 +247,7 @@ No problem, you think to yourself, I'll check out the repo's [`README`] and see 
 
 Armed with the suggestion from the `README`, I'll just sidle up to the keyboard and type that in.
 
-```
+```bash
 $ git lfs migrate import --include="*.zed" --everything
 migrate: Sorting commits: ..., done.
 migrate: Rewriting commits: 100% (2/2), done.
@@ -262,7 +262,7 @@ I present the following before and after snapshots of the git log as evidence.
 
 **Before**
 
-```
+```bash
 $ git log --oneline
 f3c7847 (HEAD -> master) Added nspawn container tarballs
 5373111 Initial commit
@@ -270,7 +270,7 @@ f3c7847 (HEAD -> master) Added nspawn container tarballs
 
 **After**
 
-```
+```bash
 $ git log --oneline
 cdb98a1 (HEAD -> master) Added nspawn container tarballs
 275933a Initial commit
@@ -286,7 +286,7 @@ Let's explore further.  Since the Git history only includes two commits, we can 
 
 **Before**
 
-```
+```bash
 $ git cat-file -p master^^{tree}
 040000 tree 4d32b2a7c05a99a091f4739340138a14ba00a167    hugo
 040000 tree de471a5e090040da0b376f75cbe744046696fa7f    tor-browser
@@ -294,7 +294,7 @@ $ git cat-file -p master^^{tree}
 
 **After**
 
-```
+```bash
 $ git cat-file -p master^^{tree}
 100644 blob 5ff9029b4eb0b849c29f4ca93546e7044478349e    .gitattributes
 040000 tree 4d32b2a7c05a99a091f4739340138a14ba00a167    hugo

@@ -29,7 +29,7 @@ For example, let's take another look at how the original certificate was issued.
 
 Here's the command:
 
-```
+```bash
 $ ./create_cert.sh \
     -d benjamintoll.com \
     -d www.benjamintoll.com \
@@ -40,7 +40,7 @@ $ ./create_cert.sh \
 
 The only problem is that a new certificate needs to be created anytime a new virtual server is added (i.e, an additional domain or subdomain).  Of course, this isn't a big deal because the certificates are free, but you may run into [rate limits]!
 
-```
+```bash
 $ ./create_cert.sh \
     -d benjamintoll.com \
     -d www.benjamintoll.com \
@@ -59,7 +59,7 @@ That's it!  Not too shabby!
 
 In fact, since the location and names of the certs shouldn't change and they're being mounted into the container, all I need to do after generating the certificate is just restart cluster:
 
-```
+```bash
 $ docker-compose down
 $ docker-compose up -d
 ```
@@ -70,8 +70,8 @@ You can also extract information about the certificate using the `x509` subcomma
 
 For example, to view the values of the SAN extension, issue the following command:
 
-```
-# openssl x509 -in cert.pem -noout -ext subjectAltName
+```bash
+$ sudo openssl x509 -in cert.pem -noout -ext subjectAltName
 X509v3 Subject Alternative Name:
     DNS:benjamintoll.com, DNS:italy.benjamintoll.com, DNS:theowlsnest.farm, DNS:theowlsnestfarm.com, DNS:www.benjamintoll.com, DNS:www.theowlsnest.farm, DNS:www.theowlsnestfarm.com
 ```
@@ -84,7 +84,7 @@ Now comes one of the fun parts: refactoring the nginx configuration.  Currently,
 
 For example, here is the `nginx.conf` file that was installed during the installation:
 
-<pre class="math">
+```conf
 user  nginx;
 worker_processes  auto;
 
@@ -116,7 +116,7 @@ http {
 
     include /etc/nginx/conf.d/*.conf;
 }
-</pre>
+```
 
 We'll see in a bit how much of the duplicated code can be moved into this block, thereby greatly simplifying the overall configuration.
 
@@ -130,7 +130,7 @@ In addition, each `server` block can contain one or more `location` blocks.
 
 Here is the mental model:
 
-<pre class="math">
+```conf
 http {
     ...
 
@@ -156,7 +156,7 @@ http {
         }
     }
 }
-</pre>
+```
 
 ---
 
@@ -191,7 +191,7 @@ Currently, the only configuration in `conf.d/` is `default.conf`.  In that file,
 
 Here is the file structure on disk:
 
-```
+```bash
 $ tree conf.d/
 conf.d/
 ├── benjamintoll.conf
@@ -206,7 +206,7 @@ We'll just take a look at one of the files.  No matter the file, though, it's be
 
 `conf.d/theowlsnest.conf`
 
-<pre class="math">
+```conf
 server {
     server_name www.theowlsnest.farm;
 
@@ -226,7 +226,7 @@ server {
         proxy_pass http://owlsnestfarm;
     }
 }
-</pre>
+```
 
 Hopefully, this is self-explanatory.
 
@@ -234,7 +234,7 @@ Next, we'll look at the `nginx.conf` file to see where all of the duplicated con
 
 `nginx.conf`
 
-<pre class="math">
+```conf
 http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
@@ -278,13 +278,15 @@ http {
 
     include /etc/nginx/conf.d/*.conf;
 }
-</pre>
+```
 
 Prior to the refactor, all the security header and TLS directives had existed in each `server` block.  That's no bueno!  Now, it resides in only one file and is inherited by every internal `server` block.
 
 It makes sense to put the TLS directives globally, since we obviously want to use TLS everywhere.  The only `server` block that doesn't use it is the default block that rewrites the requests to use `https`.  In that block, I've simply turned off TLS by including the directive:
 
-    ssl off;
+```conf
+ssl off;
+```
 
 It's that easy.
 

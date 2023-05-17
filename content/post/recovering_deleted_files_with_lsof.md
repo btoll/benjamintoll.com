@@ -70,14 +70,14 @@ The result of this piped output will show the following:
 - the [`inode`] number of the file
 - the full path of the file
 
-```
+```bash
 $ lsof | ag macron.txt
 less      1510962                              btoll    4r      REG                8,2       304    6555903 /home/btoll/projects/benjamintoll.com/macron.txt (deleted)
 ```
 
 Now, that we know the `pid`, we can list its file descriptors in the `proc` pseudo-filesystem:
 
-```
+```bash
 $ ls -l /proc/1510962/fd
 total 0
 lrwx------ 1 btoll btoll 64 Aug 30 00:45 0 -> /dev/pts/2
@@ -89,14 +89,14 @@ lr-x------ 1 btoll btoll 64 Aug 30 00:45 4 -> '/home/btoll/projects/benjamintoll
 
 Here, you can see that the file descriptor `4` is a symbolic link to the deleted file:
 
-```
+```bash
 $ file /proc/1510962/fd/4
 /proc/1510962/fd/4: symbolic link to /home/btoll/projects/benjamintoll.com/macron.txt (deleted)
 ```
 
 And, we can prove that some program (well, we know that's `less`) has opened it because we can see that [`stat`] still shows one reference to it:
 
-```
+```bash
 $ stat /proc/1510962/fd/4
   File: /proc/1510962/fd/4 -> /home/btoll/macron.txt (deleted)
   Size: 64              Blocks: 0          IO Block: 1024   symbolic link
@@ -110,7 +110,7 @@ Change: 2022-08-30 01:28:49.098088543 -0400
 
 But, that's ok, because we can still use the file descriptor to copy the contents.  After all, its content hasn't been deleted yet since its inode still contains a reference (the `less` program), so we can copy the bits from disk that the inode references in its data structure.
 
-```
+```bash
 $ cp /proc/1510962/fd/4 macron.txt.restored
 $ cat macron.txt.restored
 [original text]
@@ -122,7 +122,7 @@ There are other nifty uses for `lsof`, as you can probably imagine.
 
 ### What process has network files with `TCP` state `LISTEN`?
 
-```
+```bash
 $ lsof -i tcp -s TCP:LISTEN
 COMMAND  PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 python3 3987 btoll    3u  IPv4  57565      0t0  TCP *:http-alt (LISTEN)
@@ -130,7 +130,7 @@ python3 3987 btoll    3u  IPv4  57565      0t0  TCP *:http-alt (LISTEN)
 
 ### What process is bound to a specific port?
 
-```
+```bash
 $ lsof -i tcp:8080
 COMMAND  PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 python3 3987 btoll    3u  IPv4  57565      0t0  TCP *:http-alt (LISTEN)
@@ -138,7 +138,7 @@ python3 3987 btoll    3u  IPv4  57565      0t0  TCP *:http-alt (LISTEN)
 
 ### What processes have opened a file?
 
-```
+```bash
 $ lsof /tmp/ycm_jgy46s88.log
 COMMAND     PID  USER   FD   TYPE DEVICE SIZE/OFF    NODE NAME
 vim     1544747 btoll    3w   REG    8,2      214 8912927 /tmp/ycm_jgy46s88.log
@@ -148,7 +148,7 @@ btoll    1544747  0.0  0.1 112220 25960 pts/1    Sl+  01:59   0:00 vim baseball.
 
 Of course, now that have have the `pid`, we can get all sorts of useful information from the kernel about the process in `/proc`:
 
-```
+```bash
 $ ls - /proc/1544747/fd
 total 0
 lrwx------ 1 btoll btoll 64 Aug 30 02:00 0 -> /dev/pts/1
@@ -171,7 +171,7 @@ vimbaseball.py
 
 By `pid`:
 
-```
+```bash
 $ lsof -p 1544747
 COMMAND     PID  USER   FD   TYPE DEVICE SIZE/OFF     NODE NAME
 vim     1544747 btoll  cwd    DIR    8,2     4096  6029314 /home/btoll
@@ -187,7 +187,7 @@ vim     1544747 btoll  mem    REG    8,2    74848 11665495 /lib/x86_64-linux-gnu
 
 By name:
 
-```
+```bash
 $ lsof -c less
 COMMAND     PID  USER   FD   TYPE DEVICE SIZE/OFF     NODE NAME
 less    1733935 btoll  cwd    DIR    8,2     4096  6029314 /home/btoll
@@ -206,7 +206,7 @@ less    1733935 btoll    4r   REG    8,2      608  6036785 /home/btoll/macron.t
 
 ### Which files does a specific user have open?
 
-```
+```bash
 $ lsof -u btoll
 ...
 ```

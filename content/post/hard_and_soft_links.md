@@ -14,7 +14,7 @@ Conversely, a soft link does not share the target's `inode`.  Rather, it just po
 
 For instance, if a symlink is created and then the target it points to is deleted, well, that's a bad thing.  You're now left with a broken link and potential heartache:
 
-```
+```bash
 $ touch 1
 $ ln -s {1,2}
 $ ls -l
@@ -39,13 +39,13 @@ Use the [`ln`] command-line program to create both a hard and soft links:
 
 Hard link:
 
-```
+```bash
 $ ln target_file.txt new_hard_link.txt
 ```
 
 Soft link:
 
-```
+```bash
 $ ln -s target_file.txt new_soft_link.txt
 ```
 
@@ -53,7 +53,7 @@ $ ln -s target_file.txt new_soft_link.txt
 
 For example, let's create a file `foo`, hard link the file `bar` to it and then inspect the number of hard links to this particular `inode` as well as the `inode` number and the time of last access, respectively:
 
-```
+```bash
 $ touch foo
 $ ln {foo,bar}
 $ stat --format "%h | %i | %x" {foo,bar}
@@ -63,7 +63,7 @@ $ stat --format "%h | %i | %x" {foo,bar}
 
 Now, update the access time of the `bar` file.  Observe that both the files have been updated, since the `inode` that they both share had its data structure modified:
 
-```
+```bash
 $ touch bar
 $ stat --format "%h | %i | %x" {foo,bar}
 2 | 7213164 | 2022-09-20 17:19:49.208433336 -0400
@@ -72,7 +72,7 @@ $ stat --format "%h | %i | %x" {foo,bar}
 
 Let's change the access rights:
 
-```
+```bash
 $ stat --format %A {foo,bar}
 -rw-rw-r--
 -rw-rw-r--
@@ -96,7 +96,7 @@ For instance, since a soft link will create its own `inode`, the kernel would fi
 
 This example demonstrates that hard and soft links will get its own `inode`:
 
-```
+```bash
 $ touch 1
 $ ln -s {1,2}
 $ ls -l
@@ -114,7 +114,7 @@ Some file systems don't allow hard links to directories (although symlinks can b
 
 For example, on my Linux machine on an `ext4` filesystem type, I tried to create a hard link to the current directory but was disallowed:
 
-```
+```bash
 $ ln . derpy
 ln: .: hard link not allowed for directory
 ```
@@ -123,7 +123,7 @@ ln: .: hard link not allowed for directory
 
 The following example will demonstrate that filesystems will get their own allotted number of `inodes`.  Observe that the number of the `inode` is greatly different depending on the filesystem (especially, when it was created, i.e., longer-living filesystems will (usually) have higher numbers assigned to `inodes`).
 
-```
+```bash
 $ mkdir foo
 $ sudo mount -t tmpfs -o size=150M tmpfs foo
 $ file foo
@@ -154,7 +154,7 @@ Clearly, they have different device names and different `inode` numbers.
 
 Here's another example.  Note that these three utilities are all hard links referencing the same `inode`:
 
-```
+```bash
 $ ls -il /bin | ag 786461
 786461 -rwxr-xr-x 3 root root   39144 Sep  5  2019 bunzip2
 786461 -rwxr-xr-x 3 root root   39144 Sep  5  2019 bzcat

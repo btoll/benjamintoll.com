@@ -94,7 +94,7 @@ Here is an easy one-line example using [`bpftrace`], taken from the [`README`] a
 
 It runs a script when any process on the machine makes a system call.  Note that it blocks and only quits by sending the [`SIGINT`] interrupt signal (Control-C) to the process:
 
-```
+```bash
 $ sudo bpftrace -e 'tracepoint:raw_syscalls:sys_enter { @[comm] = count(); }'
 Attaching 1 probe...
 ^C
@@ -131,7 +131,7 @@ Attaching 1 probe...
 
 Here is [a "Hello, World!" example] taken from the [`bcc`] project.  It provides Python bindings and allows you to embed the C code directly into the program:
 
-```
+```python
 #!/usr/bin/python
 #
 # This is a Hello World example that formats output as fields.
@@ -168,7 +168,7 @@ while 1:
 
 `chmod` that little sucker and run it with escalated privileges because it's inserted code into the kernel.  Again, note that it blocks and only quits by sending the [`SIGINT`] interrupt signal (Control-C) to the process:
 
-```
+```bash
 (ebpf) $ chmod 700 main.py
 (ebpf) $ sudo ./main.py
 TIME(s)            COMM             PID    MESSAGE
@@ -189,7 +189,7 @@ TIME(s)            COMM             PID    MESSAGE
 
 If you get an error similar to the following, it means that you need to install the `bcc` tools on your machine:
 
-```
+```bash
 Traceback (most recent call last):
   File "./main.py", line 9, in <module>
     from bcc import BPF

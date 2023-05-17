@@ -119,24 +119,24 @@ I wrote a recent article [On Virtual Machines] that has [a section on emulating 
 
 `strace` is a well-known tool used to trace the system calls and signals of a process.  It takes the command it's tracing as an argument:
 
-```
+```bash
 $ strace ls
 ```
 
 Let's take a look at using it to trace a very simple C program:
 
-<pre class="math">
-#include &lt;stdio.h&gt;
+```c
+#include <stdio.h>
 
 int main(void) {
     puts("Hello, world!");
 }
 
-</pre>
+```
 
 Compile it and run:
 
-```
+```bash
 $ gcc -o hello hello.c
 $ strace -c ./hello
 Hello, world!
@@ -162,7 +162,7 @@ Hello, world!
 
 > From the [`strace` man page]:
 >
-> <pre class="math">
+> ```bash
 > -c
 > --summary-only
 >         Count time, calls, and errors for each system call and report a summary on
@@ -170,7 +170,7 @@ Hello, world!
 >         system time (CPU time spent running in the kernel) independent of wall clock
 >         time.  If -c is used with -f, only aggregate totals for all traced processes
 >         are kept.
-> </pre>
+> ```
 >
 > Omit the `-c` option to get see the about the calls parameters.
 
@@ -199,16 +199,16 @@ The number of system calls varies according to the operating system.  For instan
 
 Let's disassemble this tiny `C` program:
 
-<pre class="math">
-#include &lt;stdio.h&gt;
+```c
+#include <stdio.h>
 
 int main(void) {
     puts("Hello, world!");
 }
 
-</pre>
-
 ```
+
+```bash
 $ gcc -c hello.c
 $ objdump -d hello.o
 
@@ -230,7 +230,7 @@ Disassembly of section .text:
 
 The subroutine call `callq` is probably the system call, but to see it more explicitly, let's use our [old] [friend] [`gdb`].  Here, we'll target just the function calls we're interested in:
 
-```
+```bash
 $ gdb -batch -ex 'file hello' -ex 'disassemble main' -ex 'disassemble puts'
 Dump of assembler code for function main:
    0x0000000000001149 <+0>:     endbr64
@@ -259,12 +259,12 @@ The following are only examples of how a high-level language like `C` and `Go` h
 
 [`C`]
 
-<pre class="math">
+```c
 #define _GNU_SOURCE
-#include &lt;unistd.h&gt;
-#include &lt;sys/syscall.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;signal.h&gt;
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <signal.h>
 
 int
 main(int argc, char *argv[])
@@ -274,11 +274,12 @@ main(int argc, char *argv[])
    tid = syscall(SYS_gettid);
    syscall(SYS_tgkill, getpid(), tid, SIGHUP);
 }
-</pre>
+
+```
 
 [`Go`]
 
-<pre class="math">
+```go
 import (
 	"fmt"
 	"os"
@@ -292,7 +293,7 @@ func main() {
 		os.Exit(1)
 	}
 }
-</pre>
+```
 
 <!--
 https://en.wikipedia.org/wiki/INT_(x86_instruction)

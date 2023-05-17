@@ -40,17 +40,19 @@ According to the man page, there were two motivations for creating the `memfd_cr
 
 1. As an alternative to creating a [`tmpfs`] filesystem, mounting it, creating and opening a file and then tearing it all down.  In addition, the [`fnctl`] system call exposes many APIs that the anonymous file and its associated file descriptor can use to seal the file (the anonymous memory, in this case).
 
-       $ mkdir foo
-       $ sudo mount -t tmpfs -o size=150M tmpfs foo
-       $ df -hT foo
-       Filesystem     Type   Size  Used Avail Use% Mounted on
-       tmpfs          tmpfs  150M     0  150M   0% /home/btoll/foo
-       $ echo weeeeeeeeeee > foo/bar
-       $ df -hT foo
-       Filesystem     Type   Size  Used Avail Use% Mounted on
-       tmpfs          tmpfs  150M  4.0K  150M   1% /home/btoll/foo
-       $ sudo umount foo
-       $ rmdir foo
+   ```bash
+   $ mkdir foo
+   $ sudo mount -t tmpfs -o size=150M tmpfs foo
+   $ df -hT foo
+   Filesystem     Type   Size  Used Avail Use% Mounted on
+   tmpfs          tmpfs  150M     0  150M   0% /home/btoll/foo
+   $ echo weeeeeeeeeee > foo/bar
+   $ df -hT foo
+   Filesystem     Type   Size  Used Avail Use% Mounted on
+   tmpfs          tmpfs  150M  4.0K  150M   1% /home/btoll/foo
+   $ sudo umount foo
+   $ rmdir foo
+   ```
 
     That's a lot of work!
 
@@ -82,17 +84,17 @@ Either method isn't great, and one can quickly see the huge benefits of the adde
 
 We can get access to the file sealing APIs that can be used to manipulate file descriptors using the [`fcntl`] sycall.  In the example below, we're changing the behavior of the `memfd_create` syscall by allowing file sealing on the anonymous.  I'll annotate the program with notes below it.
 
-<pre class="math">
+```c
 #define _GNU_SOURCE
 
-#include &lt;stdlib.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;sys/mman.h&gt;
-#include &lt;sys/syscall.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;string.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;fcntl.h&gt;                                                      (1)
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <fcntl.h>                                                      (1)
 
 #define MAX_SIZE 4096
 
@@ -139,7 +141,7 @@ int main(void) {
     sleep(30);
 }
 
-</pre>
+```
 
 Notes:
 
@@ -157,16 +159,16 @@ There are other operations such as `F_GET_SEALS` that are not in the above examp
 
 This example is the same as the one above in the section on [file sealing](#file-sealing) with the sealing functionality removed.
 
-<pre class="math">
+```c
 #define _GNU_SOURCE
 
-#include &lt;stdlib.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;sys/mman.h&gt;
-#include &lt;sys/syscall.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;string.h&gt;
-#include &lt;sys/types.h&gt;
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
 
 #define MAX_SIZE 4096
 
@@ -204,11 +206,11 @@ int main(void) {
     sleep(30);
 }
 
-</pre>
+```
 
 In the first terminal, compile the program and run it.  It will block for ~30s, and in the interim we get its `pid` and list its file descriptors in a second terminal.
 
-```
+```bash
 $ gcc -o memfd_create memfd_create.c
 $ ./memfd_create
 One likes to believe in the freedom of music,
@@ -217,7 +219,7 @@ but glittering prizes and endless compromises shatter the illusion of integrity.
 
 In the second terminal:
 
-```
+```bash
 $ ps -C memfd_create
     PID TTY          TIME CMD
  165943 pts/2    00:00:00 memfd_create
@@ -234,16 +236,16 @@ Note the name `kilgore` that is displayed when listing the processes file descri
 
 Here's another example of the same program that uses pointers to write to an area in virtual memory mapped by [`mmap`] instead of using system calls.  This version should be faster because writing there are no privilege context switches.
 
-<pre class="math">
+```c
 #define _GNU_SOURCE
 
-#include &lt;stdlib.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;sys/mman.h&gt;
-#include &lt;sys/syscall.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;string.h&gt;
-#include &lt;sys/types.h&gt;
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
 
 #define MAX_SIZE 4096
 
@@ -279,11 +281,11 @@ int main(void) {
     sleep(30);
 }
 
-</pre>
+```
 
 After compiling and running the program it blocks, and getting the `pid` in another terminal allows us to look up the file descriptors:
 
-```
+```bash
 $ ps aux | ag [m]emfd_create_mmap
 btoll     779662  0.0  0.0   2488  1228 pts/2    S+   02:49   0:00 ./memfd_create_mmap
 $ ls -l /proc/779662/fd
@@ -305,10 +307,10 @@ There have long existed other ways to create temporary files (re, **not** anonym
 
 `tmpfile.c`
 
-<pre class="math">
-#include &lt;stdio.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;errno.h&gt;
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <errno.h>
 
 int main(void) {
     FILE *fp = tmpfile();
@@ -322,13 +324,13 @@ int main(void) {
     sleep(30);
 }
 
-</pre>
+```
 
 In the first terminal, we compile the program, list the contents of the `/tmp` directory, run the program and list `/tmp` again.  The [`tmpfile`] function does create a file on disk, however it deletes it automatically when it is closed or the program terminates.
 
 Technically, it really isn't a synonym in the sense that it doesn't create an anonymous file behind the scenes, but in practice it is similar because the kernel takes care of removing it from the permanent backing storage itself without needing the developer to.
 
-```
+```bash
 $ gcc -o tmpfile tmpfile.c
 $ ls /tmp
 $ ./tmpfile
@@ -337,7 +339,7 @@ $ ls /tmp
 
 In the second terminal, we get the `pid` of the `tmpfile` program and list its file descriptors:
 
-```
+```bash
 $ ps -C tmpfile
     PID TTY          TIME CMD
 3970916 pts/2    00:00:00 tmpfile
@@ -353,15 +355,15 @@ lrwx------ 1 btoll btoll 64 Aug 24 01:24 3 -> '/tmp/#8912919 (deleted)'
 
 `o_tmpfile.c`
 
-<pre class="math">
+```c
 // The O_DIRECT, O_NOATIME, O_PATH, and O_TMPFILE flags are Linux-specific.
 // One must define _GNU_SOURCE to obtain their definitions.
 // man 2 open
 #define _GNU_SOURCE
 
-#include &lt;stdio.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;fcntl.h&gt;
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #ifndef PATH_MAX
 #define PATH_MAX 100
@@ -382,7 +384,7 @@ int main(void) {
     sleep(30);
 }
 
-</pre>
+```
 
 This [`open`] flag is similar to `tmpfile` in that it creates a temporary file and is automatically closed when the last file descriptor is closed.
 
@@ -394,7 +396,7 @@ According to its man page, its an improvement over `tmpfile`.  From the man page
 > - Creating a file that is initially invisible, which is then populated with data and adjusted to have appropriate filesystem attributes (fchown(2), fchmod(2), fsetxattr(2), etc.)  before being atomically linked into the filesystem in a fully formed state (using linkat(2) as described above).
 >
 
-```
+```bash
 $ gcc -o o_tmpfile o_tmpfile.c
 $ ls /tmp
 $ ./o_tmpfile
@@ -406,7 +408,7 @@ $ ls /tmp
 
 In another terminal:
 
-```
+```bash
 $ ls -l /proc/3967644/fd
 total 0
 lrwx------ 1 btoll btoll 64 Aug 24 01:19 0 -> /dev/pts/2
@@ -429,7 +431,7 @@ Here's a short description from [the project's `README`]:
 
 Getting the `elfexec` program onto my machine was as easy as 1-2-3.  I'm going to build it from source:
 
-```
+```bash
 $ git clone git@github.com:abbat/elfexec.git
 $ make
 $ sudo make install
@@ -439,7 +441,7 @@ elfexec: /usr/bin/elfexec /usr/share/man/man1/elfexec.1
 
 Now I'm running the example from [the project's `README`], which prints out the word "Hello!":
 
-```
+```bash
 $ echo '
 #include <unistd.h>
 
@@ -457,7 +459,7 @@ That's pretty nifty.  It's compiling and writing the binary to the `stdout` file
 Let's have that block and then look at its file descriptors:
 
 
-```
+```bash
 $ echo '
 #include <unistd.h>
 
@@ -473,7 +475,7 @@ Hello!
 
 In another terminal:
 
-```
+```bash
 $ ps aux | ag [e]lfexec
 btoll     306589  0.0  0.0   2356   516 pts/2    S+   14:47   0:00 elfexec
 $ ll /proc/306589/fd
@@ -490,10 +492,10 @@ lrwx------ 1 btoll btoll 64 Aug 25 14:47 3 -> '/memfd:elfexec (deleted)'
 
 `mkstemp.c`
 
-<pre class="math">
-#include &lt;stdlib.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;unistd.h&gt;
+```c
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 int main(void) {
     char template[] = "/tmp/tempfile-XXXXXX";
@@ -508,9 +510,9 @@ int main(void) {
     // unlink(template);
 }
 
-</pre>
-
 ```
+
+```bash
 $ gcc -o mkstemp mkstemp.c
 $ ls /tmp
 $ ./mkstemp
@@ -520,7 +522,7 @@ tempfile-PWrBDc
 
 In another terminal:
 
-```
+```bash
 $ ps -C mkstemp
     PID TTY          TIME CMD
 3972754 pts/2    00:00:00 mkstemp

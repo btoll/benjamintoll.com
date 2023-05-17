@@ -32,7 +32,7 @@ First, [Install Go] from the official docs.
 
 Next, change into the downloads directory and execute the following commands:
 
-```
+```bash
 $ sudo tar xvf go1.19.linux-amd64.tar.gz -C /usr/local
 $ go version
 go version go1.19 linux/amd64
@@ -42,13 +42,13 @@ go version go1.19 linux/amd64
 
 List all information about the Go environment:
 
-```
+```bash
 $ go env
 ```
 
 Here are the usual suspects I put in my `.bash_env`, which is sourced from my `.bashrc`:
 
-```
+```bash
 export GOARCH=amd64
 export GOOS=linux
 export GOPATH="$HOME/go"
@@ -64,7 +64,7 @@ If the `GOPATH` environment variable is unset, it defaults to a directory named 
 
 Create a `go.mod` file which will track all of the module's dependencies.  This file is created by running the following command:
 
-```
+```bash
 go mod init [module-path]
 ```
 
@@ -72,7 +72,7 @@ go mod init [module-path]
 
 For example:
 
-```
+```bash
 $ go mod init github.com/btoll/foo
 go: creating new go.mod: module github.com/btoll/foo
 go: to add module requirements and sums:
@@ -89,7 +89,7 @@ Let's say there is the following code (taken from [Go's getting started tutorial
 
 `main.go`
 
-<pre class="math">
+```go
 package main
 
 import (
@@ -101,7 +101,7 @@ import (
 func main() {
     fmt.Println(quote.Go())
 }
-</pre>
+```
 
 There are several ways to add dependencies to a module:
 
@@ -160,7 +160,7 @@ Each command will:
 1. If needed, downloads module source code (can download from a module proxy).
 1. Authenticates the downloaded deps.
 
-```
+```bash
 $ go run main.go
 main.go:5:8: no required module provides package rsc.io/quote; to add it:
         go get rsc.io/quote
@@ -179,7 +179,7 @@ require (
 
 ### Removing Dependencies
 
-```
+```bash
 $ go get rsc.io/quote@none
 ```
 
@@ -187,13 +187,13 @@ $ go get rsc.io/quote@none
 
 List all packages of the module:
 
-```
+```bash
 $ go list all
 ```
 
 List all modules instead of packages, along with the latest version available for each:
 
-```
+```bash
 $ go list -m -u all
 ```
 
@@ -203,7 +203,7 @@ $ go list -m -u all
 
 Build and install binary in `GOBIN`:
 
-```
+```bash
 $ go install example/user/hello
 $ go install . (Defaults to package within cwd.)
 $ go install   (Defaults to package within cwd.)
@@ -216,7 +216,7 @@ Otherwise, binaries are installed to the bin subdirectory of the default `GOPATH
 This won't produce an output file.
 Instead, it saves the compiled package in the local build cache (GOCACHE).
 
-```
+```bash
 $ go build
 ```
 
@@ -226,19 +226,19 @@ $ go build
 
 Remove the build cache:
 
-```
+```bash
 $ go clean -cache
 ```
 
 Remove the downloaded module cache:
 
-```
+```bash
 $ go clean -modcache
 ```
 
 You can find the cache locations in the Go environment information:
 
-```
+```bash
 $ go env | ag cache
 GOCACHE="/home/btoll/.cache/go-build"
 GOMODCACHE="/home/btoll/go/pkg/mod"
@@ -248,7 +248,7 @@ GOMODCACHE="/home/btoll/go/pkg/mod"
 
 If you do not add a license to your repository, the Go package repository will not be able to display your documentation.
 
-```
+```bash
 $ go mod tidy
 $ git tag v0.1.0
 $ git push origin v0.1.0
@@ -263,20 +263,20 @@ To [read more about publishing], read the docs.
 
 To get the `godoc` package and install it:
 
-```
+```bash
 $ go get golang.org/x/tools/cmd/godoc
 $ go install golang.org/x/tools/cmd/godoc
 ```
 
 You'll then see the `godoc` binary in `$GOPATH/bin`.
 
-```
+```bash
 $ godoc --help
 ```
 
 It's possible to load docs locally via a builtin web server, which will also include your own types.  For example, go to the root directory of your package and run:
 
-```
+```bash
 $ godoc -http :3030
 using module mode; GOMOD=/home/btoll/projects/trivial/go.mod
 ```
@@ -291,7 +291,7 @@ Optionally, browse to the package:
 
 To include the Playground, use the `-play` switch:
 
-```
+```bash
 $ godoc -play
 ```
 
@@ -335,7 +335,7 @@ Since Go 1.16, it's been possible to [embed] static files, whether one or many, 
 
 Here is an example of embedding a directory of `html` template files in an executable (excerpted from my [`trivial` package]):
 
-<pre class="math">
+```go
 import (
 	"embed"
 	...
@@ -352,7 +352,7 @@ func NewSocketServer(uri URI) *SocketServer {
 		Tpl: template.Must(template.ParseFS(templateFiles, "templates/*.gohtml")),
 	}
 }
-</pre>
+```
 
 Weeeeeeeeeeeeeeee
 

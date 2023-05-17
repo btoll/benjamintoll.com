@@ -65,13 +65,14 @@ Here’s another example. Most of the filetypes I work in have similar indentati
 
 I won’t get into the details of the filetype plugin feature in Vim, since [I already covered it](/2021/12/11/on-vim-and-filetype-plugins/) in an earlier article. But, you’ll want to install them wherever your `.vim` configuration directory is (usually in `HOME`). For example, here’s mine:
 
-    $ ls ~/.vim/ftplugin/
-    asm.vim     conf.vim        elm.vim        haskell.vim     make.vim      sh.vim    txt.vim
-    bash.vim    cpp.vim         expect.vim     html.vim        markdown.vim  sql.vim   typescript.vim
-    cc.vim      css.vim         gitconfig.vim  i3config.vim    php.vim       text.vim  vim.vim
-    cfg.vim     c.vim           go.vim         javascript.vim  python.vim    tf.vim    yaml.vim
-    coffee.vim  dockerfile.vim  groovy.vim     json.vim
-
+```bash
+$ ls ~/.vim/ftplugin/
+asm.vim     conf.vim        elm.vim        haskell.vim     make.vim      sh.vim    txt.vim
+bash.vim    cpp.vim         expect.vim     html.vim        markdown.vim  sql.vim   typescript.vim
+cc.vim      css.vim         gitconfig.vim  i3config.vim    php.vim       text.vim  vim.vim
+cfg.vim     c.vim           go.vim         javascript.vim  python.vim    tf.vim    yaml.vim
+coffee.vim  dockerfile.vim  groovy.vim     json.vim
+```
 
 As you can see, [I have a lot](https://github.com/btoll/dotfiles/tree/master/vim/ftplugin). Just think of all the uses:
 
@@ -90,14 +91,15 @@ Here is an excerpt from my Python filetype plugin:
 
 [`python.vim`](https://github.com/btoll/dotfiles/blob/master/vim/ftplugin/python.vim)
 
-    inoreabbrev bp import ipdb<cr><cr><cr>def main():<cr>""" derp """<cr>pass<cr><esc>O<cr><cr>if __name__ == "__main__":<cr>main()
+```vim
+inoreabbrev bp import ipdb<cr><cr><cr>def main():<cr>""" derp """<cr>pass<cr><esc>O<cr><cr>if __name__ == "__main__":<cr>main()
 
-    nnoremap <leader>d oipdb.set_trace()<esc>
-    nnoremap <leader>D Oipdb.set_trace()<esc>
+nnoremap <leader>d oipdb.set_trace()<esc>
+nnoremap <leader>D Oipdb.set_trace()<esc>
 
-    nnoremap <leader>r :!clear && python3 %<cr>
-    vnoremap <leader>r :echo system('python3 ' @")<cr>
-
+nnoremap <leader>r :!clear && python3 %<cr>
+vnoremap <leader>r :echo system('python3 ' @")<cr>
+```
 
 So, all this is great, but how is this actually applied when developing?
 
@@ -116,29 +118,30 @@ Let’s take a look at [Vim abbreviations](https://vimdoc.sourceforge.net/htmldo
 
 Imagine you have an abbreviation that is defined like this:
 
-    inoreabbrev bp import ipdb<cr><cr><cr>def main():<cr>""" derp """<cr>pass<cr><esc>O<cr><cr>if __name__ == "__main__":<cr>main()
-
+```vim
+inoreabbrev bp import ipdb<cr><cr><cr>def main():<cr>""" derp """<cr>pass<cr><esc>O<cr><cr>if __name__ == "__main__":<cr>main()
+```
 
 And, whose execution produces the following:
 
-    import ipdb
+```python
+import ipdb
 
 
-    def main():
-        """ derp """
-        pass
+def main():
+    """ derp """
+    pass
 
 
-    if __name__ == "__main__":
-        main()
-
-
+if __name__ == "__main__":
+    main()
+```
 
 Well, it’d save keystrokes and dollars, and you’d be a hero, wouldn’t you? You would be in my book, little fella.
 
 _And_, what if you had a `bash` function that called that abbreviation upon file creation? Well, that would be too much to bear:
 
-<pre>
+```bash
 $ type bp
 bp is a function
 bp ()
@@ -165,14 +168,15 @@ bp ()
         fi;
     fi
 }
-</pre>
+```
 
 The important bits are in bold.
 
 This then allows me, the hero of this particular story, to do the following:
 
-    $ bp derp.py
-
+```bash
+$ bp derp.py
+```
 
 And, voilà, I get the boilerplate (`bp`) code that I listed above.
 

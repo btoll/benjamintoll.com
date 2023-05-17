@@ -43,7 +43,7 @@ Let's look at the difference between sharing, or inheriting, the `net` namespace
 
 Obviously, in the absence of the `--net` option to `unshare`, the `bash` program running in the forked process will inherit the `--net` namespace from its parent, and we can see this by listing out the processes `ns` directory in `/proc`:
 
-```
+```bash
 # On the host.
 $ unshare bash
 
@@ -54,7 +54,7 @@ lrwxrwxrwx 1 btoll btoll 0 Aug  9 17:52 net -> net:[4026532008]
 
 Next, we demonstrate on the host that PID 1 (`systemd`) indeed has the same `net` namespace, which the containing process inherited through its parent.
 
-```
+```bash
 # On the host, where PID 1 is `systemd`.
 $ sudo ls -l /proc/1/exe
 lrwxrwxrwx 1 root root 0 Aug  2 15:21 /proc/1/exe -> /lib/systemd/systemd
@@ -64,7 +64,7 @@ lrwxrwxrwx 1 root root 0 Aug  7 20:19 net -> net:[4026532008]
 
 Back in the container process, we can show that the new process can see all of the same namespaced network interfaces as the host and accesses the same routing table since it inherited the same `net` namespace:
 
-```
+```bash
 $ ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -92,7 +92,7 @@ default via 192.168.1.1 dev wlp3s0 proto dhcp metric 600
 
 Now, when creating its own `net` namespace, we can also see that the `net` namespaces are not the same:
 
-```
+```bash
 # On the host.
 $ sudo unshare --net bash
 
@@ -101,7 +101,7 @@ root@kilgore-trout:/home/btoll# ls -l /proc/$$/ns | ag net
 lrwxrwxrwx 1 root root 0 Aug  9 17:58 net -> net:[4026533295]
 ```
 
-```
+```bash
 # Again, on the host, where PID 1 is `systemd`.
 $ sudo ls -l /proc/1/exe
 lrwxrwxrwx 1 root root 0 Aug  2 15:21 /proc/1/exe -> /lib/systemd/systemd
@@ -111,7 +111,7 @@ lrwxrwxrwx 1 root root 0 Aug  7 20:19 net -> net:[4026532008]
 
 Back in the container process, we can show that the new process only has a [`loopback`] interface and has no routing table information:
 
-```
+```bash
 # ip a
 1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -130,13 +130,13 @@ Conceptually, we can think of this as a cable that connects the default `net` ne
 
 We'll start by creating the new process with its own unshared `net` network namespace:
 
-```
+```bash
 $ sudo unshare --net bash
 ```
 
 Right away, we can see that the new process has its own `net` namespace that is distinct from the host:
 
-```
+```bash
 # lsns --type net -o NS,PID,COMMAND | ag "systemd|bash"
 4026532008       1 /lib/systemd/systemd --system --deserialize 18
 4026532801 2561438 bash
@@ -146,7 +146,7 @@ As we can see from the column options passed to the output parameter (`-o`), the
 
 We'll need that PID of the new process in order to create its virtual network interface.  Note that we can also get it inside the container by echoing out the current process ID using a [special Bash parameter]:
 
-```
+```bash
 # echo $$
 2561438
 ```
@@ -155,7 +155,7 @@ We'll need that PID of the new process in order to create its virtual network in
 
 Note that there are no entries in the routing table yet in the container, and the only device is `loopback`:
 
-```
+```bash
 # ip route
 Error: ipv4: FIB table does not exist.
 Dump terminated
@@ -167,7 +167,7 @@ Dump terminated
 
 Ok, that's great.  Let's now connect the new `net` namespace to the default `net` namespace:
 
-```
+```bash
 $ sudo ip link add ve1 netns 2561438 type veth peer name ve2 netns 1
 ```
 
@@ -182,7 +182,7 @@ Let's break that down like a hip beat:
 
 In the container, we can now see that the new virtual Ethernet device has indeed been added:
 
-```
+```bash
 # ip a
 1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -192,7 +192,7 @@ In the container, we can now see that the new virtual Ethernet device has indeed
 
 And we'll bring it up:
 
-```
+```bash
 # ip link set ve1 up
 # ip a
 1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
@@ -205,7 +205,7 @@ And we'll bring it up:
 
 We'll do the same on the host:
 
-```
+```bash
 $ ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -230,7 +230,7 @@ Of course, in order to be able to send traffic to the devices, both need to be a
 
 First, in the container:
 
-```
+```bash
 # ip addr add 192.168.1.100/24 dev ve1
 root@kilgore-trout:/home/btoll# ip a
 1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
@@ -245,14 +245,14 @@ root@kilgore-trout:/home/btoll# ip a
 
 As soon as the IP is associated, a route has been added to the container's routing table:
 
-```
+```bash
 # ip route
 192.168.1.0/24 dev ve1 proto kernel scope link src 192.168.1.100
 ```
 
 And on the host:
 
-```
+```bash
 $ sudo ip addr add 192.168.1.200/24 dev ve2
 $ ip a
 ...
@@ -266,7 +266,7 @@ $ ip a
 
 Likewise, when the IP address was associated with the host's virtual Ethernet device, a new route was added to its routing table:
 
-```
+```bash
 $ ip route
 default via 192.168.1.1 dev wlp3s0 proto dhcp metric 20600
 ...
@@ -278,7 +278,7 @@ Let's test it!
 
 In the container:
 
-```
+```bash
 # ping -c4 192.168.1.200
 PING 192.168.1.200 (192.168.1.200) 56(84) bytes of data.
 64 bytes from 192.168.1.200: icmp_seq=1 ttl=64 time=0.097 ms
@@ -293,7 +293,7 @@ rtt min/avg/max/mdev = 0.094/0.095/0.097/0.001 ms
 
 On the host:
 
-```
+```bash
 $ ping -c4 192.168.1.100
 PING 192.168.1.100 (192.168.1.100) 56(84) bytes of data.
 64 bytes from 192.168.1.100: icmp_seq=1 ttl=64 time=0.081 ms
@@ -336,7 +336,7 @@ Let's see how that mapping is done.
 
 Let's create a process that inherits all of its parent's namespaces and check out the user information:
 
-```
+```bash
 $ unshare bash
 $ id
 uid=1000(btoll) gid=1000(btoll) groups=1000(btoll)
@@ -346,7 +346,7 @@ Ok, it's running in the same `user` namespace as the PPID (parent process ID) an
 
 How about when creating the child process as a privileged user?
 
-```
+```bash
 $ sudo unshare bash
 # id
 uid=0(root) gid=0(root) groups=0(root)
@@ -354,7 +354,7 @@ uid=0(root) gid=0(root) groups=0(root)
 
 That's interesting and to be expected.  Let's now create that a process with an unshared `user` namespace.
 
-```
+```bash
 $ unshare --user bash
 $ id
 uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)
@@ -364,14 +364,14 @@ Ok, the `nobody` user.  Let's confirm that the process has a `user` namespace di
 
 In the container:
 
-```
+```bash
 $ echo $$
 2713100
 ```
 
 On the host:
 
-```
+```bash
 $ lsns -t user | ag "systemd|bash"
 4026531837 user      57    1881 btoll /lib/systemd/systemd --user
 4026533574 user       1 2768612 btoll bash
@@ -389,7 +389,7 @@ The `/proc/PID/uid_map` and `/proc/PID/gid_map` are the kernel interfaces for th
 
 On the host:
 
-```
+```bash
 $ sudo echo "0 1000 1" >> /proc/2713100/uid_map
 ```
 
@@ -409,7 +409,7 @@ The end result is that my `btoll` (1000) user on the host is now seen as `root` 
 
 After running the mapping command above, we see that the mapping has taken effect in the container:
 
-```
+```bash
 $ id
 uid=0(root) gid=65534(nogroup) groups=65534(nogroup)
 ```
@@ -418,7 +418,7 @@ uid=0(root) gid=65534(nogroup) groups=65534(nogroup)
 
 After having gone through all of those contortions to write to the `/proc/PID/uid_map` after the container has been created to set up the `root` user mapping, let's now look at a very simple way to do it as a switch to the `unshare` command:
 
-```
+```bash
 $ unshare --map-root-user bash
 root@kilgore-trout:~/projects/benjamintoll.com# id
 uid=0(root) gid=0(root) groups=0(root),65534(nogroup)
@@ -430,7 +430,7 @@ Of course, the `--map-root-user` switch implies the creation of a new `user` nam
 
 In the container:
 
-```
+```bash
 # lsns -t user
         NS TYPE  NPROCS     PID USER COMMAND
 4026533651 user       2 2935027 root bash
@@ -438,7 +438,7 @@ In the container:
 
 On the host:
 
-```
+```bash
 $ sudo ls -l /proc/1/ns | ag user
 lrwxrwxrwx 1 root root 0 Dec 17 16:42 user -> user:[4026531837]
 ```
@@ -449,7 +449,7 @@ Lastly, let's prove to ourselves that this is indeed a rootless container.  In o
 
 In the container:
 
-```
+```bash
 $ unshare --map-root-user bash
 # sleep 12345 &
 [1] 2945562
@@ -464,7 +464,7 @@ root
 
 On the host:
 
-```
+```bash
 $ ps -ft5
 UID          PID    PPID  C STIME TTY          TIME CMD
 btoll    2690597    2294  0 Dec16 pts/5    00:00:00 -bash
@@ -480,7 +480,7 @@ Told you so.
 
 Note that the [capabilities] may be augmented depending on the mapping.  Below we see an example of a process not being able to create a `mnt` namespace because the effective user does not have the correct permissions:
 
-```
+```bash
 $ unshare --mount sh
 unshare: unshare failed: Operation not permitted
 $ id
@@ -491,13 +491,13 @@ However, if we give the user in that container escalated privileges by running t
 
 Again, this will look like the following, if the new container process has the PID 2713100:
 
-```
+```bash
 $ sudo echo "0 1000 1" >> /proc/2713100/uid_map
 ```
 
 Back in the container, we see that the user is now `root` and now has the capabilites needed to unshare any other namespace:
 
-```
+```bash
 $ id
 uid=0(root) gid=65534(nogroup) groups=65534(nogroup)
 $ unshare --mount sh
@@ -508,7 +508,7 @@ Let's wrap up this section by looking at the capabilities for a rootless contain
 
 On the host:
 
-```
+```bash
 $ capsh --print | ag "Current|uid"
 Current: =
 Bounding set =cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_module,cap_sys_rawio,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_mknod,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,cap_wake_alarm,cap_block_suspend,cap_audit_read
@@ -518,7 +518,7 @@ uid=1000(btoll) euid=1000(btoll)
 
 In the container:
 
-```
+```bash
 # capsh --print | ag "Current|uid"
 Current: =ep
 Bounding set =cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_module,cap_sys_rawio,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_mknod,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,cap_wake_alarm,cap_block_suspend,cap_audit_read

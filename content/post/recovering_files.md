@@ -44,7 +44,7 @@ After the download, I fired up my old friend `fdisk` to erase any existing parti
 
 I usually use tail [`dmesg`] or [`journalctl`] for this:
 
-```
+```bash
 $ dmesg --follow
 ...
 [94400.100710] usb 2-4: new SuperSpeed Gen 1 USB device number 13 using xhci_hcd
@@ -67,7 +67,7 @@ $ dmesg --follow
 
 On `systemd` machines:
 
-```
+```bash
 $ journalctl --follow --dmesg
 ...
 Aug 01 23:12:41 kilgore-trout kernel: usb 2-4: new SuperSpeed Gen 1 USB device number 15 using xhci_hcd
@@ -92,7 +92,7 @@ Both commands show that the device is named `sdb`, and it has two partitions.
 
 If either of those commands are unhelpful, use the `fdisk` utility to list the partition tables for the specified devices.  This needs escalated privileges.  After listing the loop back devices, I finally saw what I was looking for (By process of elimination, really.  Also, I was pretty sure that the USB device would be assigned the letter `b`, i.e., `sdb`.):
 
-```
+```bash
 $ fdisk -l
 ...
 Disk /dev/sdb: 14.33 GiB, 15376318464 bytes, 30031872 sectors
@@ -111,7 +111,7 @@ Device     Boot   Start      End  Sectors  Size Id Type
 
 Alternatively, I could always `cat` the [kernel ring buffer] directly (which is what `dmesg` does):
 
-```
+```bash
 $ sudo cat /proc/kmsg
 <6>[94919.063424] usb 2-4: new SuperSpeed Gen 1 USB device number 16 using xhci_hcd
 <6>[94919.083951] usb 2-4: SerialNumber: 0401287714101490fbc8d7cc5ceeb8b8f24cf75c30586680fd6f8d163beadb7549c70000000000000000000073db243f00017c1891558107b6a6651a
@@ -133,7 +133,7 @@ Next, I re-partitioned the USB by deleting the existing partitions and creating 
 
 > Why two partitions?  Recall that an ISO 9660 filesystem is a read-only filesystem.  Because of this, the second partition will need to be the one that is persistent.
 
-```
+```bash
 $ sudo fdisk /dev/sdb
 
 Welcome to fdisk (util-linux 2.34).
@@ -146,7 +146,7 @@ Command (m for help):
 
 Make sure you write to the partition table or you will be [singing the blues]!
 
-```
+```bash
 Command (m for help): w
 The partition table has been altered.
 Calling ioctl() to re-read partition table.
@@ -155,7 +155,7 @@ Syncing disks.
 
 Next, I needed to make the USB "live" by burning the ISO to the first partition.  I used my friend `dd` for this (this could take a while):
 
-```
+```bash
 $ sudo dd if=~/Downloads/ubuntu-22.04-desktop-amd64.iso of=/dev/sdb1 bs=4M && sync
 ```
 
@@ -163,7 +163,7 @@ $ sudo dd if=~/Downloads/ubuntu-22.04-desktop-amd64.iso of=/dev/sdb1 bs=4M && sy
 
 For the last step, I created an `ext4` filesystem on the second partition to be persistent so I can recover all of my files.
 
-```
+```bash
 $ sudo mkfs.ext4 -b 4096 /dev/sdb2
 ```
 
@@ -187,7 +187,7 @@ After booting to the Ubuntu desktop, I fired up the Terminal program and listed 
 
 I was looking for something like that matched `nvme*`:
 
-```
+```bash
 $ sudo fdisk -l
 Disk /dev/nvme0n1: 477 GiB, 512110190592 bytes, 1000215216 sectors
 Units: sectors of 1 * 512 = 512 bytes
@@ -204,7 +204,7 @@ Device           Start        End   Sectors   Size Type
 
 `/dev/nvme0n1p3` is what I want.  We can confirm that it is indeed a LUKS encrypted partition:
 
-```
+```bash
 $ sudo cryptsetup isLuks /dev/nvme0n1p3 -v
 Command successful.
 ```
@@ -213,7 +213,7 @@ Command successful.
 
 I can also get LUKS header information about the device:
 
-```
+```bash
 $ sudo cryptsetup luksDump /dev/nvme0n1p3
 LUKS header information
 Version:          2
@@ -230,7 +230,7 @@ Flags:            (no flags)
 
 That `UUID` is important.  Since I don't know the name that was given to this partition when it was formatted (created), I'll prepend "luks-" to it when I decrypt it:
 
-```
+```bash
 $ sudo cryptsetup luksUUID /dev/nvme0n1p3
 f50fa5b8-3e20-4d16-b554-c3fbee054c1a
 $ sudo cryptsetup luksOpen !$ luks-$(!!)
@@ -246,7 +246,7 @@ You just decrypted the LUKS partition, boss!
 
 The mapped devices will show now in [`/dev/mapper`]:
 
-```
+```bash
 $ ls -l /dev/mapper/
 total 0
 crw-------. 1 root root 10, 236 Aug  2 14:24 control
@@ -257,7 +257,7 @@ lrwxrwxrwx. 1 root root       7 Aug  2 14:24 vg_li8535123727-lv_swap -> ../dm-1
 
 Now, I'll create the mount point and mount:
 
-```
+```bash
 $ mkdir luks
 $ sudo mount /dev/mapper/luks-f50fa5b8-3e20-4d16-b554-c3fbee054c1a luks/
 mount: /home/btoll/persist: unknown filesystem type 'LVM2_member'.
@@ -265,14 +265,14 @@ mount: /home/btoll/persist: unknown filesystem type 'LVM2_member'.
 
 Ruh-roh, it's using [LVM] (LVM2 is a read/write snapshot).  No problem.  Let's check scan for a volume group:
 
-```
+```bash
 $ sudo vgscan
   Found volume group "vg_li8535123727" using metadata type lvm2
 ```
 
 [That's a bingo!]  Let's get some more details on the logical volumes:
 
-```
+```bash
 $ sudo lvs
   LV      VG              Attr       LSize    Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
   lv_root vg_li8535123727 -wi-ao---- <444.34g
@@ -281,7 +281,7 @@ $ sudo lvs
 
 And even more details.  I can get verbose information about the volume group, which will in turn detail all the logical volumes and physical volumes:
 
-```
+```bash
 $ sudo vgdisplay -v
   --- Volume group ---
   VG Name               vg_li8535123727
@@ -349,7 +349,7 @@ $ sudo vgdisplay -v
 
 Ok, I now know everything I need in order to mount the correct partition, and I do it now, with gusto:
 
-```
+```bash
 $ sudo mount /dev/mapper/vg_li8535123727-lv_root luks
 ```
 
@@ -361,7 +361,7 @@ Donzo!
 
 This is easy and should be familiar to most:
 
-```
+```bash
 $ mkdir persist
 $ sudo mount /dev/sda2 persist
 ```
@@ -377,7 +377,7 @@ The only important bit is to make sure that you mounted the correct partition.  
 
 Again, this is easy.  Since all the files in the LVM volumes are owned by `root`, it's easiest to change to that user.  In Ubuntu and distros that use [`sudoers`]:
 
-```
+```bash
 $ sudo su -
 ```
 

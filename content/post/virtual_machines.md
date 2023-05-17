@@ -94,7 +94,9 @@ For example, a common way in Go to open a file on the filesystem is with the [`o
 
 > Examples of common syscalls are `open`, `read`, `write`, `close`, `wait`, `exec`, `fork`, `exit`, and `kill`.  View the man page for more information about each one:
 >
->     $ man 2 open
+> ```bash
+> $ man 2 open
+> ```
 >
 
 In my opinion, the key thing to understand about how system calls work is that it generates a software interrupt, or trap, that initiates the privilege context switch.  The trap tells the processor to jump to a well-known address based on the trap's parameter, which is an interrupt number.  This number is a lookup into the [interrupt vector table], which is a data structure that maps these well-known interrupt numbers with a location in memory to a callback that will handle the trap.

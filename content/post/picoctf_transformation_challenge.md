@@ -24,9 +24,9 @@ I wonder what this really is... **`enc`** `''.join([chr((ord(flag[i]) << 8) + or
 
 Since this is in the reverse engineering Jeopardy category, let's first take a look at how this string of characters was created, as this will inform us later when we need to reverse the operations.  In other words, we need to understand how the string of characters was created if we're to have any chance of reversing the process.
 
-<pre class="math">
+```python
 ''.join([chr((ord(flag[i]) << 8) + ord(flag[i + 1])) for i in range(0, len(flag), 2)])
-</pre>
+```
 
 It's doing the following things:
 
@@ -46,7 +46,7 @@ It's doing the following things:
 
 Let's expand the list comprehension syntax with comments that illustrate the steps above:
 
-<pre class="math">
+```python
 encoded = []
 for i in range(0, len(flag), 2):
     # Let's create a two-byte character.
@@ -65,7 +65,7 @@ for i in range(0, len(flag), 2):
     encoded.append(chr(two_bytes))
 
 "".join([encoded])
-</pre>
+```
 
 Now that we've pulled it apart to understand what it's doing, let's reverse engineer it.
 
@@ -77,7 +77,7 @@ The first thing I did was to read the file contents of **`enc`** and display the
 
 `transformation.py`
 
-<pre class="math">
+```python
 def main():
     with open("enc") as fd:
         flag = fd.read()
@@ -88,25 +88,27 @@ def main():
 if __name__ == "__main__":
     main()
 
-</pre>
-
 ```
+
+```bash
 $ python transformation.py
 灩捯䍔䙻ㄶ形楴獟楮獴㌴摟潦弸弲㘶㠴挲ぽ
 ```
 
 > I've symlinked my `python` executable:
 >
->     $ ls -l $(which python)
->     lrwxrwxrwx 1 root root 7 Jul 29 13:43 /usr/bin/python -> python3
->     $ python -V
->     Python 3.8.10
+> ```bash
+> $ ls -l $(which python)
+> lrwxrwxrwx 1 root root 7 Jul 29 13:43 /usr/bin/python -> python3
+> $ python -V
+> Python 3.8.10
+> ```
 
 Ok, let's now get the decimal value of each character:
 
 `transformation.py`
 
-<pre class="math">
+```python
 def main():
     with open("enc") as fd:
         flag = fd.read()
@@ -117,9 +119,9 @@ def main():
 if __name__ == "__main__":
     main()
 
-</pre>
-
 ```
+
+```bash
 $ python transformation.py
 [28777, 25455, 17236, 18043, 12598, 24418, 26996, 29535, 26990, 29556, 13108, 25695, 28518, 24376, 24370, 13878, 14388, 25394, 12413]
 ```
@@ -130,7 +132,7 @@ If we take the first element, what would that look like in binary?
 
 Let's ask our old friend [`asbits`]:
 
-```
+```bash
 $ asbits
 Usage: asbits <base-10 | hex | octal> [num nibbles=4]
 $ asbits 28777
@@ -141,7 +143,7 @@ Ok, we know from the original code that this 16 bit number represents two of the
 
 Let's get the first character.  The original code bit-shifted the number 8 bits to the left, so let's do the inverse.  It will be easier to experiment on the command line instead of opening, writing and saving a file each time:
 
-```
+```bash
 $ python -c "print(28777 >> 8)"
 112
 $ asbits 112 2
@@ -152,7 +154,7 @@ If we compare that 8 bit string to the 16 bit one directly above, we do indeed s
 
 Looks like we're heading in the right direction.  Let's now get the ascii character that is represented by 112 in decimal.  Again, we'll do this from the command line:
 
-```
+```bash
 $ python -c "print(chr(112))"
 p
 ```
@@ -169,7 +171,7 @@ This will make sense with an example.  First, create a mask that will look like 
 
 It's very easy.  We know what decimal number the binary number `11111111` represents: 255.
 
-```
+```bash
 $ asbits 255 2
 1111 1111
 $ asbits 0xff 2
@@ -187,14 +189,14 @@ $ asbits 28777
 
 And, here is the [bitmask]:
 
-```
+```bash
 $ asbits 255
 0000 0000 1111 1111
 ```
 
 The logical `AND` bitwise operation will extract just the bits that represent the character we're after:
 
-```
+```bash
 $ python -c "print(28777 & 255)"
 105
 $ python -c "print(chr(105))"
@@ -205,7 +207,7 @@ The first two characters are "p" and "i", which looks promising!  After all, the
 
 Just as we saw that the first character contained the same 8 bits as the first two nibbles (or octet) of the 16 bit binary number above, the second character is the same as the last two nibbles:
 
-```
+```bash
 $ asbits 105 2
 0110 1001
 ```
@@ -216,7 +218,7 @@ Let's take a look at the finished code:
 
 `transformation.py`
 
-<pre class="math">
+```python
 def main():
     with open("enc") as fd:
         flag = fd.read()
@@ -237,11 +239,11 @@ def main():
 if __name__ == "__main__":
     main()
 
-</pre>
+```
 
 Let's run it:
 
-```
+```bash
 $ python transformation.py
 picoCTF{16_bits_inst34d_of_8_26684c20}
 ```

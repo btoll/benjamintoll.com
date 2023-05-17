@@ -124,7 +124,7 @@ The traversals that perform a breadth-first traversal will use the following que
 
 [`queue.go`](https://github.com/btoll/howto-go/blob/master/queue/queue.go)
 
-<pre class="math">
+```go
 package queue
 
 type Node struct {
@@ -184,13 +184,13 @@ func (q *Queue) IsEmpty() bool {
 	}
 	return false
 }
-</pre>
+```
 
 # Binary Tree Traversal
 
 All of the examples will use the following types and helper function(s):
 
-<pre class="math">
+```go
 package tree
 
 type Node struct {
@@ -209,7 +209,7 @@ func CreateNode(value int) *Node {
 		Right: nil,
 	}
 }
-</pre>
+```
 
 > Although the examples here are operating on [binary *search* trees](https://en.wikipedia.org/wiki/Binary_search_tree), they can be used on all binary trees.
 
@@ -219,7 +219,7 @@ func CreateNode(value int) *Node {
 
 #### Recursive
 
-<pre class="math">
+```go
 func __preorder(node *Node, visited []int) Visited {
 	if node == nil {
 		return visited
@@ -233,14 +233,14 @@ func __preorder(node *Node, visited []int) Visited {
 func Preorder(node *Node) Visited {
 	return __preorder(node, []int{})
 }
-</pre>
+```
 
 - Time complexity: O(N)
 - Space complexity: O(N)
 
 #### Iterative
 
-<pre class="math">
+```go
 func Preorder(node *Node) Visited {
 	if node == nil {
 		return nil
@@ -260,7 +260,7 @@ func Preorder(node *Node) Visited {
 	}
 	return visited
 }
-</pre>
+```
 
 Notes:
 
@@ -273,7 +273,7 @@ Notes:
 
 #### Recursive
 
-<pre class="math">
+```go
 func __inorder(node *Node, visited []int) Visited {
 	if node == nil {
 		return visited
@@ -287,14 +287,14 @@ func __inorder(node *Node, visited []int) Visited {
 func Inorder(node *Node) Visited {
 	return __inorder(node, []int{})
 }
-</pre>
+```
 
 - Time complexity: O(N)
 - Space complexity: O(N)
 
 #### Iterative
 
-<pre class="math">
+```go
 func Inorder(node *Node) Visited {
 	if node == nil {
 		return nil
@@ -316,7 +316,7 @@ func Inorder(node *Node) Visited {
 	}
 	return visited
 }
-</pre>
+```
 
 Notes:
 
@@ -332,7 +332,7 @@ Notes:
 
 #### Recursive
 
-<pre class="math">
+```go
 func __postorder(node *Node, visited []int) Visited {
 	if node == nil {
 		return visited
@@ -346,14 +346,14 @@ func __postorder(node *Node, visited []int) Visited {
 func Postorder(node *Node) Visited {
 	return __postorder(node, []int{})
 }
-</pre>
+```
 
 - Time complexity: O(N)
 - Space complexity: O(N)
 
 #### Iterative
 
-<pre class="math">
+```go
 func Postorder(node *Node) Visited {
 	if node == nil {
 		return nil
@@ -373,7 +373,7 @@ func Postorder(node *Node) Visited {
 	}
 	return q.ToArray()
 }
-</pre>
+```
 
 Notes:
 
@@ -384,7 +384,7 @@ Notes:
 
 ## Breadth-First Search
 
-<pre class="math">
+```go
 func Bfs(node *Node) Visited {
 	if node == nil {
 		return nil
@@ -405,13 +405,13 @@ func Bfs(node *Node) Visited {
 	}
 	return visited
 }
-</pre>
+```
 
 ### Level Order
 
 #### Recursive
 
-<pre class="math">
+```go
 func __levelorder(node *Node, levels [][]int, level int) [][]int {
 	if node == nil {
 		return levels
@@ -425,11 +425,11 @@ func __levelorder(node *Node, levels [][]int, level int) [][]int {
 func Levelorder(node *Node) [][]int {
 	return __levelorder(node, [][]int{}, 0)
 }
-</pre>
+```
 
 #### Iterative
 
-<pre class="math">
+```go
 func Levelorder(node *Node) []Visited {
 	if node == nil {
 		return nil
@@ -455,7 +455,7 @@ func Levelorder(node *Node) []Visited {
 	}
 	return levels
 }
-</pre>
+```
 
 The important part of this is the inner loop that iterates through the *current* size of the queue.  That is, anything pushed into the queue within the inner loop will **not** influence the size, since it's been saved to a local variable.
 
@@ -491,7 +491,7 @@ Also notably, the number of nodes can never exceed the logarithm of the current 
 
 ### Recursive
 
-<pre class="math">
+```go
 func Height(node *tree.Node) int {
 	if node == nil {
 		return 0
@@ -503,13 +503,13 @@ func Height(node *tree.Node) int {
 	}
 	return right
 }
-</pre>
+```
 
 ### Iterative
 
 Here is an implementation using a stack.  It uses the classic [depth-first search `preorder` traversal](#iterative):
 
-<pre class="math">
+```go
 type N struct {
 	Node   *tree.Node
 	Height int
@@ -546,11 +546,11 @@ func IterativeHeight(node *tree.Node) int {
 	}
 	return max
 }
-</pre>
+```
 
 And, here is an implementation using a queue.  Note that it uses the [iterative level order traversal idiom](#iterative-3):
 
-<pre class="math">
+```go
 func IterativeHeight(node *tree.Node) int {
 	if node == nil {
 		return 0
@@ -578,13 +578,13 @@ func IterativeHeight(node *tree.Node) int {
 	}
 	return max
 }
-</pre>
+```
 
 ## Validate Binary Search Tree
 
 ### Recursive
 
-<pre class="math">
+```go
 var min *int
 var max *int
 
@@ -605,13 +605,13 @@ func ValidateBST(nums []int) bool {
 	t := tree.CreateBST(nums)
 	return _validate(t.Root, min, max)
 }
-</pre>
+```
 
 ### Iterative
 
 This implementation does a [depth-first `inorder` traversal](#iterative-1), which will return the values, well, in order.  Simply ensuring the current value is larger than the last is enough to validate the binary search tree.
 
-<pre class="math">
+```go
 func ValidateBST(node *tree.Node) bool {
 	if node == nil {
 		return false
@@ -635,7 +635,7 @@ func ValidateBST(node *tree.Node) bool {
 		current = current.Right
 	}
 }
-</pre>
+```
 
 # References
 

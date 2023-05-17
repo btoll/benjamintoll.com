@@ -45,13 +45,13 @@ So, let's get on with it.
 
 You can get a sense of all of the defined [namespaces] for all users on your system by listing them:
 
-```
+```bash
 $ sudo lsns
 ```
 
 Running the command as an unprivileged user will only get your own namespaces:
 
-```
+```bash
 $ lsns
 ```
 
@@ -65,7 +65,7 @@ The `uts` [Unix Timesharing System namespace] is basically the hostname namespac
 
 As a simple example, observe the following:
 
-```
+```bash
 # On host.
 $ sudo unshare --uts sh
 
@@ -102,7 +102,7 @@ This will change the root of what the process can see, essentially restricting i
 
 Let's download a `rootfs` from Alpine.  Let's get the latest as of this writing, [version 3.9]:
 
-```
+```bash
 # mkdir rootfs
 # cd rootfs
 # curl http://dl-cdn.alpinelinux.org/alpine/v3.9/releases/x86_64/alpine-minirootfs-3.9.0-x86_64.tar.gz | tar -xz -C rootfs/
@@ -112,7 +112,7 @@ Let's download a `rootfs` from Alpine.  Let's get the latest as of this writing,
 
 And `unshare` the `pid` namespace and change the root in the same fell command:
 
-```
+```bash
 # unshare --pid --fork chroot rootfs sh
 ```
 
@@ -124,7 +124,7 @@ And `unshare` the `pid` namespace and change the root in the same fell command:
 
 Let's [`sleep`] in the container process and then inspect the process ID from the host:
 
-```
+```bash
 # In the container process.
 # sleep 1000
 #
@@ -143,7 +143,7 @@ Well, that's pretty darn cool!  From the host, we can see that the `sleep` proce
 
 However, `ps` still isn't working in the container process:
 
-```
+```bash
 # ps
 Error, do this: mount -t proc proc /proc
 ```
@@ -154,20 +154,20 @@ Why isn't it reporting on any running processes?  We know that it should have at
 
 Listing out the `/proc` directory tells us why.  It's empty, of course.
 
-```
+```bash
 # ls /proc
 #
 ```
 
 Ok, let's do as we were told and mount the `/proc` pseudo-filesystem.  Just as with the main `/proc` filesystem in the `/` root, it will contain information written to it by the kernel about the running processes **only** in this `chroot`.
 
-```
+```bash
 # mount -t proc proc /proc
 ```
 
 Now, `ps` should be able to list the running processes:
 
-```
+```bash
 # ps
     PID TTY          TIME CMD
       1 ?        00:00:00 sh
@@ -203,7 +203,7 @@ Also, and more importantly, sharing the same `mnt` namespace with the host is a 
 
 First, let's take a look at mounting from within the container process that inherits (shares) its `mnt` namespace with its parent:
 
-```
+```bash
 $ sudo unshare bash
 (container) # mkdir source
 (container) # touch source/HELLO
@@ -216,7 +216,7 @@ exit
 ```
 Back on the host, we can still see the mount point listed by the `mount` command:
 
-```
+```bash
 $ mount | ag target
 /dev/sda2 on /home/btoll/target type ext4 (rw,relatime,errors=remount-ro)
 ```
@@ -229,21 +229,21 @@ This is unfortunate but easily fixed.
 
 To remove this entry from the host's list of mount points, simply run the same command as before and unmount the bind mount:
 
-```
+```bash
 $ sudo unshare bash
 $ umount target
 ```
 
 And, on the host:
 
-```
+```bash
 $ mount | ag target
 $
 ```
 
 Now, let's do this properly.  Create an unshared process with its own `mnt` namespace:
 
-```
+```bash
 $ sudo unshare --mount bash
 (container) # mount --bind source target
 (container) # ls target
@@ -254,7 +254,7 @@ exit
 
 And, on the host:
 
-```
+```bash
 $ mount | ag target
 $
 ```
@@ -269,7 +269,7 @@ Before moving on to the next section, let's take a look at some information made
 
 Each process in `/proc` has a `mounts` file that informs us what mounts, if any, were created by any process.  For example, to see the mount points for PID 1 (on my system that is `systemd`), you can do:
 
-```
+```bash
 $ sudo cat /proc/1/mounts
 ```
 
@@ -277,7 +277,7 @@ You'll see a list that is strikingly similar, or perhaps the same, as that of `m
 
 Now, let's take a look at an example where a process is created with its own unshared `mnt` namespace.  Run the same commands as before:
 
-```
+```bash
 $ sudo unshare --mount bash
 (container) # mkdir source
 (container) # touch source/HELLO
@@ -289,7 +289,7 @@ HELLO
 
 So far, so good.  We need to look at the process information on the host in `/proc`, so let's get the PID number from the container environment:
 
-```
+```bash
 (container) # echo $$
 2521485
 ```
@@ -298,7 +298,7 @@ So far, so good.  We need to look at the process information on the host in `/pr
 
 As expected, it's a high number because the process has inherited the `pid` namespace of its parent.  We can use `ps` to confirm that:
 
-```
+```bash
 (container) # ps
     PID TTY          TIME CMD
 2521380 pts/1    00:00:00 sudo
@@ -312,7 +312,7 @@ Armed with the PID of the Bourne shell process, we can now see its mount points.
 
 First, just as a sanity check, we'll make sure that that process can be seen from the host:
 
-```
+```bash
 $ ps -C sh
     PID TTY          TIME CMD
    1891 tty1     00:00:00 sh
@@ -324,7 +324,7 @@ $ ps -C sh
 
 Yes, there it is, listed last.  Of course it would be, but I am, well, paranoid.  Now, let's look at the method with which we can see what is in a process's unshared `mnt` namespace.  The expectation is that we'll only see what has been mounted (`source`, in this case).
 
-```
+```bash
 $ sudo cat /proc/2521485/mounts
 sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
 proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
@@ -343,7 +343,7 @@ Well, it's because the mount information for each process is contained in `/proc
 
 So let's create its own `pid` namespace and `chroot` to get only the information we expect.
 
-```
+```bash
 $ sudo unshare --pid --fork --mount chroot rootfs sh
 (container) # echo $$
 1
@@ -363,7 +363,7 @@ CIAO
 
 And on the host:
 
-```
+```bash
 $ ps -C sleep
     PID TTY          TIME CMD
     2528091 pts/1    00:00:00 sleep
@@ -382,7 +382,7 @@ So, we don't need to `cat` out the mount points for the parent `sh` process (PID
 
 Here is the proof they're sharing the same namespace (the first is `sh` and the second is `sleep`):
 
-```
+```bash
 $ sudo ls -l /proc/2528059/ns/ | ag mnt
 lrwxrwxrwx 1 root root 0 Aug  8 20:57 mnt -> mnt:[4026533227]
 kilgore-trout ~~> ~:

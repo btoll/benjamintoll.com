@@ -38,7 +38,7 @@ Before we dig into some code, let's take a look at the `Makefile` that we'll use
 
 `Makefile`
 
-<pre class="math">
+```make
 CC=clang
 CFLAGS=-g -Wall
 MAIN=main.c
@@ -59,7 +59,7 @@ $(BIN): $(MAIN) $(OBJS)
 clean:
         $(RM) -r $(OBJS) $(BIN)
 
-</pre>
+```
 
 Ok, now, let's see some code!
 
@@ -85,10 +85,10 @@ The interface that the program exposes are:
 
 `program.c`
 
-<pre class="math">
-#include &lt;stdlib.h>
-#include &lt;stdio.h>
-#include &lt;time.h>
+```c
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 
 struct person {
     char *name;
@@ -169,9 +169,9 @@ int main(int argc, char **argv) {
     destroy_person(p);
 }
 
-</pre>
-
 ```
+
+```bash
 $ clang -o program program.orig.c
 $ ./program
 Not enough arguments.
@@ -186,7 +186,7 @@ The problem with this implementation is that there is no data abstraction.  This
 
 For instance, the user could define a main function like this:
 
-<pre class="math">
+```c
 int main(int argc, char **argv) {
     if (argc != 3)
         error("Not enough arguments.");
@@ -198,9 +198,9 @@ int main(int argc, char **argv) {
     destroy_person(p);
 }
 
-</pre>
-
 ```
+
+```bash
 $ ./program "Kilgore Trout" 42
 Hi Kilgore Trout, you are 42 years of age!  Your token is 55555555.
 ```
@@ -219,7 +219,7 @@ The first change we'll make is to create a header file that will define the inte
 
 `person.h`
 
-<pre class="math">
+```c
 #ifndef PERSON_H
 #define PERSON_H
 
@@ -239,7 +239,7 @@ int slen(struct person *);
 
 #endif
 
-</pre>
+```
 
 ### The Library
 
@@ -247,10 +247,10 @@ Secondly, we'll move the implementation into its own file:
 
 `person.c`
 
-<pre class="math">
-#include &lt;stdlib.h>
-#include &lt;stdio.h>
-#include &lt;time.h>
+```c
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 #include "person.h"
 
 int generate_token(void) {
@@ -315,7 +315,7 @@ int reverse(struct person *p) {
     return l;
 }
 
-</pre>
+```
 
 ## The User Program
 
@@ -323,9 +323,9 @@ Lastly, remove everything from the main program except for the `main` function e
 
 `main.c`
 
-<pre class="math">
-#include &lt;stdlib.h>
-#include &lt;stdio.h>
+```c
+#include <stdlib.h>
+#include <stdio.h>
 #include "person.h"
 
 int main(int argc, char **argv) {
@@ -339,11 +339,11 @@ int main(int argc, char **argv) {
     destroy_person(p);
 }
 
-</pre>
+```
 
 Looking much better:
 
-```
+```bash
 $ tree
 .
 ├── main.c
@@ -359,7 +359,7 @@ $ tree
 
 In `person.h`, remove the `generate_token` and `slen` function prototypes.  The complete header file then looks like the following:
 
-<pre class="math">
+```c
 #ifndef PERSON_H
 #define PERSON_H
 
@@ -377,11 +377,11 @@ void say_hello(struct person *);
 
 #endif
 
-</pre>
+```
 
 Then, in `person.c`, add the `static` keyword to the `slen` function to make it only available to that library file:
 
-<pre class="math">
+```c
 static int slen(struct person *p) {
     if (p == NULL)
         error("slen()");
@@ -395,11 +395,11 @@ static int slen(struct person *p) {
     return i;
 }
 
-</pre>
+```
 
 Recompile and run:
 
-```
+```bash
 $ make
 clang -g -Wall -c person.c -o person.o
 clang -g -Wall main.c person.o -o person
@@ -414,29 +414,29 @@ Let's name our `person` struct so we can just reference it by the name `person` 
 
 So:
 
-<pre class="math">
+```c
 struct person {
     char *name;
     int age;
     int token;
 };
 
-</pre>
+```
 
 Becomes:
 
-<pre class="math">
+```c
 typedef struct {
     char *name;
     int age;
     int token;
 } person;
 
-</pre>
+```
 
 This allows us to remove the `struct` keyword everywhere it prefaces `person`.  For instance, the header file will now look like this:
 
-<pre class="math">
+```c
 #ifndef PERSON_H
 #define PERSON_H
 
@@ -454,7 +454,7 @@ void say_hello(person *);
 
 #endif
 
-</pre>
+```
 
 In other words, you can remove the keyword `struct` before any instance of `person`:
 
@@ -486,10 +486,10 @@ The first is to move the `person` struct definition into the `program.c` library
 
 `person.c`
 
-<pre class="math">
-#include &lt;stdlib.h>
-#include &lt;stdio.h>
-#include &lt;time.h>
+```c
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 #include "person.h"
 
 typedef struct p {
@@ -504,13 +504,13 @@ int generate_token(void) {
 }
 
 ...
-</pre>
+```
 
 Next, remove the body of the `struct` and give it the same name `p` as we just did in the library file.  This is enough so that the function definitions will still compile.  The `p` name could have been anything, it's not going to affect the functionality of the program.
 
 `person.h`
 
-<pre class="math">
+```c
 #ifndef PERSON_H
 #define PERSON_H
 
@@ -524,13 +524,13 @@ void say_hello(person *);
 
 #endif
 
-</pre>
+```
 
 So, it's at this point that `person` can now be considered an opaque data type.  It's also what's known as an [incomplete type], as the compiler knows it's a type and that it's a `struct`, but it can't know its definition, as there is no `struct` body.
 
 Recompile and run:
 
-```
+```bash
 $ make
 clang -g -Wall -c person.c -o person.o
 clang -g -Wall main.c person.o -o person
@@ -541,7 +541,7 @@ Hi tuorT erogliK, you are 93 years of age!
 
 Interestingly, if a developer tried futzing with the internals of the `person` type as they did before, they'll get a giant error when compiling:
 
-<pre class="math">
+```c
 int main(int argc, char **argv) {
     if (argc != 3)
         error("Not enough arguments.");
@@ -553,9 +553,9 @@ int main(int argc, char **argv) {
     destroy_person(p);
 }
 
-</pre>
-
 ```
+
+```bash
 $ make
 clang -g -Wall -c person.c -o person.o
 clang -g -Wall main.c person.o -o person

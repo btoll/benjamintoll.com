@@ -51,7 +51,7 @@ Since it's a command-line tool, it's not as convenient as web application.  Deal
 
 Anyway, you can use crappy old Docker if you don't want to install it on your system.  Using a container is generally a good option if you want to keep from having to install other people's shitty little programs.
 
-```
+```bash
 docker pull btoll/scale_buddy:beta
 ```
 
@@ -59,13 +59,13 @@ Or, you can clone [the GitHub repository] and install it that way.  There are no
 
 ## Examples
 
-```
+```bash
 $ docker run --init --rm scale_buddy:beta G
 G major:
 G  A  B  C  D  E  F♯
 ```
 
-```
+```bash
 $ docker run --init --rm scale_buddy:beta G --with-minor
 G major:
 G  A  B  C  D  E  F♯
@@ -80,7 +80,7 @@ G melodic minor:
 G  A  B♭  C  D  E  F♯
 ```
 
-```
+```bash
 $ docker run --init --rm scale_buddy:beta G --with-minor --with-pentatonic
 G major:
 G  A  B  C  D  E  F♯
@@ -103,13 +103,13 @@ G    B♭    C    D    F
 
 For sharps and flats, there are the `--sharp` and `--flat` switches, respectively:
 
-```
+```bash
 $ docker run --init --rm scale_buddy:beta --sharp F
 F♯ major:
 F♯  G♯  A♯  B  C♯  D♯  E♯
 ```
 
-```
+```bash
 $ docker run --init --rm scale_buddy:beta --flat E
 E♭ major:
 E♭  F  G  A♭  B♭  C  D

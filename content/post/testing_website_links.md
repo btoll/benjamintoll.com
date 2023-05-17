@@ -26,7 +26,7 @@ In the meantime, it's working title is [`link-scanner`], and it is up on my GitH
 
 Here is the current usage:
 
-```
+```bash
 $ ./link-scanner -h
 Usage of ./link-scanner:
   -dir string
@@ -59,13 +59,13 @@ Since I wrote this primarily to shoehorn into daily use, let's now briefly take 
 
 Testing all the links in a particular file:
 
-```
+```bash
 $ link-scanner -filename gpg.md
 ```
 
 Testing all the links in a particular directory with custom headers:
 
-```
+```bash
 $ link-scanner -dir content/post -header "User-Agent:Mozilla/5.0,Content-Type:application/json"
 ```
 
@@ -79,7 +79,7 @@ Or, copy both the [`pre-commit`] runner and the [`pre-commit.d/link-scanner.sh`]
 
 In the root of the repository:
 
-```
+```bash
 $ cd ./.git/hooks
 $ wget --no-clobber https://github.com/btoll/dotfiles/blob/master/git-hub/hooks/pre-commit
 $ wget --no-clobber --directory-prefix pre-commit.d https://github.com/btoll/dotfiles/blob/master/git-hub/hooks/pre-commit.d/link-scanner.sh
@@ -87,7 +87,7 @@ $ wget --no-clobber --directory-prefix pre-commit.d https://github.com/btoll/dot
 
 This script will automatically run when committing a Git object (`git commit`).  To disable, simply add the `--no-verify` option:
 
-```
+```bash
 $ git commit --no-verify -am 'derpy'
 ```
 
@@ -99,7 +99,7 @@ I used GitHub Actions because I just did a short stint at GitHub as a consultant
 
 [`scan.yml`]
 
-<pre class="math">
+```yaml
 name: Link Scanner
 
 on:
@@ -119,7 +119,7 @@ jobs:
         with:
           args: -dir content/post -v
 
-</pre>
+```
 
 [`HEAD`]: https://developer.mozilla.org/en-US/docs/web/http/methods/head
 [goroutines]: https://golangbot.com/goroutines/

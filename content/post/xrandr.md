@@ -77,7 +77,7 @@ One of the best ways to learn any tool is to see some examples.  Here they are, 
 
 Print out the [`RandR`] version:
 
-```
+```bash
 $ xrandr --version
 xrandr program version       1.5.1
 Server reports RandR version 1.6
@@ -87,7 +87,7 @@ Server reports RandR version 1.6
 
 Let's start getting some information on the available displays.
 
-```
+```bash
 $ xrandr -q
 Screen 0: minimum 320 x 200, current 1920 x 1080, maximum 16384 x 16384
 eDP-1 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis) 382mm x 215mm
@@ -105,7 +105,7 @@ HDMI-1 disconnected (normal left inverted right x axis y axis)
 
 After I plug in the [`HDMI`] cable to the TV, I see it appear in the list:
 
-```
+```bash
 $ xrandr -q
 Screen 0: minimum 320 x 200, current 1920 x 1080, maximum 16384 x 16384
 eDP-1 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis) 382mm x 215mm
@@ -132,7 +132,7 @@ Note that the connected displays show many different resolutions and refresh rat
 
 Finally, we can easily list the monitors that are internal and otherwise currently connected:
 
-```
+```bash
 $ xrandr --listmonitors
 Monitors: 2
  0: +*eDP-1 1920/382x1080/215+1920+0  eDP-1
@@ -143,7 +143,7 @@ Monitors: 2
 
 ### Mirroring Displays
 
-```
+```bash
 $ xrandr --output HDMI-1 --mode 1920x1080 --rate 60.00
 ```
 
@@ -153,7 +153,7 @@ If you'd like `xrandr` to choose the preferred resolution and rate, simply use t
 
 For instance, both the `mode` and the `rate` specified above are the preferred settings, so it could be simplified to:
 
-```
+```bash
 $ xrandr --output HDMI-1 --auto
 ```
 
@@ -161,7 +161,7 @@ $ xrandr --output HDMI-1 --auto
 
 Let's set up a dual display:
 
-```
+```bash
 $ xrandr --output eDP-1 --primary --mode 1920x1080 --rate 60.02 \
     --output HDMI-1 --mode 1920x1080 --rate 60.00 --right-of eDP-1
 ```
@@ -176,7 +176,7 @@ Of course, if you have a third display, you could add it and use the `--left-of 
 
 Rotation is easy peasy.  Use the parameter `rotate` and the value `left` or `right` to rotate the display for a display device that is taller than it is wider for a nice coding experience.
 
-```
+```bash
 $ xrandr --output HDMI-1 --mode 1920x1080 --rate 60.00 --rotate left
 ```
 
@@ -190,7 +190,7 @@ To turn off, i.e., disable, and output, use the `--off` switch.
 
 For example, in the previous examples, we've enabled and are using both the internal `eDP-1` display and the external `HDMI-1` display.  To disable the latter, simply use the following command:
 
-```
+```bash
 $ xrandr --output HDMI-1 --off
 ```
 
@@ -226,7 +226,7 @@ command -v xrandr > /dev/null && \
 
 And, if I were so inclined:
 
-```
+```bash
 $ ln .xinitrc .xsession
 ```
 

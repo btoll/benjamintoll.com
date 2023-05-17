@@ -32,7 +32,9 @@ Note that the following assumptions are made:
 
 - `systemd-nspawn` is already installed on your system.
 
-      $ sudo apt install systemd-container
+  ```bash
+  $ sudo apt install systemd-container
+  ```
 
 - All the following examples will assume that the current working directory is `/var/lib/machines`.
 - All commands are run as the `root` user to save typing `sudo` for every command.
@@ -82,9 +84,11 @@ Persistent settings file should be placed in `/etc/systemd/nspawn/`, and, unlike
 
 > Do **not** put anything in `/run/systemd/nspawn/` that you want to survive a reboot, as the `/run` filesystem is temporary and any runtime data put there is placed in volatile memory.
 >
->     $ df /run --output=fstype
->     Type
->     tmpfs
+> ```bash
+> $ df /run --output=fstype
+> Type
+> tmpfs
+> ```
 
 However, any settings files found in the non-privileged `/var/lib/machines` location will only have a subset of those settings applied.  As you may have guessed, any settings that grant elevated privileges or additional capabilities are ignored.  This is so untrusted or unvetted files downloaded from the scary Internet don't cause undue harm and aren't automatically applied upon container creation.
 
@@ -92,7 +96,7 @@ In order for the Tor browser to be properly launched, the following `systemd-nsp
 
 `tor-browser.nspawn`
 
-<pre class="math">
+```ini
 [Exec]
 DropCapability=all
 Environment=DISPLAY=:0
@@ -106,12 +110,12 @@ Timezone=copy
 User=noroot
 WorkingDirectory=/usr/local/bin/tor-browser
 
-</pre>
+```
 
 This is equivalent to the following command line statement:
 
-```
-# systemd-nspawn \
+```bash
+$ sudo systemd-nspawn \
     --drop-capability all \
     --setenv DISPLAY=:0 \
     --hostname kilgore-trout \
@@ -127,8 +131,8 @@ This is equivalent to the following command line statement:
 
 Clearly, the settings file is much more convenient and allows us to start the container by simply typing:
 
-```
-# systemd-nspawn --machine tor-browser
+```bash
+$ sudo systemd-nspawn --machine tor-browser
 ```
 
 In addition, there are more parameters we can set, such as filtering system calls, bind mounts, overlay or union mount points, and much more, but that is out of the scope of this article.  And we haven't even covered the `[FILE]` and `[NETWORK]` sections of the settings file.
@@ -151,11 +155,11 @@ I've been grudgingly using Docker in my personal projects for the sake of conven
 
 Anyway, I digress.  Here is a very simple way to run the Tor browser as a `systemd-nspawn` container:
 
-```
-# mkdir tor-browser \
+```bash
+$ sudo mkdir tor-browser \
     && docker export $(docker create btoll/tor-browser:latest) \
     | tar -x -C tor-browser
-# systemd-nspawn -M tor-browser
+$ sudo systemd-nspawn -M tor-browser
 ```
 
 The [Dockerfile] used to create this container image is straightforward.
@@ -176,29 +180,29 @@ As mentioned in the previous example, I've created a [shell script] that provisi
 
 To run the script, we'll `chroot` into the container (well, what will *become* the container).
 
-```
-# debootstrap \
+```bash
+$ sudo debootstrap \
     --arch=amd64 \
     --variant=minbase \
     bullseye \
     tor-browser \
     http://deb.debian.org/debian
-# cp install_tor_browser.sh tor-browser/
-# chroot tor-browser/
+$ sudo cp install_tor_browser.sh tor-browser/
+$ sudo chroot tor-browser/
 ---
 ### Run the installer script in the chroot.
 ---
 root@sulla:/# ./install_tor_browser.sh
 root@sulla:/# exit
-# systemd-nspawn --machine tor-browser
+$ sudo systemd-nspawn --machine tor-browser
 ```
 
 That was easy!  No big deal.
 
 If we want to share this with a friend or import it into another tool, we can export the container as a tarball and upload it to a server.  This can allow us to later download and create and run containers (the same concept as Docker Hub).
 
-```
-# machinectl export-tar tor-browser tor-browser.tar.xz
+```bash
+$ sudo machinectl export-tar tor-browser tor-browser.tar.xz
 ```
 
 After the container is tarred up, anyone that wants to use it can simply download it and run it without having to do any of the setup steps above (copying and installing).
@@ -213,16 +217,16 @@ A tool by [Lennart Poettering], [`mkosi`] is an easy way to create an [OSI] (ope
 
 Creating an OSI is easy.  Here you go:
 
-```
-# apt install mkosi -y
-# mkosi \
+```bash
+$ sudo apt install mkosi -y
+$ sudo mkosi \
     --distribution debian \
     --release bullseye \
     --format gpt_ext4 \
     --postinst-script install_tor_browser.sh
     --with-network \
     -o tor-browser.raw
-# systemd-nspawn --machine tor-browser
+$ sudo systemd-nspawn --machine tor-browser
 ```
 
 Note that here I'm giving the `mkosi` tool the `install_tor_browser.sh` script as a value to the `--postinst-script`.  This saves us a couple of the steps that we had to do manually when using `debootstrap` in the previous example, namely:
@@ -237,11 +241,11 @@ Easy peasy.
 
 We're simply downloading the tarball from [a previous example](#debootstrap) and running it as-is.  No need to re-run the Tor browser installation script, of course.
 
-```
-# machinectl pull-tar \
+```bash
+$ sudo machinectl pull-tar \
     http://example.com/tor-browser.tar.xz \
     tor-browser
-# systemd-nspawn \
+$ sudo systemd-nspawn \
     --resolv-conf copy-host \
     --machine tor-browser
 ```
@@ -252,11 +256,11 @@ We're simply downloading the tarball from [a previous example](#debootstrap) and
 
 I don't use this much, but I'm adding it here for its usefulness.
 
-```
-# machinectl pull-raw \
+```bash
+$ sudo machinectl pull-raw \
     http://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img \
     rootfs
-# systemd-nspawn --machine rootfs
+$ sudo systemd-nspawn --machine rootfs
 Spawning container rootfs on /var/lib/machines/rootfs.raw.
 Press ^] three times within 1s to kill container.
 root@rootfs:~#
@@ -276,15 +280,15 @@ As we've already seen, we can easily export a container's root filesystem as a t
 
 This is the same workflow that has been around for hundreds of thousands of years.
 
-```
-# machinectl export-tar tor-browser tor-browser.tar.xz
+```bash
+$ sudo machinectl export-tar tor-browser tor-browser.tar.xz
 ```
 
 > Also, export as image: `machinectl export-raw`
 
 ### List Running Containers
 
-```
+```bash
 $ machinectl list
 MACHINE      CLASS     SERVICE        OS     VERSION ADDRESSES
 tor-browser  container systemd-nspawn debian 11      -
@@ -295,7 +299,7 @@ ubuntu-focal container systemd-nspawn ubuntu 20.04   -
 
 From the man page:
 
-<pre class="math">
+```bash
 list-images
        Show a list of locally installed container and VM images.  This enumerates all raw
        disk images and container directories and subvolumes in /var/lib/machines/ (and
@@ -304,9 +308,9 @@ list-images
        a dot (".") are not shown. To show these too, specify --all. Note that a special
        image ".host" always implicitly exists and refers to the image the host itself is
        booted from.
-</pre>
-
 ```
+
+```bash
 $ machinectl list-images
 NAME        TYPE      RO USAGE CREATED MODIFIED
 hugo        directory no   n/a n/a     n/a
@@ -317,7 +321,7 @@ tor-browser directory no   n/a n/a     n/a
 
 List all containers without the header and footer:
 
-```
+```bash
 $ machinectl list-images --no-legend
 hugo        directory no n/a n/a n/a
 tor-browser directory no n/a n/a n/a
@@ -327,8 +331,8 @@ tor-browser directory no n/a n/a n/a
 
 Downloading and exporting can take a while.  Let's check the status!
 
-```
-# machinectl list-transfers
+```bash
+$ sudo machinectl list-transfers
 ID PERCENT TYPE       LOCAL       REMOTE
  1     n/a export-tar tor-browser
 
@@ -337,8 +341,8 @@ ID PERCENT TYPE       LOCAL       REMOTE
 
 ### Querying the Container Status
 
-```
-# machinectl status tor-browser
+```bash
+$ sudo machinectl status tor-browser
 tor-browser(88544b92092430bc5d3fbbffc12a2f04)
            Since: Fri 2022-02-04 19:54:28 EST; 4h 29min ago
           Leader: 1380829 ((sd-stubinit))
@@ -353,20 +357,20 @@ tor-browser(88544b92092430bc5d3fbbffc12a2f04)
 
 When you're *absolutely* sure that you're done with it, you can remove both the machine and the `systemd-nspawn` service file in one fell swoop:
 
-```
-# machinectl remove tor-browser
+```bash
+$ sudo machinectl remove tor-browser
 ```
 
 ### Running Miscellaneous Commands in the OS Tree
 
-```
-# systemd-nspawn -M tor-browser --quiet uname -a
+```bash
+$ sudo systemd-nspawn -M tor-browser --quiet uname -a
 Linux kilgore-trout 5.11.0-49-generic #55-Ubuntu SMP Wed Jan 12 17:36:34 UTC 2022 x86_64 GNU/Linux
 
-# systemd-nspawn -M tor-browser --quiet du -hs
+$ sudo systemd-nspawn -M tor-browser --quiet du -hs
 264M    .
 
-# systemd-nspawn -M tor-browser --quiet cat /etc/os-release
+$ sudo systemd-nspawn -M tor-browser --quiet cat /etc/os-release
 PRETTY_NAME="Debian GNU/Linux 11 (bullseye)"
 NAME="Debian GNU/Linux"
 VERSION_ID="11"
@@ -377,7 +381,7 @@ HOME_URL="https://www.debian.org/"
 SUPPORT_URL="https://www.debian.org/support"
 BUG_REPORT_URL="https://bugs.debian.org/"
 
-# systemd-nspawn -M tor-browser --quiet df -h
+$ sudo systemd-nspawn -M tor-browser --quiet df -h
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme0n1p2  468G   61G  384G  14% /
 tmpfs           1.6G     0  1.6G   0% /tmp
@@ -393,7 +397,7 @@ tmpfs           4.0M     0  4.0M   0% /sys/fs/cgroup
 Using the amazing command-line fuzzy finder tool ([`fzf`]), I wrote a simple `bash` function that will list all of the machine images in `/var/lib/machines` and allow you to select one.  Once the selection is made, it will create and launch the container:
 
 
-```
+```bash
 nspawn() {
     sudo systemd-nspawn --machine \
         $(machinectl list-images --no-legend | awk '{ print $1 }' | fzf) \
