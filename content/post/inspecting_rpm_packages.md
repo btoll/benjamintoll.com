@@ -10,6 +10,8 @@ In particular, we'll want to know a package's dependencies and files and look in
 
 > The commands in this article were run on a `CentOS` 7 distribution using the [Yellowdog Updater, Modified] package manager.
 
+You may be interested in learning about `deb` packages in [On Inspecting deb Packages].
+
 ---
 
 - [Downloading the RPM Package](#downloading-the-rpm-package)
@@ -786,4 +788,5 @@ As we've seen, there are many ways and several tools that can inspect a package 
 [`--queryformat` option]: https://rpm-software-management.github.io/rpm/manual/queryformat.html
 [arrays]: https://rpm-software-management.github.io/rpm/manual/queryformat.html#arrays
 [patches]: /2019/06/16/on-patching/
+[On Inspecting deb Packages]: /2023/06/01/on-inspecting-deb-packages/
 
