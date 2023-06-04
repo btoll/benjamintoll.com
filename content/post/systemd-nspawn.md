@@ -242,7 +242,9 @@ I just ran out of steam.  I'll be updating this as I learn more about `systemd-n
 
 ## References
 
-- [systemd-nspawn](https://wiki.archlinux.org/title/systemd-nspawn)
+- [systemd-nspawn - Debian](https://wiki.debian.org/nspawn)
+- [systemd-nspawn - Arch](https://wiki.archlinux.org/title/systemd-nspawn)
+- [Running sid in systemd-nspawn](https://wiki.debian.org/Packaging/Pre-Requisites/nspawn)
 
 [`On Running systemd-nspawn Containers`]: /2022/02/04/on-running-systemd-nspawn-containers/
 [chroots]: http://man7.org/linux/man-pages/man2/chroot.2.html

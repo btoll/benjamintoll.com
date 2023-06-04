@@ -811,6 +811,12 @@ Here's how to read these entries.  The privilege specification for the `root` us
 - the same is true for members of the `sudo` group (group names are identified by a preceding percent sign `%`)
 
 > Note that I set `vim` as the default `visudo` editor because [`nano`] is for losers.
+>
+> You could also do it at runtime by augmenting the child process' environment:
+>
+> ```bash
+> $ sudo EDITOR=/usr/bin/vim visudo
+> ```
 
 Of course, you don't directly edit the `sudoers` config file, you instead use the [`visudo`] utility.
 

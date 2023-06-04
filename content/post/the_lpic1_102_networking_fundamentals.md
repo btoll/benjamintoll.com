@@ -898,6 +898,37 @@ $ nmcli radio wifi off
 
 After a connection is established, it is saved and `NetworkManager` will automatically connect to it in the future.
 
+> Ever wonder where `NetworkManager` stores the passwords for its sucessful connections?  I know I have, yo.
+>
+> On my Debian machine, they are stored in /etc/NetworkManager/system-connections/ by [`SSID`] with a `.nmconnection` file extension:
+> ```bash
+> $ ls /etc/NetworkManager/system-connections/
+> ```
+> All of the files have `0600` permissions and of course are owned by `root`.  In addition, the entries in that directory are formatted as [`INI` files] and contain information about the connection.  For this particular exercise, the two sections that are of interest are `[wifi]` and `[wifi-security]`.
+>
+> ```ini
+> [wifi]
+> mac-address-blacklist=
+> mode=infrastructure
+> ssid=Kool-Moe-Dee
+>
+> [wifi-security]
+> auth-alg=open
+> key-mgmt=wpa-psk
+> psk=destroy_your_mobile_phone
+> ```
+>
+> The `psk` could also be a [file descriptor].
+>
+> You can also use `nmcli` to get the information about a connection.  Query by the `SSID`:
+> ```bash
+$ nmcli --show-secrets connection show id Kool-Moe-Dee
+> ```
+
+What is the difference between `NetworkManager` and `wpa_supplicant`?
+TODO
+https://www.reddit.com/r/voidlinux/comments/rapmhh/networkmanager_vs_wpa_supplicant/
+
 ## `systemd-networkd`
 
 Of course, `systemd` has daemons that can manage not only network interfaces through the [`systemd-networkd`] daemon, but it can also use [`systemd-resolved`] to manage local name resolution.
@@ -1364,6 +1395,38 @@ It listens on `127.0.0.53`, and you would (probably?) see it listed in `/etc/res
 
 Any `DNS` requests it receives are looked up by querying servers configured in `/etc/systemd/resolv.conf` or `/etc/resolv.conf`.  If you wish to use this, use `resolve` for the `hosts` name database in `/etc/nsswitch.conf`.
 
+To check the `DNS` currently in use by `systemd-resolved`, use the [`resolvectl`] utility:
+
+```bash
+$ resolvectl status
+Global
+         Protocols: +LLMNR +mDNS -DNSOverTLS DNSSEC=no/unsupported
+  resolv.conf mode: foreign
+Current DNS Server: 192.168.1.1
+       DNS Servers: 192.168.1.1
+        DNS Domain: home
+
+Link 2 (enp0s31f6)
+Current Scopes: none
+     Protocols: -DefaultRoute +LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
+
+Link 3 (wlp3s0)
+Current Scopes: DNS LLMNR/IPv4 LLMNR/IPv6
+     Protocols: +DefaultRoute +LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
+   DNS Servers: 192.168.1.1
+    DNS Domain: home
+
+```
+
+You may get the following error when issuing the aforementioned command:
+
+```bash
+$ resolvectl status
+Failed to get global data: Unit dbus-org.freedesktop.resolve1.service not found.
+```
+
+In this case, the service isn't running, so start it (and possibly enable it, depending on your needs).
+
 ## Name Resolution
 
 Name resolution isn't just for hostnames, it is also used for user and group names, port numbers and more.  I mean, who wants to remember `IP` address, `UID`s, `GID`s, etc.?  Nobody.
@@ -1592,6 +1655,8 @@ Continue your journey with the sixth and last installment in this titillating se
 - [Interpreting the output of lspci](https://diego.assencio.com/?index=649b7a71b35fc7ad41e03b6d0e825f07)
 - [IPROUTE2 Utility Suite Howto](http://www.policyrouting.org/iproute2.doc.html)
 - [`NetworkManager` Documentation](https://networkmanager.dev/docs/)
+- [NST Avahi (mDNS) FAQ](https://wiki.networksecuritytoolkit.org/index.php/NST_Avahi_%28mDNS%29_FAQ)
+- [systemd-resolved](https://wiki.archlinux.org/title/Systemd-resolved)
 
 [LPIC-1]: https://www.lpi.org/our-certifications/lpic-1-overview
 [Topic 109: Networking Fundamentals]: https://learning.lpi.org/en/learning-materials/102-500/109/
@@ -1696,4 +1761,8 @@ Continue your journey with the sixth and last installment in this titillating se
 [`mail exchange`]: https://en.wikipedia.org/wiki/MX_record
 [`A` records]: https://www.cloudflare.com/learning/dns/dns-records/dns-a-record/
 [the `TTL` in seconds]: https://developers.cloudflare.com/dns/manage-dns-records/reference/ttl/
+[`resolvectl`]: https://man7.org/linux/man-pages/man1/resolvectl.1.html
+[`SSID`]: https://en.wikipedia.org/wiki/Service_set_(802.11_network)#Service_set_identifier
+[`INI` files]: https://en.wikipedia.org/wiki/INI_file
+[file descriptor]: https://en.wikipedia.org/wiki/File_descriptor
 

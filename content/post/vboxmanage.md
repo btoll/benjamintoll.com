@@ -25,12 +25,14 @@ Hey, ho, let's go!
     + [Starting](#starting)
     + [Listing](#listing)
     + [Changing State](#changing-state)
+        - [Stopping](#stopping)
     + [Snapshotting](#snapshotting)
         - [Taking](#taking)
         - [Deleting](#deleting)
         - [Restoring](#restoring)
     + [Exporting](#exporting)
     + [Unregistering](#unregistering)
+        - [Deleting](#deleting-1)
     + [Miscellaneous Commands](#miscellaneous-commands)
 - [Conclusion](#conclusion)
 - [References](#references)
@@ -405,6 +407,8 @@ There are many more examples of subcommands to the `list` command.  See [`list`]
 
 ### Changing State
 
+#### Stopping
+
 Shut down a running VM:
 
 ```bash
@@ -579,6 +583,8 @@ kali-disk001.vmdk  kali.ova  kali.ovf
 See [`export`] in the `VirtualBox` docs.
 
 ### Unregistering
+
+#### Deleting
 
 Unregister the VM and remove the entry from the `VirtualBox`:
 

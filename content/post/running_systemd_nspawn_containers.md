@@ -415,7 +415,9 @@ Unfortunately, though, most developers don't even know that there are options ou
 
 ## References
 
+- [systemd-nspawn (Debian docs)](https://wiki.debian.org/nspawn)
 - [systemd-nspawn (Arch Linux docs)](https://wiki.archlinux.org/title/Systemd-nspawn)
+- [Running sid in systemd-nspawn](https://wiki.debian.org/Packaging/Pre-Requisites/nspawn)
 - [Running containers with systemd-nspawn](https://www.youtube.com/watch?v=u3urXzJU1X8)
 - [mkosi — A Tool for Generating OS Images](http://0pointer.net/blog/mkosi-a-tool-for-generating-os-images.html)
 - [Ubuntu Cloud Images](http://cloud-images.ubuntu.com/)
