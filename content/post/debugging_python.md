@@ -146,13 +146,15 @@ $ type bp
 bp is a function
 bp ()
 {
-    if [ "$#" -eq 0 ]
-    then
+    if [ "$#" -eq 0 ]; then
         echo "$(tput setaf 1)[ERROR]$(tput sgr0) Not enough arguments.";
-        echo "Usage: bp &lt;filename&gt;";
+        echo "Usage: bp <filename>";
     else
         if ! stat "$1" &> /dev/null; then
             case "$1" in
+                Dockerfile)
+                    vim -c ":read ~/templates/dockerfile.txt" "$1"
+                ;;
                 *.elm)
                     vim -c ":read ~/templates/elm.txt" "$1"
                 ;;
@@ -160,7 +162,7 @@ bp ()
                     vim -c ":read ~/templates/html.txt" "$1"
                 ;;
                 *)
-                    <b>vim -c ":normal ibp" "$1"</b>
+                    vim -c ":normal ibp" "$1"
                 ;;
             esac;
         else
