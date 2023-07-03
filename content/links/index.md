@@ -14,16 +14,23 @@ title = "Links"
 - [Memory Game]
 - [Music Theory]
 - [Scale Buddy]
-- [Simple-Chat]
+- [Simple Chat]
 - Trivia
     + [`trivial`]
     + [`trivial-admin`]
     + [`awesome-trivia`]
 
 ## Online Tools
+
 - [Italian Dictionary]
 - [CSSCompress]
 - [HTMLify]
+
+## Packages
+
+- [`asbits`]
+- [`diceware`]
+- [`simple-chat`]
 
 ## Talks
 
@@ -55,6 +62,10 @@ title = "Links"
 [Italian Dictionary]: https://italy.benjamintoll.com
 [CSSCompress]: /tools/css_compress/
 [HTMLify]: /tools/htmlify/
+
+[`asbits`]: https://github.com/btoll/asbits/releases
+[`diceware`]: https://github.com/btoll/diceware/releases
+[`simple-chat`]: https://github.com/btoll/simple-chat/releases
 
 [The Owl's Nest Farm]: https://theowlsnest.farm
 [`benjamintoll.com` onion service]: http://5d6xbdrhw3hs4vngpukrsx6aih64vkpixqpexjmbo4eh7kl66iuseryd.onion
