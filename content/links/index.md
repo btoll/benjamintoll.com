@@ -8,12 +8,13 @@ title = "Links"
 - [Docker Hub]
 - [npm]
 
-## Games / Education
+## Games / Education / Fun
 
 - [Hangman]
 - [Memory Game]
 - [Music Theory]
 - [Scale Buddy]
+- [Simple-Chat]
 - Trivia
     + [`trivial`]
     + [`trivial-admin`]
@@ -46,6 +47,7 @@ title = "Links"
 [Memory Game]: /memory-game
 [Music Theory]: /music-theory
 [Scale Buddy]: https://github.com/btoll/scale_buddy
+[Simple Chat]: https://github.com/btoll/simple-chat
 [`trivial`]: https://github.com/btoll/trivial
 [`trivial-admin`]: https://github.com/btoll/trivial-admin
 [`awesome-trivia`]: https://github.com/btoll/awesome-trivia

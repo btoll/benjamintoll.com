@@ -153,5 +153,5 @@ Incidentally, I wrote a [simple chat program] that does the same, and it does al
 [netcat]: http://nc110.sourceforge.net/
 [Nmap]: https://nmap.org/
 [examples of using TLS]: https://nmap.org/ncat/guide/ncat-ssl.html
-[simple chat program]: https://github.com/btoll/simple_chat
+[simple chat program]: https://github.com/btoll/simple-chat
 
