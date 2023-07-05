@@ -44,6 +44,7 @@ This roughly covers [Topic 105: Shells and Shell Scripting].
         - [Quoting](#quoting)
     + [Running a Program in a Modified Environment](#running-a-program-in-a-modified-environment)
     + [Common Environment Variables](#common-environment-variables)
+    + [Sourcing](#sourcing)
     + [Aliases](#aliases)
     + [Functions](#functions)
     + [Builtin Variables](#builtin-variables)
@@ -138,11 +139,13 @@ Here are some fine examples of interactive non-login shells:
     #!/usr/bin/bash
 
     echo "Today's message is: $1 $2"
-    $ > test.sh bash -s -- hello world
+    $ < test.sh bash -s -- hello world
+    Today's message is: hello world
+    $ cat test.sh | bash -s -- hello world
     Today's message is: hello world
     ```
 
-    > Note that this example does not suffer from [`UUOC`].
+    > Note that the second example suffers from [`UUOC`].
 
 The following files are sourced, in order:
 
@@ -500,6 +503,8 @@ SHLVL=1
 _=/usr/bin/env
 ```
 
+> You can also use the `--ignore-environment` option and also just `-`, which implies `-i`.
+
 You can also augment the environment inherited by a subshell by prefacing the `bash` command again with `env`, but this time specifying the new variables to inherit:
 
 ```
@@ -549,6 +554,80 @@ The following commands will all print the shell's environment variables:
 - `export`
 - `printenv`
 - `env`
+
+## Sourcing
+
+Sourcing a `bash` script will not create a subprocess.  This means that all of the commands will execute within the context (i.e,. environment) of the current shell.
+
+Why is this useful?  Well, this method is used a lot when creating environment variables that are needed for a particular session.  By sourcing the file instead of executing it, when the file is done being read the variables are still part of the session, whereas they wouldn't be if executing the file (recall that a child cannot modify a parent's environment).
+
+Seeing this in action will make more sense.
+
+The first thing we'll do is show the current values of the number of bash instances, the PID of the current bash process and the status of the `FOO` environment variable:
+
+```bash
+$ echo $$ ; echo $SHLVL ; if [ -z $FOO ]; then echo unset; else echo set; fi
+25350
+3
+unset
+```
+
+Here is our little `source.sh` `bash` script:
+
+```bash
+#!/bin/bash
+
+echo "Number of bash instances: $SHLVL"
+echo "PID of current bash instance: $$"
+FOO=bar
+```
+
+First, let's source it:
+
+```bash
+$ . source.sh
+Number of bash instances: 3
+PID of current bash instance: 25350
+```
+
+Ok, this demonstrates that the script did indeed run in the same shell.  The number of `bash` instances is the same (as shown by the value of the `SHLVL` variable), as well as the `PID`.
+
+Let's see if the `FOO` variable is on the stack:
+
+```bash
+$ echo $FOO
+bar
+```
+
+Kool Moe Dee.
+
+Before we execute the script, `unset` that variable:
+
+```bash
+$ unset FOO ; if [ -z $FOO ]; then echo unset; else echo set; fi
+unset
+```
+
+Second, we'll execute the same file:
+
+```bash
+$ bash source.sh
+Number of bash instances: 4
+PID of current bash instance: 35246
+```
+
+It (the subprocess) created another `bash` instance, thus incrementing `SHLVL` as we'd expect.  Also, the `PID` is that of the subprocess.
+
+Did it set the `FOO` variable in the current shell?
+
+```bash
+$ if [ -z $FOO ]; then echo unset; else echo set; fi
+unset
+```
+
+Nope.
+
+Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 
 ## Aliases
 
@@ -961,17 +1040,21 @@ Getting input from the command-line is easy: use [`read`].
 Examples:
 
 ```
-echo "Do you want to continue (y/n)?"
-read ANSWER
+$ echo "Do you want to continue (y/n)?"
+$ read ANSWER
 ```
 
-```
-echo "Type your first name and last name:"
-read FIRST LAST
-```
+> If you don't give a variable name, it will default to `REPLY`.
 
 ```
-read -p "Type your first name and last name:" FIRST LAST
+$ echo "Type your first name and last name:"
+$ read FIRST LAST
+```
+
+This combines getting input from the user and also echoing at the same time:
+
+```
+$ read -p "Type your first name and last name:" FIRST LAST
 ```
 
 ### `case`
@@ -985,7 +1068,7 @@ debian | ubuntu | mint )
 centos | fedora | opensuse )
     echo -n "uses .rpm"
     ;;
-\*)
+*)
     echo -n "uses unknown package format"
     ;;
 esac
@@ -1048,7 +1131,7 @@ Unallocated RAM:        19375 MB
     + get the length of the third element
         - `${#SIZES[2]}`
     + get total length
-        - `${#SIZES[\*]}`
+        - `${#SIZES[*]}`
         - `${#SIZES[@]}`
     > Trying to access a non-existent array element (i.e., out-of-bounds) does not produce an error.
 
