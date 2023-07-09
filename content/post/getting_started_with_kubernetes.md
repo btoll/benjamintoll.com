@@ -10,6 +10,7 @@ I'll discuss two ways to accomplish this using [`minikube`] and [`kubeadm`].  Af
 
 ---
 
+- [For the Impatient](#for-the-impatient)
 - [`minikube`](#minikube)
     + [Install](#install)
     + [Start](#start)
@@ -32,6 +33,11 @@ I'll discuss two ways to accomplish this using [`minikube`] and [`kubeadm`].  Af
 - [Summary](#summary)
 
 ---
+## For the Impatient
+
+For those [champing at the bit] to get started, head to the section on [Vagrant](#vagrant) where you'll find a link to download a working cluster that I created just for you.
+
+And, for the *really* impatient that can't even be bothered to click another link to get the goods, [here you go].
 
 ## `minikube`
 
@@ -792,4 +798,6 @@ Of course, the sandboxes do have their place, just not here on `benjamintoll.com
 [`kubeadm join phase`]: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join-phase/
 [`kubeconfig`]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
 [`bash-completion`]: https://github.com/scop/bash-completion
+[champing at the bit]: https://grammarist.com/usage/champing-chomping-at-the-bit/
+[here you go]: https://www.youtube.com/watch?v=nsCIeklgp1M
 
