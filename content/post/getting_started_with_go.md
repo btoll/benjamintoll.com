@@ -319,6 +319,40 @@ You're going to want to use [`vim-go`].  Here is how to install using [`vim-plug
 
 When developing a package, it's quite often that you'll use `go run` to test the binary.  If you get `undefined` errors, make sure that you'll referencing all of the `.go` files that the binary will need.  Recall that you need to specify every file for `go run`.
 
+---
+
+If you're getting a circular dependency error when compiling, make sure that every package is within its own directory.
+
+For example, here is the directory structure of my [`github-release`] utility that contains three packages: `main`, `cmd` and `release`:
+
+```bash
+$ tree github-release/
+github-release/
+├── cmd
+│   ├── create.go
+│   ├── delete.go
+│   ├── get.go
+│   ├── list.go
+│   └── root.go
+├── go.mod
+├── go.sum
+├── main.go
+├── README.md
+└── release
+    └── release.go
+```
+
+This structure **will** compile.  However, if the `release.go` script was not in its own directory but instead at the root of the project (so, the same level as main.go), it'd could result in a circular dependency error (it also would depend on how your `imports` were defined).
+
+At the very least, you'll get something like this:
+
+```bash
+$ go install .
+found packages main (main.go) and release (release.go) in /home/btoll/projects/github-release
+cmd/create.go:7:2: no required module provides package github.com/btoll/github-release/release; to add it:
+        go get github.com/btoll/github-release/release
+```
+
 ## Programming
 
 ### `init` function
@@ -379,4 +413,5 @@ Weeeeeeeeeeeeeeee
 [read more about the `init` function]: https://go.dev/doc/effective_go#init
 [embed]: https://pkg.go.dev/embed
 [`trivial` package]: https://pkg.go.dev/github.com/btoll/trivial
+[`github-release`]: https://github.com/btoll/github-release/
 
