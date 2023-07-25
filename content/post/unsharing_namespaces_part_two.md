@@ -35,7 +35,7 @@ This is the second installment in a riveting series.  Be sure to have read [the 
 
 ### Network
 
-Unsharing the `net` [network namespace] allows for the process to have its own view of any network interface cards and routing tables.
+Unsharing the `net` [network namespace] allows for the process to have its own IPv4 and IPv6 stacks, network links, firewall rules and IP routing tables (among others.
 
 Let's look at the difference between sharing, or inheriting, the `net` namespace from the parent process and unsharing it.
 
@@ -52,7 +52,7 @@ $ ls -l /proc/$$/ns | ag net
 lrwxrwxrwx 1 btoll btoll 0 Aug  9 17:52 net -> net:[4026532008]
 ```
 
-Next, we demonstrate on the host that PID 1 (`systemd`) indeed has the same `net` namespace, which the containing process inherited through its parent.
+Next, we demonstrate on the host that PID 1 (`systemd` on my Debian `bullseye` distro) indeed has the same `net` namespace, which the containing process inherited through its parent.
 
 ```bash
 # On the host, where PID 1 is `systemd`.
@@ -97,7 +97,7 @@ Now, when creating its own `net` namespace, we can also see that the `net` names
 $ sudo unshare --net bash
 
 # In the container process.
-root@kilgore-trout:/home/btoll# ls -l /proc/$$/ns | ag net
+# ls -l /proc/$$/ns | ag net
 lrwxrwxrwx 1 root root 0 Aug  9 17:58 net -> net:[4026533295]
 ```
 
@@ -120,13 +120,38 @@ Error: ipv4: FIB table does not exist.
 Dump terminated
 ```
 
+> Note that not giving a command to `unshare` will result in it opening a shell by default (determined by the value of the `SHELL` environment variable).
+>
+> We could have omitted the `bash` program name from all of the above examples.
+
 Weeeeeeeeeeeeeeeeeeeeeeeeeeee
 
 #### Connectivity
 
-Let's now establish network connectivity between the host and the container process by creating two virtual Ethernet interfaces.
+Let's now establish network connectivity between the host and the container process by creating two virtual Ethernet ([`veth`]) interfaces.
 
 Conceptually, we can think of this as a cable that connects the default `net` network namespace with the new `net` network namespace of the container.
+
+Let's list some characteristics of `veth` devices (from the manpage):
+
+- they can act as tunnels between network namespaces to create a bridge to a physical network device in another namespace, but can also be used as standalone network devices
+- always created in interconnected pairs
+    ```bash
+    $ sudo ip link add <p1-name> type veth peer name <p2-name>
+    ```
+    + `p1-name` and `p2-name` are the names assigned to the two connected end points
+- packets transmitted on one device in the pair are immediately received on the other device
+- when either devices is down the link state of the pair is down
+
+> Anyone with an interest in container networking should pay particular attention to these little fellas.
+>
+> `veth` devices have a particularly interesting use case: placing one end of a `veth` pair in one network namespace and the other end in another network namespace allows for communicating between network namespaces.
+>
+> For example (using the `netns` parameter):
+>
+> ```bash
+> $ sudo ip link add <p1-name> netns <p1-ns> type veth peer <p2-name> netns <p2-ns>
+> ```
 
 We'll start by creating the new process with its own unshared `net` network namespace:
 
@@ -142,7 +167,24 @@ Right away, we can see that the new process has its own `net` namespace that is 
 4026532801 2561438 bash
 ```
 
+> If there were no accessible namespaces, the result would be empty.
+
 As we can see from the column options passed to the output parameter (`-o`), the first column is the `net` namespace, the second the process ID and the third the command that created the process.
+
+You could also list all of the namespaces of a process by passing the `-p|` option the `PID`:
+
+```bash
+# lsns -p $$
+        NS TYPE   NPROCS      PID USER COMMAND
+4026531834 time       99        1 root /sbin/init
+4026531835 cgroup     99        1 root /sbin/init
+4026531836 pid        99        1 root /sbin/init
+4026531837 user       99        1 root /sbin/init
+4026531838 uts        97        1 root /sbin/init
+4026531839 ipc        99        1 root /sbin/init
+4026531840 mnt        94        1 root /sbin/init
+4026532160 net         2  2561438 root bash
+```
 
 We'll need that PID of the new process in order to create its virtual network interface.  Note that we can also get it inside the container by echoing out the current process ID using a [special Bash parameter]:
 
@@ -151,7 +193,7 @@ We'll need that PID of the new process in order to create its virtual network in
 2561438
 ```
 
-> The previous commands (`lsns` and `echo`) were run in the container, but they could have also been run on the host.  Also, note that the command is limiting the output to only the namespace (NS), process ID (PID) and command (COMMAND).
+> The previous command (`lsns`) were run in the container, but it could have also been run on the host.  Also, note that the command is limiting the output to only the namespace (`NS`), process ID (`PID`) and command (`COMMAND`).
 
 Note that there are no entries in the routing table yet in the container, and the only device is `loopback`:
 
@@ -160,12 +202,14 @@ Note that there are no entries in the routing table yet in the container, and th
 Error: ipv4: FIB table does not exist.
 Dump terminated
 #
-# ip a
-1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
+# ip link
+1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 ```
 
-Ok, that's great.  Let's now connect the new `net` namespace to the default `net` namespace:
+Ok, that's great.  Let's now connect the new `net` namespace to the default `net` namespace with that `PID`.  Run the following command on the host.
+
+You can still be in the container in another terminal, so don't exit the container, which removes the namespace, unless you created a persistent namespace, which is beyond the scope of this tutorial (we haven't created one here, by the way).
 
 ```bash
 $ sudo ip link add ve1 netns 2561438 type veth peer name ve2 netns 1
@@ -183,24 +227,22 @@ Let's break that down like a hip beat:
 In the container, we can now see that the new virtual Ethernet device has indeed been added:
 
 ```bash
-# ip a
-1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
+# ip link
+1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-2: ve1@if3745: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
-    link/ether 1e:93:3b:e3:8f:32 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+2: ve1@if3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 26:c2:b6:f3:aa:3d brd ff:ff:ff:ff:ff:ff link-netnsid 0
 ```
 
 And we'll bring it up:
 
 ```bash
 # ip link set ve1 up
-# ip a
-1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
+# ip l
+1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-2: ve1@if3745: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-    link/ether 1e:93:3b:e3:8f:32 brd ff:ff:ff:ff:ff:ff link-netnsid 0
-    inet6 fe80::1c93:3bff:fee3:8f32/64 scope link
-       valid_lft forever preferred_lft forever
+2: ve1@if3: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state LOWERLAYERDOWN mode DEFAULT group default qlen 1000
+    link/ether 26:c2:b6:f3:aa:3d brd ff:ff:ff:ff:ff:ff link-netnsid 0
 ```
 
 We'll do the same on the host:
@@ -226,13 +268,17 @@ $ ip a
        valid_lft forever preferred_lft forever
 ```
 
+> Bringing an interface `UP` means to enable it.  What does `LOWER_UP` mean, then?
+>
+> It is a physical layer link flag.  `LOWER_UP` indicates that an `Ethernet` cable was plugged in and that the device is connected to the network, that is, it can send and receive encoded and decoded information from its physical medium source, be it electricity, light or radio waves.
+
 Of course, in order to be able to send traffic to the devices, both need to be assigned an IP address on the same network.
 
 First, in the container:
 
 ```bash
 # ip addr add 192.168.1.100/24 dev ve1
-root@kilgore-trout:/home/btoll# ip a
+# ip a
 1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 2: ve1@if3745: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
@@ -311,6 +357,8 @@ Weeeeeeeeeeeeeeeeeeeeeeee
 > At this point, the container can only send traffic to addresses in the 192.168.1.0/24 range.
 
 Note that the `veth` device and the route in the routing table will both be removed automatically from the host when the container is exited.
+
+If the two processes can't communicate, i.e., the `ping`s don't work, make sure that the new network you configured for the container processes don't conflict with any others.
 
 ---
 
@@ -420,9 +468,9 @@ After having gone through all of those contortions to write to the `/proc/PID/ui
 
 ```bash
 $ unshare --map-root-user bash
-root@kilgore-trout:~/projects/benjamintoll.com# id
+# id
 uid=0(root) gid=0(root) groups=0(root),65534(nogroup)
-root@kilgore-trout:~/projects/benjamintoll.com# cat /proc/$$/uid_map
+# cat /proc/$$/uid_map
          0       1000          1
 ```
 
@@ -564,6 +612,7 @@ Um.
 - [Containers From Scratch - Liz Rice - GOTO 2018](https://www.youtube.com/watch?v=8fi7uSYlOdc)
 - [Trivy](https://github.com/aquasecurity/trivy)
 - [Index of /alpine/](http://dl-cdn.alpinelinux.org/alpine/)
+- [Linux Bridges, IP Tables & CNI Plug-Ins: A Container Networking Deep Dive](https://www.youtube.com/watch?v=z-ITjDQT7DU)
 
 [the first part]: /2022/08/08/on-unsharing-namespaces-part-one/
 [namespaces]: https://www.man7.org/linux/man-pages/man7/namespaces.7.html
@@ -583,4 +632,5 @@ Um.
 [system calls]: /2022/08/18/on-system-calls/
 [the Shadow]: https://en.wikipedia.org/wiki/The_Shadow
 [subuid(5) man page]: https://www.man7.org/linux/man-pages/man5/subuid.5.html
+[`veth`]: https://man7.org/linux/man-pages/man4/veth.4.html
 
