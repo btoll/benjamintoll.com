@@ -57,10 +57,15 @@ This roughly covers [Topic 110: Security].
     + [Unnecessary Services](#unnecessary-services)
     + [`TCP` Wrappers](#tcp-wrappers)
     + [`ssh`](#ssh)
+        - [Creating a Key](#creating-a-key)
+        - [`authorized_keys`](#authorized_keys)
+        - [`ssh-agent`](#ssh-agent)
+        - [Deleting a `known_hosts` Entry](#deleting-a-known_hosts-entry)
         - [Port Forwarding](#port-forwarding)
             + [Local](#local)
             + [Remote](#remote)
             + [Dynamic](#dynamic)
+        - [`X11` Forwarding](#x11-forwarding)
     + [`gpg`](#gpg)
         - [Generating](#generating)
         - [Exporting](#exporting)
@@ -496,7 +501,7 @@ Pretty nifty, I'd say, and I do say.
 
 ### `systemd` sockets
 
-There is another way to view the open ports on a system, although I don't know if this is covered on the exam.  Anyway, there could be a service that is listening on a [`systemd.socket`]:
+There is another way to view the open ports on a system, although I don't know if this is covered on the exam.  Anyway, there could be a service that is listening on a [`systemd-socket`]:
 
 ```bash
 $ systemctl list-unit-files --type=socket
@@ -788,6 +793,7 @@ Defaults        env_reset
 Defaults        mail_badpass
 Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Defaults        editor=/usr/bin/vim
+Defaults        timestamp_timeout=60
 
 # Host alias specification
 
@@ -826,17 +832,17 @@ From `/etc/sudoers.d/README`:
 
 ## `nologin`
 
-[`/etc/nologin`]
+To prevent all users but root from logging into a system, create the file [`/etc/nologin`].  The file can contain a nice message about why you're not worthy to log in, little fella.
 
-In addition, there's also the [`nologin`] command.
+In addition, there's also the [`nologin`] binary.  This can be used to prevent a user from logging in by setting it as the their default shell:
 
 ```bash
-$ sudo nologin
-This account is currently not available.
+$ sudo usermod --shell /usr/sbin/nologin jeff_bezos
 ```
+
 ## `xinetd`
 
-Seriously, [`xinetd`]?  I don't think anyone has used this in the past 500 years.
+Seriously, [`xinetd`]?  I don't think anyone has used this in the past 500 years.  Apparently, [`systemd-socket`] is the spiritual successor of the superdaemon.
 
 ## Unnecessary Services
 ```bash
@@ -989,13 +995,224 @@ ALL: PARANOID
 
 [`ssh` client]
 
+### Creating a Key
+
+```bash
+$ ssh-keygen -t ecdsa -b 521
+```
+
+|**Option** |**Description**
+|:---|:---
+|`-b` |The size in bits |
+|`-t` |The algorithm |
+
+This will create the following two files in your `.ssh` folder:
+
+- `id_ecdsa`
+- `id_ecdsa.pub`
+
+View the fingerprint of a key:
+
+```bash
+$ ssh-keygen -lf ~/.ssh/id_ed25519.pub
+256 SHA256:SWKTTL379YjNoNItlvUftX5lfL17js22NMrG840Oibc kilgore-trout@example.com (ED25519)
+```
+
+To also view its art:
+
+```bash
+$ ssh-keygen -vlf ~/.ssh/id_ed25519.pub
+256 SHA256:SWKTTL379YjNoNItlvUftX5lfL17js22NMrG840Oibc kilgore-trout@example.com (ED25519)
++--[ED25519 256]--+
+|      ..         |
+|     o ..        |
+|      * ..       |
+|     . +..       |
+|        So     . |
+|        * . .   =|
+|       o.*.*.o =+|
+|      ..+++ *=*=*|
+|       ..Eoo+==X@|
++----[SHA256]-----+
+```
+
+|**Option** |**Description**
+|:---|:---
+|`-f` |The input key file |
+|`-l` |Show fingerprint of specified public key file |
+|`-v` |Verbose mode (shows `ASCII` art) |
+
+Here are the four algorithms that can be used for the key:
+
+- `RSA`
+    + Named after Ron Rivest, Adi Shamir and Leonard Adleman
+- `DSA`
+    + Digital Signature Algorithm
+    + No longer considered secure
+    + Has a fixed length length of only 1024 bits
+    + Deprecated as of `OpenSSH` 7.0
+- `ecdsa`
+    + Elliptic Curve Digital Signature Algorithm
+    + An improved implementation of `DSA` using elliptical curve cryptography
+    + Key length is determined by three possible elliptic curve sizes (in bits):
+        - 256
+        - 384
+        - 521
+- `ed25519`
+    + Edwards-curve Digital Signature Algorithm
+    + Considered to be the most secure
+    + Has a fixed length of 256 bits
+
+> `ssh-keygen` uses `RSA` by default.
+
+### `authorized_keys`
+
+For logging into a server using your public key, here are some ways of getting the public key into the destination machine's [`.ssh/authorized_keys`] file:
+
+Using [`ssh-copy-id`]:
+
+```bash
+$ ssh-copy-id -i ~/.ssh/id_ecdsa.pub derp@10.0.0.1
+```
+
+Using [`scp`]:
+
+```bash
+$ scp ~/.ssh/id_ecdsa.pub derp@10.0.0.1:~/.ssh/
+```
+
+Then, you'd log in and copy the key into the file (or, create it if it doesn't exist).
+
+Or:
+
+```bash
+$ cat ~/.ssh/id_ecdsa.pub | ssh derp@10.0.0.1 'cat >> .ssh/authorized_keys'
+```
+
+Or, close your eyes and wish for it to happen.
+
+Once your public key is in the host's `authorized_keys` file, you are allowed to login (this is assuming that only public key access is configured in the `sshd_config` file), you will still be asked for a password<sup>1</sup>.  Why?
+
+`SSH` is asking for the passphrase that you used to protect your key.  This is a good thing.  Don't use this as an excuse to then create a key without a passphrase, like a spoiled little baby.
+
+Instead, use the [`ssh-agent`].
+
+<sup>1</sup> This assumes that you've created an `SSH` key that is protected with a passphrase.  Of course, you can create one without a passphrase that would be completely insecure and not prompt for a password when logging into a remote machine, but only a tech bro would do a completely imbecilic thing like that.
+
+### `ssh-agent`
+
+The [`ssh-agent`] can be used to cache the passphrase.  This will then act as your agent with the remote `ssh` server and transparently log you in with the passphrase.
+
+There are a couple of ways to do this.  First, you can call the agent explicitly, which will create a new shell in which the agent is running.  This subshell will have all of the agent's environment variables exported into it and will then be inherited every other process that is created by the shell:
+
+```bash
+$ ssh-agent /bin/bash
+```
+
+You can have then have it cache your password by executing the [`ssh-add`] command, which will ask for the passphrase:
+
+```bash
+$ ssh-add
+```
+
+That's it.  You can then use `ssh`, and `ssh-agent` will authenticate you transparently.  Note, though, that as soon as you exit the shell that the environment will go bye-bye and you will no longer enjoy the fruits of `ssh-agent`'s labor.
+
+The second method is more more practical.  Simply export the agent's environment in one of your shell run command scripts, like a [login script]:
+
+```bash
+eval $(ssh-agent)
+```
+
+Or, after logging in to your local host, in one fell swoop:
+
+```bash
+$ eval $(ssh-agent) && ssh-add
+```
+
+What are the environment variables that are exported, you wonder?  Wonder no more, friend:
+
+```
+$ ssh-agent -s
+SSH_AUTH_SOCK=/tmp/ssh-pq9y8ZBxYqAw/agent.62284; export SSH_AUTH_SOCK;
+SSH_AGENT_PID=62285; export SSH_AGENT_PID;
+echo Agent pid 62285;
+```
+
+Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+> Note that `ssh-add` only adds the passphrase to volatile memory, it does not write anything to disk.
+
+### Deleting a `known_hosts` Entry
+
+If you get a big scary message when `ssh`-ing into a remote machine that looks something like this:
+
+```bash
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+```
+
+You can remove all `ECDSA` public key fingerprints for the `IP` address or hostname or domain using the following command:
+
+```bash
+$ ssh-keygen -f "/home/btoll/.ssh/known_hosts" -R 192.168.1.77
+```
+
+To delete all keys for that same `IP` address:
+
+```bash
+$ ssh-keygen -R 192.168.1.77
+```
+
+|**Option** |**Description**
+|:---|:---
+|`-f` |The input key file |
+|`-R` |The hostname |
+
 ### Port Forwarding
+
+Here's [a nice article] about SSH and port forwarding for your reading pleasure.
 
 #### Local
 
+```bash
+$ ssh -L 8585:www.gnu.org:80 debian
+```
+
+```bash
+$ ssh -L 8585:www.gnu.org:80 -Nf poop@192.168.1.77
+```
+
 #### Remote
 
+```bash
+$ ssh -R 8585:localhost:80 -Nf poop@192.168.1.77
+```
+
 #### Dynamic
+
+Not covered by the `LPIC`-1 exam, sadly.
+
+### `X11` Forwarding
+
+Through an `X11` tunnel, the `X` Window System on the remote host is forwarded to your local machine.
+
+```bash
+$ ssh -X poop@dollop
+```
+
+Now, when you launch a web browser, the browser will be run on the remote server, but its display will be forwarded to your local machine.  Note that it could be any graphical application, it doesn't need to be a web browser.  For example, it could be a sweet app like [Nip Alert].
+
+> Also known as `X11` tunneling.
+
+Lastly, here are the three `sshd` configurations that control all of the above behavior:
+
+- `AllowTcpForwarding`
+- `GatewayPorts`
+- `X11Forwarding`
 
 ## `gpg`
 
@@ -1154,6 +1371,8 @@ $ gpg --output revocation_file.asc --gen-revoke benjam72@yahoo.com
 To revoke the key, simply import (`--import`) the generated revocation certificate into your keyring.  When listing the key again, you will now see that it's been revoked:
 
 ```bash
+$ gpg --import revocation_file.asc
+$
 $ gpg -k foo-manchu
 pub   rsa3072 2023-02-17 [SC] [revoked: 2023-02-17]
       60F92D048F12B65CA59AD1C1FD717513DE6940D8
@@ -1436,7 +1655,7 @@ $ gpg --keyserver keyserver-name --recv-keys KEY-ID
 
 ### `gpg-agent`
 
-The [`gpg-agent`] is a daemon that stores keys in memory.  When `gpg` needs to perform an operation, it will ask the daemon for the key material, and if it doesn't have it, will get it from the keyring, thus prompting for a password (and raising your [`pinentry`] program).
+The [`gpg-agent`] is a daemon that manages private keys and stores keys in memory.  When `gpg` needs to perform an operation, it will ask the daemon for the key material, and if it doesn't have it, will get it from the keyring, thus prompting for a password (and raising your [`pinentry`] program).
 
 Essentially, it stores keys in memory so you don't have to keep entering passphrases every time you invoke `gpg`.
 
@@ -1472,7 +1691,7 @@ https://bbs.archlinux.org/viewtopic.php?id=147964
 [`lsof`]: https://man7.org/linux/man-pages/man8/lsof.8.html
 [`fuser`]: https://man7.org/linux/man-pages/man1/fuser.1.html
 [`netstat`]: https://man7.org/linux/man-pages/man8/netstat.8.html
-[`systemd.socket`]: https://man7.org/linux/man-pages/man5/systemd.socket.5.html
+[`systemd-socket`]: https://man7.org/linux/man-pages/man5/systemd.socket.5.html
 [The End of the Road: systemd's "Socket" Units]: https://www.linux.com/training-tutorials/end-road-systemds-socket-units/
 [`socat`]: https://man.archlinux.org/man/socat.1.en
 [`who`]: https://man7.org/linux/man-pages/man1/who.1.html
@@ -1512,4 +1731,12 @@ https://bbs.archlinux.org/viewtopic.php?id=147964
 [has a theme song]: https://www.youtube.com/watch?v=r0qBaBb1Y-U
 [`sudoers`]: https://man7.org/linux/man-pages/man5/sudoers.5.html
 [`nano`]: https://nano-editor.org/
+[a nice article]: /2018/08/24/on-ssh-port-forwarding/
+[`.ssh/authorized_keys`]: https://man7.org/linux/man-pages/man8/sshd.8.html#FILES
+[`ssh-copy-id`]: https://www.ssh.com/academy/ssh/copy-id
+[`scp`]: https://www.man7.org/linux/man-pages/man1/scp.1.html
+[`ssh-agent`]: https://www.man7.org/linux/man-pages/man1/ssh-agent.1.html
+[login script]: /2023/01/22/on-the-lpic-1-exam-102-shells-and-shell-scripting/#shell-types
+[`ssh-add`]: https://www.man7.org/linux/man-pages/man1/ssh-add.1.html
+[Nip Alert]: https://silicon-valley.fandom.com/wiki/Nip_Alert
 

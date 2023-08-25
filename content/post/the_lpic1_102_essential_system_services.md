@@ -58,6 +58,7 @@ This roughly covers [Topic 108: Essential System Services].
         - [`systemd-cat`](#systemd-cat)
         - [Journal Storage](#journal-storage)
         - [Deleting Old Journals](#deleting-old-journals)
+        - [Retrieving Journal Data](#retrieving-journal-data)
         - [Forwarding to `syslogd`](#forwarding-to-syslogd)
     + [Mail](#mail)
         - [`MTA`s](#mtas)
@@ -89,24 +90,26 @@ This roughly covers [Topic 108: Essential System Services].
 
 A system starts keeping time when it boots.  The [system clock] is updated by the operating system, while the [real-time clock], also known as the hardware clock, is integrated with the motherboard and keeps time even when the machine is powered off.
 
-The system clock is synced with the real-time clock on boot.
+The system clock is synced with the real-time clock on boot, but the two clocks mainly run independently of each other.
 
 Both clocks, however, are synchronized to network time via the [Network Time Protocol] (`NTP`).
 
+> The system clock is set to [Coordinated Universal Time], and it is recommended that the system clock be set to `UTC` rather than local time (which would be `UTC` +/- an offset and Daylight Savings).
+
 ### `date`
 
-The [`date`] tool will print or set the system date and time.  It will print local time, which is an offset of [Coordinated Universal Time] (UTC).
+The [`date`] tool will print or set the system date and time.  It will print local time, which is an offset of [Coordinated Universal Time] (`UTC`).
 
 There are many cool ways to print out the local time using different formats and time zones.  In addition, you can print the date in the future or in the past.
 
-```
+```bash
 $ date
 Fri 03 Feb 2023 02:47:21 PM EST
 ```
 
 In `UTC`:
 
-```
+```bash
 $ date -u
 Fri 03 Feb 2023 07:49:48 PM UTC
 ```
@@ -123,21 +126,21 @@ There are way too many formatting options to list here, you should see the man p
 
 Using formatting sequences, print the current hour and minute in military time:
 
-```
+```bash
 $ date +%H:%M
 15:12
 ```
 
 Additionally, use `--date` to format a time that is not current:
 
-```
+```bash
 $ date --date='@2564013011'
 Sat 01 Apr 2051 09:50:11 PM EDT
 ```
 
 In the future and the past!
 
-```
+```bash
 $ date --date='TZ="America/Los_Angeles" 09:00 next Fri'
 Fri 10 Feb 2023 12:00:00 PM EST
 $ date --date='TZ="America/Los_Angeles" 09:00 last Fri'
@@ -159,14 +162,14 @@ From the man page:
 
 The [`hwclock`] utility allows one to view the time as maintained by the real-time clock.  As an administration tool, it allows a privileged user to set both the real-time clock and the system clock and more.
 
-```
+```bash
 $ sudo hwclock
 2023-02-03 15:28:51.042561-05:00
 ```
 
 The `--verbose` option gives you more information than you know what to do with:
 
-```
+```bash
 $ sudo hwclock --verbose
 hwclock from util-linux 2.36.1
 System Time: 1675461223.537073
@@ -191,7 +194,7 @@ The `Calculated Hardware Clock drift` is the amount of time the system and real-
 
 Use the [`timedatectl`] as yet another tool to display the system time and the hardware time (`RTC time` in the example below):
 
-```
+```bash
 $ timedatectl
                Local time: Fri 2023-02-03 17:00:02 EST
            Universal time: Fri 2023-02-03 22:00:02 UTC
@@ -204,7 +207,9 @@ System clock synchronized: yes
 
 It also lets you know if `NTP` is in use and has been used to synchronize the system and real-time clocks.
 
-Use this command to set the time (and time zone) if `NTP` is unavailable or not installed.  It is recommended to use this utility and not `date` or `hwclock`.
+Use this command to set the time (and time zone) if `NTP` is unavailable or not installed.  In this case, it is recommended to use this utility and not `date` or `hwclock`.
+
+Also, `timedatectl` is the preferred command to use to set the timezone when no `GUI` exists.
 
 From the man page:
 
@@ -219,21 +224,23 @@ set-timezone [TIMEZONE]
     time. This call will alter the /etc/localtime symlink. See localtime(5) for more information.
 </pre>
 
+> Time can be set independent of date using the format `HH:MM:SS`.
+
 List the time zones using `timedatectl list-timezones`.  Remember, you can use the [`tzselect`] tool to select yours.
 
 You can also use `timedatectl set-ntp` to enable `NTP` (or to disable, if you feel like living on the edge).
 
 When setting the time zone without using `timedatectl`, simply create a symlink to the appropriate file in `/usr/share/zoneinfo` to the system [`/etc/localtime`] file:
 
-```
+```bash
 $ ln -s /usr/share/zoneinfo/America/Toronto /etc/localtime
 ```
 
 Also, you can use `date` or `hwclock` to set the date and time on a system that doesn't use `systemd` for its system initialization.
 
-Note that this is not recommended if you do use `systemd`.
+Note that this is not recommended if you do use `systemd` (so, `date` and `hwclock` are considered legacy commands).
 
-```
+```bash
 $ sudo date --set="11 Nov 2011 11:11:11"
 $ sudo date +%Y%m%d -s "20111125"
 $ sudo date +%T -s "13:11:00"
@@ -241,13 +248,13 @@ $ sudo date +%T -s "13:11:00"
 
 > The `LPIC-1` docs advise setting the hardware clock from the system clock after updating the date and time in the ways just described.
 >
-> ```
+> ```bash
 > $ sudo hwclock --systohc
 > ```
 
 For `hwclock`, you can do:
 
-```
+```bash
 $ sudo hwclock --set --date "4/12/2019 11:15:19"
 ```
 
@@ -255,23 +262,40 @@ $ sudo hwclock --set --date "4/12/2019 11:15:19"
 
 > The `LPIC-1` docs advise setting the setting clock from the hardware clock after updating the date and time in the way just described.
 >
-> ```
+> ```bash
 > $ sudo hwclock --hctosys
 > ```
 
 ## Network Time Protocols
 
-The best clocks to use for synchronizing are a reference or [atomic clock].  [`SNTP`] (Simple Network Time Protocal) and `NTP` are both networking protocols that allow for clock synchronization with these reference clocks, although the public are not allowed direct access to them.
+The best clocks to use for synchronizing are a reference or [atomic clock].  [`SNTP`] (Simple Network Time Protocal) and `NTP` (Network Time Protocol) are both networking protocols that allow for clock synchronization with these reference clocks, although the public are not allowed direct access to them.
+
+`NTP` relies upon a hierarcy of machines:
 
 ![X_Windows](/images/ntp_stratums.png)
 
+Reference clocks, also known as atomic clocks, are connected to the machines at the top.  These are not accessible by the public, nor is the next level in the hierarchy, `Stratum 1`.
+
+However, `Stratum 1` machines are accessible by `Stratum 2` machines, and this level of machines *is* accessible by the public (as are the lower levels).
+
+It is recommended that any large `NTP` network only have a few access machines that access the `Stratum 2`+ servers, and then have those machines provide `NTP` services to all the rest of the network's machines.  This will reduce the overall load of the machines that provide `NTP` services to the entire world.
+
+Here are some important terms that are thrown around like puppies when it comes to discussing and understanding `NTP`:
+
+- `offset`
+- `step`
+- `slew`
+- `insane time`
+- `drift`
+- `jitter`
+
 ### `SNTP`
 
-If your system initialization service is `systemd`, then by default it is using `SNTP`, not `NTP`.  `SNTP` is a lighter-weight protocol, the main difference being that your system will not serve `NTP` to other machines.
+If your system initialization service is `systemd` and it uses `timedatectl`, then by default it implements `SNTP`, not `NTP`.  `SNTP` is a lighter-weight protocol, the main difference being that your system will not serve `NTP` to other machines.
 
-`SNTP` is used only when the [`systemd-timesync`] daemon is active.  To check its status:
+`SNTP` is used only when the [`systemd-timesync`] daemon is active (if not installed, it's just a quick `sudo apt-get install systemd-timesync` away).  To check its status:
 
-```
+```bash
 $ sudo systemctl status systemd-timesyncd
 ● systemd-timesyncd.service - Network Time Synchronization
      Loaded: loaded (/lib/systemd/system/systemd-timesyncd.service; enabled; vendor preset: enabled)
@@ -291,9 +315,22 @@ Feb 02 22:18:00 kilgore-trout systemd-timesyncd[719]: Initial synchronization to
 ...
 ```
 
+Once the service is started, you can then verify that the time has been synced:
+
+```bash
+$ timedatectl
+               Local time: Tue 2023-08-29 22:40:46 EDT
+           Universal time: Wed 2023-08-30 02:40:46 UTC
+                 RTC time: Wed 2023-08-30 02:40:46
+                Time zone: America/New_York (EDT, -0400)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
+```
+
 Use `timedatectl` to check the `SNTP` synchronization status:
 
-```
+```bash
 $ timedatectl show-timesync --all
 LinkNTPServers=
 SystemNTPServers=
@@ -308,13 +345,152 @@ NTPMessage={ Leap=0, Version=4, Mode=4, Stratum=2, Precision=-30, RootDelay=4.16
 Frequency=-3812749
 ```
 
+If you need to synchronize all the clients in your network, then `SNTP` will not be enough.  Let's now look at `NTP`.
+
 ### `NTP`
 
-TODO
+```bash
+$ sudo apt-get install ntp
+$ sudo systemctl enable ntpd
+$ sudo systemctl start ntpd
+```
+
+`NTP` queries use port 123.
+
+The config file is located at `/etc/ntp.conf`.
+
+The `NTP` servers are configured in a section that looks like:
+
+```conf
+server 0.debian.pool.ntp.org iburst
+server 1.debian.pool.ntp.org iburst
+server 2.debian.pool.ntp.org iburst
+server 3.debian.pool.ntp.org iburst
+```
+
+The servers can be `IP` addresses or `URL`s if `DNS` is configured.
+
+Here, it looks like a server will be chosen from a pool of low-stratum servers.
+
+If the difference between system time and network time (`NTP`) is more than 17 minutes (that is, the `offset` is greater than 17 minutes), then this is considered `insane time` and can only be fixed by manual interventions.
+
+First, stop the `ntpd` service:
+
+```bash
+$ sudo systemctl stop ntpd
+```
+
+And then perform an initial one-time synchronization using [`ntpdate`]:
+
+```bash
+$ sudo ntpdate pool.ntp.org
+```
+
+Lastly, you can use the [`ntpq`] utility to monitor the status of `NTP`:
+
+```bash
+$ ntpq -p
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
+ 0.debian.pool.n .POOL.          16 p    -   64    0    0.000   +0.000   0.000
+ 1.debian.pool.n .POOL.          16 p    -   64    0    0.000   +0.000   0.000
+ 2.debian.pool.n .POOL.          16 p    -   64    0    0.000   +0.000   0.000
+ 3.debian.pool.n .POOL.          16 p    -   64    0    0.000   +0.000   0.000
++us-west-1.clear 173.11.101.155   2 u   57   64  377   78.195   +0.003   0.898
++time.lmtlabs.co 47.187.174.51    2 u   66   64  377   21.071   +0.873   1.261
++time.cloudflare 10.94.8.6        3 u   62   64  375   14.819   +0.157   1.142
++44.190.40.123   66.220.9.122     2 u  195   64  374   75.673   -0.393   1.524
++216.31.16.12 (n 172.18.56.13     2 u   63   64  375   30.829   -0.669   1.728
+-ntp.raptorengin 192.168.60.11    2 u   53   64  377   36.498   -0.144   1.570
++108.61.73.244   129.6.15.27      2 u   68   64  377   19.095   -0.430   1.418
+-owners.kjsl.com 66.162.37.244    2 u   66   64  377   74.391   -2.311   1.345
+*068-112-004-226 128.252.19.1     2 u   64   64  375   36.988   +0.431   2.064
++linode1.ernest- 198.72.72.10     3 u    3   64  373   33.016   -1.364  20.379
+```
+
+|**Column** |**Description**
+|:---|:---
+|`remote` |hostname of the `NTP` provider |
+|`refid` |reference `ID` of the `NTP` provider |
+|`st` |`stratum` of the provider |
+|`when` |number of seconds since the last query |
+|`poll` |number of seconds between queries |
+|`reach` |status `ID` to indicate whether a server was reached, successful connections will increase this number by 1 |
+|`delay` |time in `ms` between query and response by the server |
+|`offset` |time in ms between system time and `NTP` time |
+|`jitter` |offset in ms between system time and `NTP` in the last query |
+
+> `ntpq` interactive mode is initiated when it is run without any arguments:
+>
+> ```bash
+> $ ntpq
+> ntpq> ?
+> ntpq commands:
+> :config          drefid           mreadlist        readvar
+> addvars          exit             mreadvar         reslist
+> apeers           help             mrl              rl
+> associations     host             mrulist          rmvars
+> authenticate     hostnames        mrv              rv
+> authinfo         ifstats          ntpversion       saveconfig
+> cl               iostats          opeers           showvars
+> clearvars        kerninfo         passociations    sysinfo
+> clocklist        keyid            passwd           sysstats
+> clockvar         keytype          peers            timeout
+> config-from-file lassociations    poll             timerstats
+> cooked           lopeers          pstats           version
+> cv               lpassociations   quit             writelist
+> debug            lpeers           raw              writevar
+> delay            monstats         readlist
+> ntpq>
+> ```
 
 ### `chrony`
 
-TODO
+```bash
+$ sudo apt-get install chrony
+```
+
+This install a couple of binaries:
+
+- `chronyd` - the `chrony` daemon
+- `chronyc` - the `chrony` `CLI`
+
+```bash
+$ chronyc tracking
+Reference ID    : D81F100C (ntp.svcs.ord07.cymru.com)
+Stratum         : 3
+Ref time (UTC)  : Thu Aug 31 00:04:59 2023
+System time     : 0.000415254 seconds slow of NTP time
+Last offset     : -0.000014862 seconds
+RMS offset      : 0.000745508 seconds
+Frequency       : 13.100 ppm slow
+Residual freq   : +0.065 ppm
+Skew            : 2.823 ppm
+Root delay      : 0.031643603 seconds
+Root dispersion : 0.003978447 seconds
+Update interval : 65.3 seconds
+Leap status     : Normal
+```
+
+Get detailed information about the last time `NTP` was synchronized:
+
+```bash
+$ sudo chronyc ntpdata
+```
+
+List the `NTP` servers that are used to synchronize the time:
+
+```bash
+$ chronyc sources
+MS Name/IP address         Stratum Poll Reach LastRx Last sample
+===============================================================================
+^+ triton.ellipse.net            2   6   377    50  +2922us[+2990us] +/-   42ms
+^* ntp.svcs.ord07.cymru.com      2   6   377    49  -1289us[-1220us] +/-   27ms
+^+ sensei.ruselabs.com           2   6   377    51   -286us[ -217us] +/-   44ms
+^+ hc-007-ntp1.weber.edu         1   6   377    49   +186us[ +186us] +/-   34ms
+```
+
+If no sources are listed, you can enter them in the `chrony` configuration file: `/etc/chrony/chrony.conf` (this is the location on Debian).
 
 ## `rsyslog`
 
@@ -328,7 +504,7 @@ One of the advantages of `rsyslog` over its predecessors is its [`Reliable Event
 
 `rsyslog` has a client-server model.  In most situations, both the client and server are on the same machine (such as the laptop on which I'm now typing), but often the logs are sent to a centralized remote server (or perhaps servers) for aggregation.  The messages themselves are in a particular format, which we'll see shortly.
 
-> The `rsyslog` daemon works together with [`klogd`] which manages kernel messages.
+> The `rsyslogd` daemon works together with [`klogd`], which manages kernel messages.
 
 ### Log Types
 
@@ -407,7 +583,7 @@ In addition, you can use your old friends [`head`], [`tail`] (often with `-f` or
 
 For example:
 
-```
+```bash
 $ sudo head -1 /var/log/daemon.log
 Mar  4 01:22:54 kilgore-trout systemd[1]: rsyslog.service: Sent signal SIGHUP to main process 904 (rsyslogd) on client request.
 ```
@@ -445,7 +621,7 @@ Most of the logs are textual, but some are binary.  Here are some examples and t
 
 1. Applications, services and the kernel write messages in special files (sockets and memory buffers), e.g. `/dev/log` or `/dev/kmsg`.
 
-    ```
+    ```bash
     $ readlink -f /dev/log
     /run/systemd/journal/dev-log
     $ file $(!!)
@@ -458,7 +634,7 @@ Most of the logs are textual, but some are binary.  Here are some examples and t
 
 You can list all sockets on the system through `systemd` by issuing the following command:
 
-```
+```bash
 $ systemctl list-sockets --all
 ```
 
@@ -487,7 +663,7 @@ The configuration log for `rsyslogd` can be found in [`/etc/rsyslog.conf`].  It 
         ```
 - `GLOBAL DIRECTIVES`
     + configure a number of things such as logs and log directory permissions
-        ```
+        ```conf
         ###########################
 		#### GLOBAL DIRECTIVES ####
         ###########################
@@ -552,7 +728,7 @@ The configuration log for `rsyslogd` can be found in [`/etc/rsyslog.conf`].  It 
         |6 |Informational |`info` |Informational messages |
         |7 |Debug |`debug` |Debug-level messages |
 
-		```
+		```conf
         ###############
         #### RULES ####
         ###############
@@ -602,13 +778,13 @@ Let's break down some examples [like it's 1984].
 
 #### Examples
 
-```
+```conf
 auth,authpriv.*			/var/log/auth.log
 ```
 
 Regardless of the priority (like in globbing, the asterisk matches everything), all messages from the `auth` and `authpriv` facilities are sent to `/var/log/auth.log`.
 
-```
+```conf
 *.*;auth,authpriv.none		-/var/log/syslog
 ```
 
@@ -618,12 +794,12 @@ All messages, irrespective of their priority (\*), from all facilities (\*) (dis
 
 Note the semicolon `;` to split the selector and the comma `,` to concatenate two facilities in the same rule (`auth`, `authpriv`).
 
-```
+```conf
 mail.err			/var/log/mail.err
 ```
 Messages from the `mail` facility with a priority level of `error` or higher (`critical`, `alert` or `emergency`) will be sent to `/var/log/mail.err`.
 
-```
+```conf
 *.=debug;\
     auth,authpriv.none;\
     mail.none		-/var/log/debug
@@ -633,9 +809,9 @@ Messages from all facilities with the `debug` priority and no other (`=`) will b
 
 #### `logger`
 
-There is a [`logger`] utility that will write directly to the `/var/log/syslog` file or to `/var/log/messages` when logging to a centralized remote log server.
+There is a [`logger`] utility that will write directly to the `/var/log/syslog` file (or to `/var/log/messages` when logging to a centralized remote log server).
 
-```
+```bash
 $ logger "what's up broseph"
 $ sudo tail -1 /var/log/syslog
 Mar  5 01:56:55 kilgore-trout btoll: what's up broseph
@@ -647,18 +823,19 @@ Let's check out how we can send log messages to a remote `rsyslogd` server.
 - ensure that the `rsyslogd` server is running on the remote machine
 - create a file that loads the module and starts the `tcp` server on port 514 (for example, `SUSE` ships with a file for this, `/etc/rsyslog.d/remote.conf`)
 - restart the `rsyslogd` service
-    + `systemctl restart rsyslog`
+    + `sudo systemctl restart rsyslog`
 - open port 514 in the firewall
-- by creating a `template` and adding a `filter condition`, the logs can be written to a particular location on the remote server (instead of defaulting to `/var/log/syslog`) and be filtered by `IP` address
+- by creating a `template` and adding a `filter condition`, the logs can be written to a particular location on the remote server (instead of defaulting to `/var/log/messages`) and be filtered by `IP` address
     + for example, the following can be added either to `/etc/rsyslog.conf` or `/etc/rsyslog.d/remote.conf` on the remote server:
-        ```
+        ```bash
         $template RemoteLogs,"/var/log/remotehosts/%HOSTNAME%/%$NOW%.%syslogseverity-text%.log"
         if $FROMHOST-IP=='192.168.1.4' then ?RemoteLogs
         & stop
         ```
 - on the client, add this to its `/etc/rsyslog.conf` and afterwards restart the `rsyslog` service:
-    + `*.* @@192.168.1.6:514`
+    + `*.* @@192.168.1.6:514` (can also use name resolution if it's been configured)
     + the `IP` address is that of the remote `rsyslog` server
+    + the `& stop` tells the daemon not to also write the logs to the host's `/var/log/messages` log file
 
 ### Log Rotation
 
@@ -673,7 +850,7 @@ There are various conventions for (re)naming the archived log files, but a commo
 
 For example:
 
-```
+```bash
 $ ls /var/log/messages*
 /var/log/messages    /var/log/messages.2.gz  /var/log/messages.4.gz
 /var/log/messages.1  /var/log/messages.3.gz
@@ -685,7 +862,7 @@ For the next rotation, the oldest logfile will be deleted (`/var/log/messages.4.
 
 Looking at the `lograte.conf` config file, we can see it's fairly self-explanatory:
 
-```
+```bash
 $ cat /etc/logrotate.conf
 # see "man logrotate" for details
 
@@ -714,7 +891,7 @@ include /etc/logrotate.d
 
 Configurations for specific packages can be installed in `/etc/logrotate.d/`.  Here is an example:
 
-```
+```bash
 $ cat /etc/logrotate.d/ufw
 /var/log/ufw.log
 {
@@ -781,7 +958,7 @@ Its configuration file lives in [`/etc/systemd/journald.conf`].
 
 You can check its status like any other `systemd` service:
 
-```
+```bash
 $ systemctl status systemd-journald
 ```
 
@@ -817,19 +994,32 @@ Here are some of its most useful options:
 
 Also, fields can be combined:
 
+```bash
+$ sudo journalctl --list-boots
+-8 bae9348f0a3445c89b3c63ffb0603ca5 Sat 2023-08-26 18:23:31 EDT—Sat 2023-08-26 18:31:34 EDT
+-7 f168934625384001948d504123c993a0 Sat 2023-08-26 18:32:07 EDT—Sat 2023-08-26 18:50:39 EDT
+-6 303117c5169f46da9a86853f24ab2e9c Sat 2023-08-26 18:51:12 EDT—Sat 2023-08-26 18:54:28 EDT
+-5 f49a2682ccc34dcaa281b8cc0dff6b62 Sat 2023-08-26 18:55:03 EDT—Sat 2023-08-26 19:59:46 EDT
+-4 d7059a610af64cec8645c47d587bbb7b Sat 2023-08-26 20:00:58 EDT—Sat 2023-08-26 22:28:11 EDT
+-3 112fe341ed0c469e9511e737d367a3b8 Sat 2023-08-26 22:30:13 EDT—Sun 2023-08-27 00:50:15 EDT
+-2 06e54073cf98424aab6d49e3ebe3e1f5 Sun 2023-08-27 00:50:46 EDT—Sun 2023-08-27 18:43:33 EDT
+-1 d2f1dac541b8475aaf758ab5bed2a600 Sun 2023-08-27 18:44:06 EDT—Mon 2023-08-28 00:24:02 EDT
+ 0 8e2a6d3cee22448a978bb458760c4fc2 Mon 2023-08-28 00:25:14 EDT—Thu 2023-08-31 21:25:01 EDT
 ```
+
+```bash
 $ sudo journalctl PRIORITY=4 SYSLOG_FACILITY=0
 ```
 
 Using the `+` operator behaves like a `logical OR`:
 
-```
+```bash
 $ sudo journalctl PRIORITY=3 + SYSLOG_FACILITY=0
 ```
 
 Providing two values for the same field will find all matching entries for either value:
 
-```
+```bash
 $ sudo journalctl PRIORITY=1 PRIORITY=3
 ```
 
@@ -841,27 +1031,29 @@ $ sudo journalctl PRIORITY=1 PRIORITY=3
 
 Let's look at some examples:
 
-```
+```bash
 $ systemd-cat
 This line goes into the journal.
 ^C
 ```
 
-```
+> `systemd-cat` with no arguments will write everything from `stdin` until `Ctrl-C` is entered.
+
+```bash
 $ echo "And so does this line." | systemd-cat
 ```
 
-```
+```bash
 $ systemd-cat echo "And so does this line too."
 ```
 
-```
+```bash
 $ systemd-cat -p emerg echo "This is not a real emergency."
 ```
 
 They can then be viewed in the journal:
 
-```
+```bash
 $ journalctl -n 4
 ```
 
@@ -895,9 +1087,9 @@ The `LPIC-1` docs only focus on one of the configuration fields in [`/etc/system
 
 ### Deleting Old Journals
 
-To see how much space the journals take, run:
+To see how much space the journals take (both archived and active), run:
 
-```
+```bash
 $ sudo journalctl --disk-usage
 ```
 
@@ -928,6 +1120,25 @@ Other important signals can be invoked with the following options:
 
 > Note to check the internal consistency of the journal file, use `journalctl` with the `--verify` option.
 
+### Retrieving Journal Data
+
+Let's say that you are trying to access journal files on a faulty machine through a live CD.  Once the hard drive on the faulty machine is mounted, you can point `journaltctl` to the journal files like this:
+
+```bash
+# journalctl -D /media/btoll/faulty.system/var/log/journal/
+```
+
+Here are some useful options:
+
+|**Option** |**Description**
+|:---|:---
+|`-D, --directory` |Takes a directory path as argument.  If specified, `journalctl` will operate on the specified journal directory `DIR` instead of the default runtime and system journal paths. |
+|`--file` |Takes a file glob as an argument.  If specified, `journalctl` will operate on the specified journal files matching `GLOB` instead of the default runtime and system journal paths.  May be specified multiple times, in which case files will be suitably interleaved. |
+|`-m, --merge` |Show entries interleaved from all available journals, including remote ones. |
+|`--root` |Takes a directory path as an argument.  If specified, `journalctl` will operate on journal directories and catalog file hierarchy underneath the specified directory instead of the root directory. |
+
+These are only the ones mentioned in the `LPIC-1` docs.  See the man page for all the options.
+
 ### Forwarding to `syslogd`
 
 To forward messages to the socket file `/run/systemd/journal/syslog`, turn on the ForwardToSyslog=yes in `/etc/systemd/journald.conf` (it should be on by default).
@@ -942,19 +1153,26 @@ The [Mail Transfer Agent] (`MTA`), also known as the Message Transfer Agent, is 
 
 Networked machines that want to send and receive mail will each need to be running an `MTA` daemon.  However, it is more common for machines to use webmail rather than running a local `MTA` daemon.  Note, though, that any remote user account will need proper authentication in order to retrieve the email.
 
+If a user wants to send a message, it will place new message in their outbox location (a filesystem location determined by the `MTA`), and the `MTA` will spring into action.
+
 Connections will use [`SMTP`] to facilitate the requests, and the remote `MTA` is often referred to as the `SMTP` server.
 
 > The `MTA` will usually store the messages in the [`mbox` format], which is a single text file containing all email messages in sequence.  Mail clients (`MUA`, or mail user agent) such as Thunderbird, Evolution and KMail are often used to read the email instead of accessing this file directly.
 
 So, how does the local `MTA` know where to send the email?  It will determine the destination by looking at the domain name and querying `DNS` for its [`MX` record] (i.e., its mail exchanger record), which will contain the `IP` address of the `MTA` handling email for that particular domain.
 
-Some domains will have more than one `MX` record, and in those cases the `MTA` will try to send the mail in order of their priority values.  If the recipient's email address doesn't have a domain or the domain doesn't have an `MX` record, then the node is treated as being on the local network (that is, the name after the ampersand (&) is assumed to be a host name).
+Some domains will have more than one `MX` record, and in those cases the `MTA` will try to send the mail in order of their priority values.  If the recipient's email address doesn't have a domain or the domain doesn't have an `MX` record, then the node is treated as being on the local network (that is, the name after the `at` symbol (`@`) is assumed to be a host name).
 
-```
+```bash
 $ dig +short benjamintoll.com mx
 10 mail.protonmail.ch.
 20 mailsec.protonmail.ch.
 ```
+
+> It's important to consider security measures when setting up an `MTA`.  For instance, you don't want it accessible by everyone on the Internet.
+>
+> This could lead it to be abused as an open relay by nefarious people that are spoofing email addresses, using your `MTA` as the facilitator.
+
 ### `MTA`s
 
 Traditionally, Linux has used [`Sendmail`] as its `MTA`.  Other common ones are `Postfix`, `qmail` and `Exim`.  These latter software packages are often used in place of `Sendmail` as they are easier to use and easier to configure advanced features (which `Sendmail` may not support), and they can be used as drop-in replacements for `Sendmail` if they are branded as `Sendmail`-compatible.
@@ -963,7 +1181,7 @@ If the `MTA` is running but not accepting network connections, it will only be a
 
 > To support remote mail connections, look for a line in the config file like the following:
 >
-> ```
+> ```conf
 > DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl
 > ```
 
@@ -973,7 +1191,7 @@ Let's look at an example that uses `Sendmail` and `SMTP` protocol commands to se
 
 In a terminal, start the `MTA` (`Sendmail`):
 
-```
+```bash
 $ sudo sendmail
 ```
 
@@ -1005,19 +1223,17 @@ You have new mail in /var/mail/btoll
 
 Here is the same example using the `Sendmail` binary instead of `SMTP` commands, which is a bit nicer than having to remember the protocol commands yourself:
 
-```
-sudo sendmail btoll
+```conf
+$ sudo sendmail btoll
 From: btoll
 To: btoll
 Subject: Sender MTA test
 
 Hi btoll, you are a true hero.
 .
-kilgore-trout ~~> ~/projects/benjamintoll.com:master
 $ echo $?
 0
 You have new mail in /var/mail/btoll
-kilgore-trout ~~> ~/projects/benjamintoll.com:master
 $ mail
 "/var/mail/btoll": 1 message 1 new
 >N   1 btoll@kilgore-trou Thu Apr 27 01:21  12/504   Sender MTA test
@@ -1048,11 +1264,15 @@ If there was a failure when trying to deliver this message, then the [`mailq`] c
 
 As mentioned before, email destination hosts are tried by the `MTA` in order of their priority values as discovered by doing a `DNS` query for the `MX` record(s).  If none of the destination hosts are reachable, the message will stay in the local outbox queue to be sent later.  If configured to do so, the `MTA` may check periodically if the message can be sent by trying to reach the destination `MTA`s.  Note that a `Sendmail`-compatible `MTA` can force a new attempt by issuing `sendmail -q`.
 
+Once the mail has been delivered to the destination and is in the user's inbox queue, the job of the `MTA` is finished, and it can take a well-deserved break and enjoy a snack.
+
+There may be additional tasks to perform, such as filtering and spam blocking, but these tasks are performed by third-party applications working with the `MTA`.
+
 ### Mail Locations
 
 Incoming messages are usually stored in `/var/spool/mail/{user}` but may be hard linked to `/var/mail/{user}` by `MTA`s like Postfix:
 
-```
+```bash
 $ ls -i /var/spool/mail/btoll /var/mail/btoll
 3436880 /var/mail/btoll  3436880 /var/spool/mail/btoll
 ```
@@ -1072,11 +1292,15 @@ Mail (or Message) User Agents are programs that take care of communicating with 
 The `mail` command has two modes:
 - send mode
     + if an email address is provided, it automatically enters send mode
-        ```
-        $ mail -s "Maintenance fail" henry@lab3.campus <<<"The maintenance script failed at `date`"
+        ```bash
+        $ mail --subject "World-changing password manager app" \
+        > kilgore@derp \
+        > <<<"You need to check out stymie, dude"
         ```
 - normal mode
     + otherwise, it enters normal (read) mode
+
+> The `mail` command adds the message to the outbox queue.  Take it away, `MTA`!
 
 ### Aliases
 
@@ -1109,7 +1333,14 @@ Redirection rules are added one per line.  The `.forward` file must be writable 
 
 ## `CUPS`
 
-The [Common UNIX Printing System] (`CUPS`) allows for printing and printer management.  Here are some files that are used for its configuration:
+The [Common UNIX Printing System] (`CUPS`) allows for printing and printer management.  Here is a rough outline of the steps to print a document:
+
+1. A user submits a file to be printed.
+1. The `CUPS` daemon, `cupsd`, then spools the print job.  This print job is given a job number by `CUPS`, along with information about which print queue holds the job as well as the name of the document to print.
+1. `CUPS` utilizes filters that are installed on the system to generate a formatted file that the printer can use.
+1. `CUPS` then sends the re-formatted file to the printer for printing.
+
+And here are some files that are used for its configuration:
 
 - `/etc/cups/cupsd.conf`
     + contains the configuration settings for the `CUPS` service itself
@@ -1137,7 +1368,13 @@ The [Common UNIX Printing System] (`CUPS`) allows for printing and printer manag
         - `error_log`
             + contains messages about print jobs that have failed and other errors recorded by the web interface
 
-There is a web interface at <a href="http://localhost:631">`http://localhost:631`</a> for `CUPS`.
+> There is a web interface at <a href="http://localhost:631">`http://localhost:631`</a> for `CUPS`.  Basic authentication is supported.
+
+Most distros have `CUPS` pre-installed.  You can check the status of the service like this:
+
+```bash
+$ sudo systemctl status cups.service
+```
 
 ### Adding Printers
 
@@ -1147,7 +1384,7 @@ In addition, the deprecated command [`lpinfo`] can show the available devices or
 
 For example, here's adding a printer and having `CUPS` choose the best `PPD` file to use:
 
-```
+```bash
 $ sudo lpadmin -p ENVY-4510 -L "office" -v socket://192.168.150.25 -m everywhere
 $
 $ lpinfo --make-and-model "HP Envy 4510" -m
@@ -1164,7 +1401,7 @@ everywhere IPP Everywhere
 
 Lastly, set a default printer using the [`lpoptions`] command:
 
-```
+```bash
 $ lpoptions -d ENVY-4510
 ```
 
@@ -1172,20 +1409,20 @@ $ lpoptions -d ENVY-4510
 
 Share the printer on the network:
 
-```
+```bash
 $ sudo lpadmin -p FRONT-DESK -o printer-is-shared=true
 ```
 
 Configure a print queue to only accept or deny jobs from specific users:
 
-```
+```bash
 $ sudo lpadmin -p FRONT-DESK -u allow:carol,frank,grace
 $ sudo lpadmin -p FRONT-DESK -u deny:dave
 ```
 
 Precede group names with an ampersand (`@`):
 
-```
+```bash
 $ sudo lpadmin -p FRONT-DESK -u deny:@sales,@marketing
 ```
 
@@ -1198,7 +1435,7 @@ Error policies can be defined:
 
 Here is an example of a print job aborting if an error is detected:
 
-```
+```bash
 $ sudo lpadmin -p FRONT-DESK -o printer-error-policy=abort-job
 ```
 
@@ -1206,19 +1443,19 @@ $ sudo lpadmin -p FRONT-DESK -o printer-error-policy=abort-job
 
 Use the [`lpr`] command to send a print job to a printer's queue.  The following command will send a job to the default printer, as determined by the `/etc/cups/printers.conf` file:
 
-```
+```bash
 $ lpr derp.txt
 ```
 
 To specify a printer:
 
-```
+```bash
 $ lpr -P FRONT-DESK derp.txt
 ```
 
 Use [`lpstat`] to print `CUPS` status information:
 
-```
+```bash
 $ lpstat -p -d
 printer FRONT-DESK is idle.  enabled since Mon 03 Aug 2020 10:33:07 AM EDT
 printer PostScript_oc0303387803 disabled since Sat 07 Mar 2020 08:33:11 PM EST -
@@ -1240,7 +1477,7 @@ It's easy to modify how the document should be printed.
 
 Examples:
 
-```
+```bash
 $ lpr -P ACCOUNTING-LASERJET -o landscape -o media=A4 -o two-sided-short-edge finance-report.pdf
 $ lpr -#7 -o collate=true status-report.pdf
 ```
@@ -1251,7 +1488,7 @@ $ lpr -#7 -o collate=true status-report.pdf
 
 Each job sent to a printer queue gets a job ID, and they can be listed by using the [`lpq`] command:
 
-```
+```bash
 $ lpq -a
 ```
 
@@ -1259,19 +1496,19 @@ $ lpq -a
 
 Use the [`lprm`] command to cancel a job:
 
-```
+```bash
 $ lprm [job_id]
 ```
 
 If a printer fails, you can move the job to another printer queue using the [`lpmove`] command (needs escalated privileges):
 
-```
+```bash
 $ sudo lpmove ACCOUNTING-LASERJET-20 FRONT-DESK
 ```
 
 Delete all jobs:
 
-```
+```bash
 $ lprm -
 ```
 
@@ -1285,7 +1522,7 @@ $ lprm -
 
 Before removing a printer, it may be helpful to list out all of the printers using the `-v` switch of the `lpstat` executable:
 
-```
+```bash
 $ lpstat -v
 device for FRONT-DESK: socket://192.168.150.24
 device for ENVY-4510: socket://192.168.150.25
@@ -1294,13 +1531,13 @@ device for PostScript_oc0303387803: ///dev/null
 
 As a privileged user, you can reject the printer and give a reason why using [`cupsreject`]:
 
-```
+```bash
 $ sudo cupsreject -r "Printer to be removed" FRONT-DESK
 ```
 
 This is good practice and lets all users know that a printer is no longer accepting new jobs.  Then, remove the printer using the the `lpadmin` binary and the `-x` switch:
 
-```
+```bash
 $ sudo lpadmin -x FRONT-DESK
 ```
 
@@ -1398,4 +1635,5 @@ Continue your journey with the fifth installment in this titillating series, [On
 [`cupsreject`]: https://man7.org/linux/man-pages/man8/cupsaccept.8.html
 [like it's 1984]: https://en.wikipedia.org/wiki/Breakin'
 [inode]: /2019/11/19/on-inodes/
-
+[`ntpdate`]: http://www.ntp.org/documentation/4.2.8-series/ntpdate/
+[`ntpq`]: https://www.ntp.org/documentation/4.2.8-series/ntpq/

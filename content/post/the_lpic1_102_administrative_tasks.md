@@ -690,7 +690,7 @@ Inversely, if only `cron.deny` exists, then only the listed users are denied cre
 
 ### `anacron`
 
-The [`anacron`] utility is more flexible than `cron` in that, unlike `cron`, `anacron` does **no** expect that the system will be continuously running.
+The [`anacron`] utility is more flexible than `cron` in that, unlike `cron`, `anacron` does **not** expect that the system will be continuously running.
 
 Although `anacron` is out of scope for the `LPIC-1` certification, it's worth looking into.  Start with the man page and then look at how it's currently being used in `/etc/crontab`:
 
@@ -1083,9 +1083,9 @@ en_US.UTF-8
 
 The format is *language code* underscore (`_`) *region code* period (`.`) *character encoding*.  So, in the following example, `en` is the language code, `US` is the region code and [`UTF-8`] is the character encoding.
 
-`UTF`, of course, is intended to encompass and replace limited character encoding sets like [`ASCII`] (American Standard Code for Information Interchange), which only allow for characters that can fit in 7 bits (the eighth bit was for extended sets, and [just about everybody had their own], even your [Uncle Jack]).
+`UTF`, of course, is intended to encompass and replace limited character encoding sets like [`ASCII`] (American Standard Code for Information Interchange), which only allow for characters that can fit into 7 bits (the eighth bit was for extended sets, and [just about everybody had their own], even your [Uncle Jack]).
 
-> The region code follows the [`ISO-3166`] standard.
+> The language code follows the [`ISO-639`] standard, and the region code follows the [`ISO-3166`] standard.
 
 According to the `LPIC-1` docs (which you should read), the file `/etc/locale.conf` is where system-wide settings are configured, but I don't have that on my system.
 
@@ -1210,6 +1210,7 @@ Continue your journey with the fourth installment in this titillating series, [O
 [`ASCII`]: https://en.wikipedia.org/wiki/ASCII
 [just about everybody had their own]: https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/
 [Uncle Jack]: https://www.youtube.com/watch?v=LfSfzRJOlTg
+[`ISO-639`]: https://www.iso.org/iso-639-language-codes.html
 [`ISO-3166`]: https://www.iso.org/iso-3166-country-codes.html
 [`localectl`]: https://man7.org/linux/man-pages/man1/localectl.1.html
 [`locale`]: https://man7.org/linux/man-pages/man1/locale.1.html

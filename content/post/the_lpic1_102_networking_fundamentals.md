@@ -60,6 +60,7 @@ This roughly covers [Topic 109: Networking Fundamentals].
             + [`/etc/resolv.conf`](#etcresolvconf)
     + [`NetworkManager`](#networkmanager)
     + [`systemd-networkd`](#systemd-networkd)
+    + [`wpa_supplicant`](#wpa_supplicant)
     + [`ip`](#ip)
         - [`address`](#address)
         - [`link`](#link)
@@ -295,7 +296,7 @@ Classless Inter-Domain Routing, or [`CIDR`], doesn't conform to the classful net
 
 Here is an example:
 
-```
+```bash
 192.168.6.0/27
 ```
 
@@ -309,14 +310,15 @@ So, how do you determine the network address and the broadcast address from a ra
 
 Here's an example using [an amazing tool] to calculate the important addresses given an `IP` address in `CIDR` notation:
 
-```
+```bash
 $ cidr 112.56.3.78/10
+   Network prefix: 10
+  Host identifier: 22
+      Total hosts: 4194302
        IP address: 112.56.3.78
-   Network prefix: 10 bits
       Subnet mask: 255.192.0.0
   Network address: 112.0.0.0
 Broadcast address: 112.63.255.255
- Total # of hosts: 4194302
 ```
 
 Determining the network and broadcast addresses use simple [bitwise operations].
@@ -417,13 +419,13 @@ In the example above, the default route for machines on the `192.168.10.0/24` ne
 
 To view all routes on a machine:
 
-```
+```bash
 $ ip route
 ```
 
 or
 
-```
+```bash
 $ sudo route
 ```
 
@@ -486,7 +488,7 @@ You can view all of the standard ports in [`/etc/services`].
 
 Here is an example for those of you that are never satisfied:
 
-```
+```bash
 2001:0db8:85a3:08d3:1319:8a2e:0370:7344
 ```
 
@@ -531,7 +533,7 @@ Let's look at the [`iproute2`] collection of utilities for controlling `TCP/IP` 
 
 ### Listing
 
-```
+```bash
 $ ip link show
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -547,7 +549,7 @@ wlp3s0           UP             a0:a4:c5:5f:f3:de <BROADCAST,MULTICAST,UP,LOWER_
 
 You can also list using [`nmcli`], the command-line tool for controlling [`NetworkManager`].
 
-```
+```bash
 $ nmcli device
 DEVICE          TYPE      STATE         CONNECTION
 wlp3s0          wifi      connected     derpy
@@ -559,6 +561,8 @@ lo              loopback  unmanaged     --
 ### Naming
 
 In the bad older days before 2009, the Linux kernel would name the interfaces simply in the order that they were detected. The devices were named using an `ethX` naming scheme (for `Ethernet`), so the first was named `eth0`, the second `eth1`, and so on.
+
+However, an interface could swap its name after a reboot if it were detected by the kernel in a different order.
 
 To solve this terrible problem, a [predictable network interface naming scheme] was developed to reliably map an interface's name to its physical location on the machine.  For machines that use [`systemd`], by default it follows a policy to name the devices using one of [five different schemes]:
 
@@ -582,12 +586,12 @@ For those machines using a predictable naming scheme, the different types will b
 
 You can use some of our old friends to see the provenance of the interface's name.  For instance, the wireless interface on my machine is named `wlp3s0`:
 
-```
+```bash
 $ ip -brief address show wlp3s0
 wlp3s0           UP             192.168.1.96/24 192.168.1.102/24 fe80::8807:e415:225:e49d/64
 ```
 
-```
+```bash
 $ lspci | ag wireless
 03:00.0 Network controller: Intel Corporation Wireless 8265 / 8275 (rev 78)
 ```
@@ -685,7 +689,7 @@ In addition, for machines using `systemd`, the [`hostnamectl`] command can be us
 
 To see the current hostname and other settings, simply invoke `hostnamectl`.  You can add the `status` command, however, it's not necessary since it's the default:
 
-```
+```bash
 $ hostnamectl
    Static hostname: kilgore-trout
          Icon name: computer-laptop
@@ -701,7 +705,7 @@ Note that the `Machine ID` is the [`dbus`] ID which can be read from `/etc/machi
 
 Now, to change the hostname to something more appropriate, like `poop`, issue the following command:
 
-```
+```bash
 $ hostnamectl set-hostname poop
 ```
 
@@ -713,7 +717,7 @@ First, the one that we've just set is known as the `static` hostname, and it is 
 
 Second, the `pretty` hostname allows for special characters and can be used to set a more descriptive name than the `static` hostname:
 
-```
+```bash
 $ hostnamectl --pretty set-hostname "Kilgore Trout"
 $ hostnamectl
    Static hostname: kilgore-trout
@@ -749,7 +753,7 @@ To [quote the man page]:
 
 Let's grep for the `hosts` name database:
 
-```
+```bash
 $ ag --nonumbers hosts /etc/nsswitch.conf
 hosts:          files mdns4_minimal [NOTFOUND=return] dns myhostname mymachines
 ```
@@ -762,7 +766,7 @@ The [`/etc/hosts`] database file is what is searched when the "files" source is 
 
 In general, the entries of the `hosts` database are retrieved in two common ways:
 
-```
+```bash
 $ cat /etc/hosts
 127.0.0.1       localhost
 127.0.1.1       kilgore-trout.benjamintoll.com  kilgore-trout
@@ -777,7 +781,7 @@ ff02::2 ip6-allrouters
 
 When the [`getent`] tool is used, it will get entries from `Name Service Switch` libraries according to the particular database provided as an argument.  For our purposes, it uses several different library calls to enumerate the `hosts` database (`/etc/hosts`).
 
-```
+```bash
 $ getent hosts
 127.0.0.1       localhost
 127.0.1.1       kilgore-trout.benjamintoll.com kilgore-trout
@@ -791,18 +795,29 @@ If the hostname isn't able to be resolved using this simple mapping, the kernel 
 
 The `dns` name database that is listed after `files` will have the kernel ask the resolver to query up to three nameservers defined in its configuration file, [`/etc/resolv.conf`]:
 
-```
+```bash
 $ cat /etc/resolv.conf
 # Generated by NetworkManager
 search home
 nameserver 192.168.1.1
 ```
 
-Note that the `nameserver` has specified my gateway router as the machine to resolve `DNS` queries.  Depending on the machine and the software, you may see `127.0.0.53` as the `nameserver`.  This signifies that the machine is using [`systemd-resolved`](#systemd-resolved) as its resolver, and that daemon will be listening on that address and then forward any requests to the `IP` address configured by `DHCP`.
+Note that the `nameserver` has specified my gateway router as the machine to resolve `DNS` queries.  Depending on the machine and the software, you may see `127.0.0.53` as the `nameserver`.  This signifies that the machine is using [`systemd-resolved`](#systemd-resolved) as its resolver, and that daemon will be listening on that address and then forwarding any requests to the `IP` address configured by `DHCP`.
 
 At this point, the remote names that are being queried are [domain names], **not** hostnames.
 
 > If no nameservers are defined, the default behavior is to use the nameserver on the local machine.
+
+There are several options that can be specified in this file:
+
+|**Option** |**Definition** |
+|:---|:---|
+|`nameserver` |Either `IPv4` or `IPv6`. Can have up to three. |
+|`search` |Allows short form searches. Can have up to six. |
+|`domain` |Used to set local domain name. If not set, default to everything after the first `.` in the hostname. |
+|`option` |Affects the behavior of the resolver. For example, `option timeout:3` will time out if the name can't be resolved in three seconds. |
+
+> `search` and `domain` are mutually exclusive.
 
 ## `NetworkManager`
 
@@ -818,6 +833,8 @@ There are two command-line tools, [`nmcli`] and [`nmtui`] that are client tools 
 
 > `nmtui` is a [`TUI`] (text user interface) and is [`curses`]-based.  Check it out.
 
+Here is a list of subcommands of the `nmcli` tool.  They are referred to as objects:
+
 |**Object** |**Description** |
 |:---|:---|
 |general |NetworkManager’s general status and operations. |
@@ -828,13 +845,13 @@ There are two command-line tools, [`nmcli`] and [`nmtui`] that are client tools 
 |agent |NetworkManager secret agent or polkit agent. |
 |monitor |Monitor NetworkManager changes. |
 
-```
+```bash
 $ nmcli general status
 STATE      CONNECTIVITY  WIFI-HW  WIFI     WWAN-HW  WWAN
 connected  full          enabled  enabled  enabled  enabled
 ```
 
-```
+```bash
 $ nmcli dev wifi list
 IN-USE  BSSID              SSID                 MODE   CHAN  RATE        SIGNAL  BARS  SECURITY
         E8:AD:A6:5D:8B:EE  MySpectrumWiFie8-2G  Infra  11    195 Mbit/s  72      ▂▄▆_  WPA2
@@ -844,12 +861,12 @@ IN-USE  BSSID              SSID                 MODE   CHAN  RATE        SIGNAL 
 
 To connect to an interface with a password but not have it appear in the `bash` history (or anywhere visible on the screen), read it from a file:
 
-```
+```bash
 $ nmcli device wifi connect MySpectrumWiFie8-2G password $(< derpy.pwd)
 Device 'wlp3s0' successfully activated with '0ce367ad-7e16-4d9d-a20d-08f6a3b91fde'.
 ```
 
-```
+```bash
 $ nmcli connection show
 NAME                 UUID                                  TYPE      DEVICE
 MySpectrumWiFie8-2G  0ce367ad-7e16-4d9d-a20d-08f6a3b91fde  wifi      wlp3s0
@@ -860,31 +877,31 @@ Wired connection 1   c44c8e71-6b35-4a41-a6a8-0a6c32275343  ethernet  --
 
 > According to the `LPI` docs, the following command should have prompted me for a password when in a terminal emulator, but it did not:
 >
-> ```
+> ```bash
 > $ nmcli device wifi connect MySpectrumWiFie8-2G
 > ```
 
 Connect to a hidden network (the `SSID` name is hidden):
 
-```
+```bash
 $ nmcli device wifi connect Derpy password MyPassword hidden yes
 ```
 
 If the host has more than one network interface, you can specify the adapter to use when connecting with the `ifname` parameter:
 
-```
+```bash
 $ nmcli device wifi connect Derpy password MyPassword ifname wlo1
 ```
 
 Where the legacy `ifdown` command was previously used to bring down a network adapter, `nmcli` is preferred:
 
-```
+```bash
 $ nmcli connection down Derpy
 ```
 
 Legacy:
 
-```
+```bash
 $ sudo ifdown Derpy
 ```
 
@@ -892,7 +909,7 @@ $ sudo ifdown Derpy
 
 You can also turn off a wireless adapter to save power.  Use the `radio` object for this action:
 
-```
+```bash
 $ nmcli radio wifi off
 ```
 
@@ -921,13 +938,16 @@ After a connection is established, it is saved and `NetworkManager` will automat
 > The `psk` could also be a [file descriptor].
 >
 > You can also use `nmcli` to get the information about a connection.  Query by the `SSID`:
+>
 > ```bash
-$ nmcli --show-secrets connection show id Kool-Moe-Dee
+> $ nmcli --show-secrets connection show id Kool-Moe-Dee
 > ```
 
-What is the difference between `NetworkManager` and `wpa_supplicant`?
-TODO
-https://www.reddit.com/r/voidlinux/comments/rapmhh/networkmanager_vs_wpa_supplicant/
+To delete a connection:
+
+```bash
+$ nmcli connection delete DerpNet
+```
 
 ## `systemd-networkd`
 
@@ -952,7 +972,7 @@ There are also configuration files with a `.netdev` suffix (for virtual network 
 
 Here's what one of the files on my system looks like:
 
-```
+```ini
 $ cat /lib/systemd/network/80-wifi-adhoc.network
 [Match]
 Type=wifi
@@ -966,7 +986,7 @@ The `[Match]` section defines the type of interface to which the configuration f
 
 Here are two files that could be used to define interfaces using a statically-provided `IP` address and gateway and one that uses `DHCP`:
 
-```
+```ini
 [Match]
 MACAddress=00:16:3e:8d:2b:5b
 
@@ -975,7 +995,7 @@ Address=192.168.0.100/24
 Gateway=192.168.0.1
 ```
 
-```
+```ini
 [Match]
 MACAddress=00:16:3e:8d:2b:5b
 
@@ -988,6 +1008,30 @@ DHCP=yes
 Note that it's possible, of course, to use `systemd` for wireless network interface configuration with a password, but it's somewhat convoluted, and I'm not going to cover it here.
 
 Deal with it.
+
+## `wpa_supplicant`
+
+Note that [`wpa_supplicant`] can be used to authenticate password-protected network adapters.  Only when it's authenticated can `systemd-networkd` then configure the network adapter.
+
+For example, store the hashed password in a location managed by `systemd` with the correct naming convention:
+
+```bash
+$ sudo wpa_passphrase MyWifi > /etc/wpa_supplicant/wpa_supplicant-wlo1.conf
+```
+
+More, from the LPIC-1 docs:
+
+<cite>The systemd manager reads the WPA passphrase files in `/etc/wpa_supplicant/` and creates the corresponding service to run WPA supplicant and bring the interface up. The passphrase file created in the example will then have a corresponding service unit called `wpa_supplicant@wlo1.service`.</cite>
+
+<cite>Command `systemctl start wpa_supplicant@wlo1.service` will associate the wireless adapter with the remote access point. Command `systemctl enable wpa_supplicant@wlo1.service` makes the association automatic during boot time.</cite>
+
+<cite>Finally, a `.network` file matching the `wlo1` interface must be present in `/etc/systemd/network/`, as `systemd-networkd` will use it to configure the interface as soon as WPA supplicant finishes the association with the access point.</cite>
+
+See [109.2 Persistent network configuration] for more information.
+
+<!--
+https://www.reddit.com/r/voidlinux/comments/rapmhh/networkmanager_vs_wpa_supplicant/
+-->
 
 ## `ip`
 
@@ -1016,7 +1060,7 @@ There are many subcommands to the new-ish `ip` command:
 
 To get help about any subcommand, add the `help` verb:
 
-```
+```bash
 $ ip address help
 ```
 
@@ -1024,7 +1068,7 @@ $ ip address help
 
 The [`ip-address`] command is mostly used to list the local interfaces.
 
-```
+```bash
 $ ip address
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -1046,21 +1090,21 @@ The older, legacy `ifconfig` command can list the same information.  But, if you
 
 > You can also list the contents of `/sys/class/net/`, if mounted:
 >
-> ```
+> ```bash
 > $ ls /sys/class/net/
 > enp0s31f6  lo  wlp3s0
 > ```
 
 Configure an interface (same command for both IPv4 and IPv6):
 
-```
+```bash
 $ sudo ip addr add 192.168.5.5/24 dev enp0s8
 $ sudo ip addr add 2001:db8::10/64 dev enp0s8
 ```
 
 Legacy method of configuring an interface with `ifconfig`:
 
-```
+```bash
 $ sudo ifconfig eth2 192.168.50.50 netmask 255.255.255.0
 $ sudo ifconfig eth2 192.168.50.50 netmask 0xffffff00
 $ sudo ifconfig enp0s8 add 2001:db8::10/64
@@ -1072,7 +1116,7 @@ The `ip-link` command is used to configure low level interface or protocol setti
 
 You can also use `ip-link` to list out the interfaces on the machine:
 
-```
+```bash
 $ ip link
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000 link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 2: enp0s31f6: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc pfifo_fast state DOWN mode DEFAULT group default qlen 1000 link/ether e8:6a:64:63:90:6f brd ff:ff:ff:ff:ff:ff
@@ -1082,7 +1126,7 @@ $ ip link
 
 To bring an interface down and then back up:
 
-```
+```bash
 $ sudo ip link set dev enp0s8 down
 $ sudo ip link show dev enp0s8
 3: enp0s8: <BROADCAST,MULTICAST> mtu 1500 qdisc pfifo_fast state DOWN mode DEFAULT group default qlen 1000
@@ -1095,14 +1139,14 @@ $ sudo ip link show dev enp0s8
 
 Of course, the `ifconfig` analog is:
 
-```
+```bash
 $ sudo ifconfig enp0s8 down
 $ sudo ifconfig enp0s8 up
 ```
 
 Adjust the [`MTU`]:
 
-```
+```bash
 $ sudo ip link set enp0s8 mtu 2000
 $ sudo ip link show dev enp0s3
 2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2000 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
@@ -1111,7 +1155,7 @@ $ sudo ip link show dev enp0s3
 
 Using `ifconfig`:
 
-```
+```bash
 $ sudo ifconfig enp0s3 mtu 1500
 $ sudo ip link show dev enp0s3
 2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
@@ -1126,7 +1170,7 @@ The following commands will all show the routing table:
 - `ip route`
 - `netstat -r`
 
-```
+```bash
 $ sudo route
 Kernel IP routing table
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
@@ -1169,7 +1213,7 @@ Other columns:
 
 To view the same information for IPv6:
 
-```
+```bash
 $ sudo route -6
 Kernel IPv6 routing table
 Destination                    Next Hop                   Flag Met Ref Use If
@@ -1203,7 +1247,7 @@ The output of `ip route` and `ip -6 route` reads as follows:
 
 For example (IPv4):
 
-```
+```bash
 default via 10.0.2.2 dev enp0s3 proto dhcp metric 100
 ```
 
@@ -1220,7 +1264,7 @@ Use `route` or `ip route` to manage routes.
 
 For example, both can be used to add and remove a route:
 
-```
+```bash
 $ sudo route -6 add 2001:db8:1::/64 gw 2001:db8::3
 $ sudo route -6 del 2001:db8:1::/64 gw 2001:db8::3
 $
@@ -1238,7 +1282,7 @@ Unless you specify the `-c` count option, the sender will keep sending packets u
 
 How can you block `ping` requests?
 
-```
+```bash
 $ sudo sysctl -ar "icmp_echo"
 net.ipv4.icmp_echo_ignore_all = 0
 net.ipv4.icmp_echo_ignore_broadcasts = 1
@@ -1248,19 +1292,19 @@ If the value of `icmp_echo_ignore_all` is 0, then it is **not** blocking the `pi
 
 You can temporarily block them by using the [`sysctl`] command to modify kernel parameters at runtime:
 
-```
+```bash
 $ sudo sh -c "echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_all"
 ```
 
 To block it permanently, open the [`/etc/sysctl.conf`] file and add the following line:
 
-```
+```bash
 net.ipv4.icmp_echo_ignore_all = 1
 ```
 
 Then apply the changes:
 
-```
+```bash
 $ sudo sysctl -p
 ```
 
@@ -1282,13 +1326,19 @@ For IPv6, use [`tracepath6`].
 
 As with `ping` and `traceroute`, any network device on the path may block its packets.
 
+`tracepath` is similar to `traceroute`, except that it discovers the Maximum Transimission Unit (`MTU`) size along the path.  The `MTU` is configured on each network interface (or a limitation of the hardware), and using this utility is handy in determining when a network interface has a small(er) `MTU` necessitating fragmenting the packet(s).
+
+Like `traceroute`, it will increment the `TTL` for each hop, but it differs in that it sends a single large `UDP` packet, which inevitably, will be larger than one or more of the configured `MTU`s of a network interface along the route.
+
+The tool will display the size of the smallest `MTU` on the last line of its output.
+
 ## `netcat`
 
 The `netcat` implementation on my Debian bullseye system is [from the Nmap Project] and is a "much-improved reimplementation of the venerable `netcat`" and is called [`ncat`].  It can send or receive arbitrary data over a [`TCP`] or [`UDP`] network connection.
 
 The `netcat` and `nc` binaries are simply symlinks to `ncat`:
 
-```
+```bash
 $ readlink -f $(which netcat)
 /usr/bin/ncat
 $ readlink -f $(which nc)
@@ -1297,23 +1347,23 @@ $ readlink -f $(which nc)
 
 You can chat with a pal using `ncat`.  You can establish a connection that listens on port 3000 for incoming `TCP` requests:
 
-```
+```bash
 $ ncat -l -p 3000
 ```
 
-Then, you bestie across the country can connect to the port on their end:
+Then, your bestie across the country can connect to the port on their end:
 
-```
+```bash
 $ ncat 192.168.1.96 3000
 ```
 
 `ncat` is also great at creating a remote shell (this example uses `UDP` as the transport protocol):
 
-```
+```bash
 $ ncat -u -e /bin/bash -l 3000
 ```
 
-```
+```bash
 $ ncat 192.168.1.96 3000
 uname -a
 Linux kilgore-trout 5.10.0-21-amd64 #1 SMP Debian 5.10.162-1 (2023-01-21) x86_64 GNU/Linux
@@ -1340,7 +1390,7 @@ Here are some options common to both utilities:
 
 Here is an example of its use with common switches:
 
-```
+```bash
 $ sudo netstat -tulnp
 Active Internet connections (only servers)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
@@ -1368,7 +1418,7 @@ Let's now briefly look at the [`ss`] tool, the replacement for `netstat`.
 
 Here is an example of its use with common switches:
 
-```
+```bash
 $ sudo ss -tulnp
 Netid State  Recv-Q Send-Q                      Local Address:Port  Peer Address:PortProcess
 udp   UNCONN 0      0                                 0.0.0.0:37058      0.0.0.0:*    users:(("avahi-daemon",pid=867,fd=14))
@@ -1394,6 +1444,12 @@ This software package may not be installed by default.  It does not provide a fu
 It listens on `127.0.0.53`, and you would (probably?) see it listed in `/etc/resolv.conf`.  `systemd-resolved` provides `DNS`, [`mDNS`] and [`LLMNR`].
 
 Any `DNS` requests it receives are looked up by querying servers configured in `/etc/systemd/resolv.conf` or `/etc/resolv.conf`.  If you wish to use this, use `resolve` for the `hosts` name database in `/etc/nsswitch.conf`.
+
+To use it, add the method `resolve` to the `hosts` db entry in `/etc/nsswitch.conf`:
+
+```conf
+hosts:          resolve files mdns4_minimal [NOTFOUND=return] dns
+```
 
 To check the `DNS` currently in use by `systemd-resolved`, use the [`resolvectl`] utility:
 
@@ -1446,7 +1502,7 @@ The other two are:
 
 > You can see the record class value when using the [`dig`] utility.  Here, I'm limiting the response to only the `ANSWER` section:
 >
-> ```
+> ```bash
 > $ dig +noall +answer theowlsnest.farm
 > theowlsnest.farm.       521     IN      A       167.114.97.28
 > ```
@@ -1467,7 +1523,7 @@ The methods are followed by the functions from left to right.  Columns with `[]`
 
 Let's look at the listing for the `hosts` name database in `/etc/nsswitch.conf`:
 
-```
+```conf
 hosts:          files mdns4_minimal [NOTFOUND=return] dns myhostname mymachines
 ```
 
@@ -1475,7 +1531,7 @@ You can test the entries in the `nsswitch.conf` file using several methods.  In 
 
 Using [`getent`]:
 
-```
+```bash
 $ getent hosts localhost
 ::1             localhost ip6-localhost ip6-loopback
 $ getent hosts kilgore-trout.local
@@ -1486,7 +1542,7 @@ $ getent hosts benjamintoll.com
 
 Using `python`:
 
-```
+```bash
 $ echo -e "import socket\nprint(socket.gethostbyname('www.benjamintoll.com'))" | python
 167.114.97.28
 ```
@@ -1501,7 +1557,7 @@ The `-s` or `--service` lets you override all databases with the specified servi
 
 `hosts` name database:
 
-```
+```bash
 $ getent -s files hosts kilgore-trout.local
 127.0.1.1       kilgore-trout.local
 $ getent -s dns hosts benjamintoll.com
@@ -1510,7 +1566,7 @@ $ getent -s dns hosts benjamintoll.com
 
 `protocols` name database:
 
-```
+```bash
 $ getent -s files protocols udp
 udp                   17 UDP
 $ getent -s db protocols udp
@@ -1518,7 +1574,7 @@ $ getent -s db protocols udp
 
 `services` name database:
 
-```
+```bash
 $ getent -s files services ssh
 ssh                   22/tcp
 $ getent -s db services ssh
@@ -1536,7 +1592,7 @@ With no options, if host is given a name, it returns the A, AAAA, and MX record 
 
 `nameserver` record type:
 
-```
+```bash
 $ host -t NS benjamintoll.com
 benjamintoll.com name server ns23.domaincontrol.com.
 benjamintoll.com name server ns24.domaincontrol.com.
@@ -1544,14 +1600,14 @@ benjamintoll.com name server ns24.domaincontrol.com.
 
 [`start of authority`] record type:
 
-```
+```bash
 $ host -t SOA benjamintoll.com
 benjamintoll.com has SOA record ns23.domaincontrol.com. dns.jomax.net. 2023013107 28800 7200 604800 600
 ```
 
 [`mail exchange`] record type:
 
-```
+```bash
 $ host -t MX benjamintoll.com
 benjamintoll.com mail is handled by 10 mail.protonmail.ch.
 benjamintoll.com mail is handled by 20 mailsec.protonmail.ch.
@@ -1559,7 +1615,7 @@ benjamintoll.com mail is handled by 20 mailsec.protonmail.ch.
 
 Query a nameserver other than the one specified in `resolv.conf`:
 
-```
+```bash
 $ host benjamintoll.com 8.8.8.8
 Using domain server:
 Name: 8.8.8.8
@@ -1575,7 +1631,7 @@ benjamintoll.com mail is handled by 10 mail.protonmail.ch.
 
 The [`dig`] tool queries for [`A` records] by default.
 
-```
+```bash
 $ dig theowlsnest.farm
 
 ; <<>> DiG 9.16.37-Debian <<>> theowlsnest.farm
@@ -1601,7 +1657,7 @@ theowlsnest.farm.       600     IN      A       167.114.97.28
 
 Let's look again at just the `ANSWER` section:
 
-```
+```bash
 $ dig +noall +answer benjamintoll.com
 benjamintoll.com.       377     IN      A       167.114.97.28
 ```
@@ -1609,7 +1665,7 @@ Here we can see that the domain `benjamintoll.com` points to the `167.114.97.28`
 
 Also, like the `host` utility, you can specify a record type with the `-t` option:
 
-```
+```bash
 $ dig -t SOA benjamintoll.com
 
 ; <<>> DiG 9.16.37-Debian <<>> -t SOA benjamintoll.com
@@ -1635,7 +1691,7 @@ benjamintoll.com.       600     IN      SOA     ns23.domaincontrol.com. dns.joma
 
 Suppress all of the information but the result with the `+short` option:
 
-```
+```bash
 $ dig -t SOA +short benjamintoll.com
 ns23.domaincontrol.com. dns.jomax.net. 2023013107 28800 7200 604800 600
 ```
@@ -1765,4 +1821,5 @@ Continue your journey with the sixth and last installment in this titillating se
 [`SSID`]: https://en.wikipedia.org/wiki/Service_set_(802.11_network)#Service_set_identifier
 [`INI` files]: https://en.wikipedia.org/wiki/INI_file
 [file descriptor]: https://en.wikipedia.org/wiki/File_descriptor
-
+[`wpa_supplicant`]: https://wiki.archlinux.org/title/Wpa_supplicant
+[109.2 Persistent network configuration]: https://learning.lpi.org/en/learning-materials/102-500/109/109.2/109.2_02/

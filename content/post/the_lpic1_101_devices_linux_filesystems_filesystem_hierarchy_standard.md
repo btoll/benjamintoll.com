@@ -1237,6 +1237,7 @@ Check out this table that determines the permissions given an octal value, homes
     + aka, `Set User ID` bit
     + symbolic value is `s` (in user permission set)
         - replaces `x` in the user set
+    + octal value is 4
     + applies only to files
     + make the process run with privileges of the owner
 
