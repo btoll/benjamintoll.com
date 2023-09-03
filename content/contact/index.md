@@ -10,8 +10,8 @@ ben (at) benjamintoll (dot) com
 
 ### GPG
 
-- [download](/benjamintoll.com.pub)
-- [view](/benjamintoll.com.pub.txt)
+- [download](/benjamintoll.key)
+- [view](/benjamintoll.key.txt)
 
 ![Heroes on Tractors](/images/garden0.jpg)
 
