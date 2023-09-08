@@ -157,8 +157,16 @@ Now, let's finally start looking at setting up the forwarding by looking at some
 
 > Note that *preflight* is not a term that I've seen used in the `GnuPG` documentation, it's only what I've chosen to call this section.
 
-There are two things that absolutely must be set before `ssh`ing into the remote machine:
+There are three things that absolutely must be set before `ssh`ing into the remote machine:
 
+1. The caching feature **must** first be enabled.  The easiest way to do this is to add it to the `gpg-agent.conf` file in `$HOME/.gnupg`:
+    ```bash
+    $ echo allow-preset-passphrase >> $HOME/gpg-agent.conf
+    ```
+    - Restart the agent:
+        ```bash
+        $ gpg-connect-agent reloadagent /bye
+        ```
 1. The public key **must** be on the remote machine.
     - There are several ways the key can be imported into the remote machine's keyring.  Perhaps the easiest is to download it from a public keyserver.
 
