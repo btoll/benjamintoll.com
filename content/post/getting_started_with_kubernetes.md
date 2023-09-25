@@ -4,7 +4,7 @@ date = "2023-05-17T21:59:07-04:00"
 
 +++
 
-The purpose of this getting started guide is to get a [Kubernetes] cluster up and running quickly.  It is **not** a primer on Kubernetes itself, although there may be some digressions along the way into some of its twigs and berries.
+The purpose of this getting started guide is to get a [`Kubernetes`] cluster up and running quickly.  It is **not** a primer on `Kubernetes` itself, although there may be some digressions along the way into some of its twigs and berries.
 
 I'll discuss two ways to accomplish this using [`minikube`] and [`kubeadm`].  After the cluster is up, we'll deploy an astoundingly beautiful application so we can feel good about ourselves.
 
@@ -27,7 +27,8 @@ I'll discuss two ways to accomplish this using [`minikube`] and [`kubeadm`].  Af
 - [`kubectl`](#kubectl)
 - [Enabling Autocompletion](#enabling-autocompletion)
 - [Metrics Server](#metrics-server)
-- [Kubernetes Dashboard](#kubernetes-dashboard)
+- [`Kubernetes` Dashboard](#kubernetes-dashboard)
+- [Creating A User](#creating-a-user)
 - [Vagrant](#vagrant)
 - [References](#references)
 - [Summary](#summary)
@@ -41,7 +42,7 @@ And, for the *really* impatient that can't even be bothered to click another lin
 
 ## `minikube`
 
-[`minikube`] is a tool that allows you to (very) easily set up Kubernetes cluster.  It is very versatile as it can be installed on Linux, macOS and Windows.
+[`minikube`] is a tool that allows you to (very) easily set up `Kubernetes` cluster.  It is very versatile as it can be installed on Linux, macOS and Windows.
 
 That versatility extends to the ways it can be deployed, as it can be installed into a virtual machine, container or on bare-metal, supporting many container runtimes, such as `CRI-O`, `containerd` and `Docker`.
 
@@ -82,7 +83,7 @@ However, `minikube` itself recommends [`qemu2`] as the driver, outputting the fo
 <cite>You have selected "virtualbox" driver, but there are better options!  For better performance and support consider using a different driver: - qemu2</cite>
 
 ```bash
-$ minikube start --driver=qemu2
+$ minikube start --driver qemu2 --nodes 4 --cpus 6 --memory 8192
 😄  minikube v1.30.1 on Debian 11.7
 ✨  Using the qemu2 driver based on existing profile
 👍  Starting control plane node minikube in cluster minikube
@@ -219,12 +220,12 @@ This is not an exhaustive list.
 
 |**Command** |**Description**
 |:---|:---
-|`minikube pause` | Pause Kubernetes without impacting deployed applications.
+|`minikube pause` | Pause `Kubernetes` without impacting deployed applications.
 |`minikube unpause` | Unpause a paused instance.
 |`minikube stop` | Halt the cluster.
 |`minikube config set memory 9001` | Change the default memory limit (requires a restart).
-|`minikube addons list` | Browse the catalog of easily installed Kubernetes services.
-|`minikube start -p aged --kubernetes-version=v1.16.1` | Create a second cluster running an older Kubernetes release.
+|`minikube addons list` | Browse the catalog of easily installed `Kubernetes` services.
+|`minikube start -p aged --kubernetes-version=v1.16.1` | Create a second cluster running an older `Kubernetes` release.
 |`minikube delete --all` | Delete all of the minikube clusters.
 
 ---
@@ -235,7 +236,7 @@ Let's now turn to a tool that gives us a better understanding of those processes
 
 ## `kubeadm`
 
-[`kubeadm`] is a tool to bootstrap a cluster using the commands [`kubeadm init`] and [`kubeadm join`] to quickly create a Kubernetes cluster (although not as quickly as `minikube`).  Note that provisioning machines and installing addons is not in scope.
+[`kubeadm`] is a tool to bootstrap a cluster using the commands [`kubeadm init`] and [`kubeadm join`] to quickly create a `Kubernetes` cluster (although not as quickly as `minikube`).  Note that provisioning machines and installing addons is not in scope.
 
 > The `kubeadm` documentation states that `kubeadm` is intended to have tooling built on top of it:
 >
@@ -281,7 +282,7 @@ Why is this important?  Well, for starters, they will be networking issues and r
 > >
 > > <cite>When a machine is booted with `systemd(1)` the ID of the machine will be established.  If `systemd.machine_id=` or `--machine-id=` options are specified, this value will be used. Otherwise, the value in `/etc/machine-id` will be used.  If this file is empty or missing, `systemd` will attempt to use the D-Bus machine ID from `/var/lib/dbus/machine-id`, the value of the kernel command line option `container_uuid`, the KVM DMI `product_uuid` or the devicetree `vm,uuid` (on KVM systems), and finally a randomly generated `UUID`.</cite>
 
-Second, there are [required ports] that need to be open for the cluster to be able to fully communicate.  For instance, the port `6443` must be open, as that is the port that the Kubernetes API server listens on (`TCP`).
+Second, there are [required ports] that need to be open for the cluster to be able to fully communicate.  For instance, the port `6443` must be open, as that is the port that the `Kubernetes` `API` server listens on (`TCP`).
 
 How can you determine if the port is open?  There are a [myriad of ways to do this]:
 
@@ -309,7 +310,7 @@ Using [`fuser`], although this won't be as granular as the other ones:
 $ fuser .
 ```
 
-If you're running a firewall like [`ufw`], you've have to open the port(s) manually.  It's good to be aware of [the ports and protocols] used by Kubernetes components.
+If you're running a firewall like [`ufw`], you've have to open the port(s) manually.  It's good to be aware of [the ports and protocols] used by `Kubernetes` components.
 
 Third, you **must** disable `swap`.
 
@@ -323,20 +324,20 @@ However, this won't persist across reboots, so you should disable `swap` in [`/e
 
 ## `kubeadm` Commands
 
-Since the documentation clearly states that <cite>`kubeadm` is a tool built to provide `kubeadm init` and `kubeadm join` as best-practice "fast paths" for creating Kubernetes clusters</cite>, it behooves us to look at each subcommand in turn.
+Since the documentation clearly states that <cite>`kubeadm` is a tool built to provide `kubeadm init` and `kubeadm join` as best-practice "fast paths" for creating `Kubernetes` clusters</cite>, it behooves us to look at each subcommand in turn.
 
 ## `kubeadm init`
 
-This command initializes a Kubernetes [control plane].  It is a command that bootstraps a control plane node composed of the following steps:
+This command initializes a `Kubernetes` [control plane].  It is a command that bootstraps a control plane node composed of the following steps:
 
 1. Runs a series of pre-flight checks.
 1. Generates a self-signed CA to set up identities for each component in the cluster.
-1. Writes `kubeconfig` files in `/etc/kubernetes/` for the `kubelet`, the controller-manager and the scheduler to use to connect to the API server, each with its own identity, as well as an additional `kubeconfig` file for administration named `admin.conf`.
-1. Generates static Pod manifests for the API server, controller-manager and scheduler (Pod manifests are written to `/etc/kubernetes/manifests`).
+1. Writes `kubeconfig` files in `/etc/kubernetes/` for the `kubelet`, the controller-manager and the scheduler to use to connect to the `API` server, each with its own identity, as well as an additional `kubeconfig` file for administration named `admin.conf`.
+1. Generates static Pod manifests for the `API` server, controller-manager and scheduler (Pod manifests are written to `/etc/kubernetes/manifests`).
 1. Apply labels and taints to the control-plane node so that no additional workloads will run there.
 1. Generates the token that additional nodes can use to register themselves with a control-plane in the future.
 1. Makes all the necessary configurations for allowing node joining with the Bootstrap Tokens and `TLS` Bootstrap mechanism.
-1. Installs a `DNS` server (`CoreDNS`) and the `kube-proxy` addon components via the API server (although the `DNS` server is deployed, it will not be scheduled until `CNI` is installed).
+1. Installs a `DNS` server (`CoreDNS`) and the `kube-proxy` addon components via the `API` server (although the `DNS` server is deployed, it will not be scheduled until `CNI` is installed).
 
 > The docs have good summations of the [synopsis] and [init workflow] initiated by the `kubeadm init` command.
 
@@ -350,10 +351,10 @@ $ kubeadm config print init-defaults --component-configs KubeletConfiguration
 
 ## `kubeadm join`
 
-[`kubeadm join`] bootstraps a Kubernetes worker node or a control-plane node and adds it to the cluster.  It does the following for a worker node:
+[`kubeadm join`] bootstraps a `Kubernetes` worker node or a control-plane node and adds it to the cluster.  It does the following for a worker node:
 
-1. `kubeadm` downloads necessary cluster information from the API server.
-This command initializes a Kubernetes worker node and joins it to the cluster and should be run on any machine that you wish to join to the cluster.
+1. `kubeadm` downloads necessary cluster information from the `API` server.
+This command initializes a `Kubernetes` worker node and joins it to the cluster and should be run on any machine that you wish to join to the cluster.
 
 As with `kubeadm init`, t's also possible to pick which of these stages to run via the [`kubeadm join phase`] command.
 
@@ -365,13 +366,13 @@ $ kubeadm config print init-defaults --component-configs KubeletConfiguration
 
 ## `kubeconfig`
 
-`kubectl` needs to consult a [`kubeconfig`] file to be able to find and access a Kubernetes cluster.  When successfully deploying a cluster with `minikube`, it will create one and put it in its default location at `$HOME/.kube/config`.
+`kubectl` needs to consult a [`kubeconfig`] file to be able to find and access a `Kubernetes` cluster.  When successfully deploying a cluster with `minikube`, it will create one and put it in its default location at `$HOME/.kube/config`.
 
 However, if you are using `kubeadm` to bootstrap a cluster, you'll need to manage this yourself.
 
 > When installed in its default location, the `kubeconfig` file is renamed to just `config`.
 
-For a getting started guide, it's sufficient to know that it is the default way to authenticate to a Kubernetes cluster, and that every node that plans on querying the apiserver in the control plane (or creating services) needs to have the `kubeconfig` file installed.
+For a getting started guide, it's sufficient to know that it is the default way to authenticate to a `Kubernetes` cluster, and that every node that plans on querying the apiserver in the control plane (or creating services) needs to have the `kubeconfig` file installed.
 
 ## `kubectl`
 
@@ -379,13 +380,13 @@ For a getting started guide, it's sufficient to know that it is the default way 
 
 Always install it using the package manager, if possible.
 
-Install packages needed to use the Kubernetes `apt` repository:
+Install packages needed to use the `Kubernetes` `apt` repository:
 
 ```bash
 $ sudo apt-get update && sudo apt-get install ca-certificates curl -y
 ```
 
-> I installed this on Debian 11 (bullseye).  I downloaded the public key into the `/usr/share/keyrings` location as usual rather than `/etc/apt/keyrings`, as suggested by the Kubernetes docs.
+> I installed this on Debian 11 (bullseye).  I downloaded the public key into the `/usr/share/keyrings` location as usual rather than `/etc/apt/keyrings`, as suggested by the `Kubernetes` docs.
 >
 > Also, I had changed my [`umask`] to be more restrictive, so `apt-get update` was throwing errors until I changed the permissions on the key to be the same as the others:
 > ```bash
@@ -400,7 +401,7 @@ $ sudo chmod 0644 /usr/share/keyrings/kubernetes-archive-keyring.gpg
 
 ```
 
-Add the Kubernetes `apt` repository:
+Add the `Kubernetes` `apt` repository:
 
 ```bash
 $ echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" \
@@ -451,8 +452,8 @@ Does this mean that `kubeadm` is better than `minikube`?  Like most things in li
 
 What is your use case?
 
-- Do you just want to quickly get a Kubernetes cluster up and running in a development environment to test something?
-- Do you want to create a Kubernetes cluster and be able to control the way the control plane node is initiated with your own custom configuration and certs?
+- Do you just want to quickly get a `Kubernetes` cluster up and running in a development environment to test something?
+- Do you want to create a `Kubernetes` cluster and be able to control the way the control plane node is initiated with your own custom configuration and certs?
 - Is this intended for an on-premise production environment?
 - [Insert Your Use Case Here]
 
@@ -518,6 +519,12 @@ then
 fi
 ```
 
+> Note the `k` alias, so that we can run commands like:
+>
+> ```bash
+> $ k get no
+> ```
+
 Finally, source whatever `bash` config file you put all of the above in to have it in the current shell:
 
 ```bash
@@ -577,7 +584,7 @@ coredns-5d78c9869d-sh6sf                   4m           23Mi
 
 > I found that I was still getting the `error: Metrics API not available` error even after applying the metrics server manifest.  I had to fiddle with it, sometimes just waiting, other times deleting and re-applying the manifest until the Pod successfully came up.
 
-## Kubernetes Dashboard
+## `Kubernetes` Dashboard
 
 There is a tool that runs in your browser, if you're into that.  It's called the [Dashboard].
 
@@ -671,24 +678,282 @@ If you want to expose this publicly, you must do the following things:
     https://10.0.0.21:32690
     ```
 
+## Creating A User
+
+If you followed these steps, which of course you did, you'll have user called `kubernetes-admin`.  This is because it was copied directly from the configuration on the master node control plane.  This is fine for playing around, but when play time is over, it's important to create one or more users who probably don't or shouldn't have privileged access to the cluster.
+
+You may be surprised to discover that `Kubernetes` has no notion of a user.  For instance, if you list all of the resources it is managing, you won't find anything related to a user:
+
+```bash
+$ kubectl api-resources
+```
+
+Go ahead and `grep` for yourself if you don't believe me, I'll be waiting right here with a smug "I told you so" look on my face.
+
+1. Create a new key.
+1. Have the cluster sign it.
+    - Create a `CSR` (Certificate Signing Request)
+    - Give it to cluster
+    - Have cluster approve it
+
+```bash
+$ openssl genpkey -out btoll.key -algorithm ed25519
+```
+
+```bash
+$ openssl req -new -key btoll.key -out btoll.csr -subj "/CN=btoll/O=edit"
+```
+
+> `CN` stands for Common Name, i.e., the user name, and `O` is what's used for the group to which the user belongs.
+
+Instead of taking the easy way out and using files from the control plane (which you wouldn't have access to in a managed cluster anyway), we'll use `Kubernetes` `API`s to do it.
+
+```bash
+$ cat <<EOF | kubectl apply -f -
+> apiVersion: certificates.k8s.io/v1
+> kind: CertificateSigningRequest
+> metadata:
+>   name: btoll
+> spec:
+>   request: $(base64 btoll.csr | tr -d "\n")
+>   signerName: kubernetes.io/kube-apiserver-client
+>   expirationSeconds: 86400
+>   usages:
+>   - client auth
+EOF
+certificatesigningrequest.certificates.k8s.io/btoll created
+```
+
+> The request will only be for one day.  It's probably not a good idea to grant this request a large expiration date.
+
+The cluster now only has received the request, it has granted it yet.  Let's approve it, giving it the same name we gave it in the certificate request:
+
+```bash
+$ kubectl certificate approve btoll
+certificatesigningrequest.certificates.k8s.io/btoll approved
+```
+
+Let's check it out, yo:
+
+```bash
+$ kubectl get csr/btoll
+NAME    AGE     SIGNERNAME                            REQUESTOR          REQUESTEDDURATION   CONDITION
+btoll   5m10s   kubernetes.io/kube-apiserver-client   kubernetes-admin   24h                 Approved,Issued
+```
+
+We need the certificate that `Kubernetes` generated for us, which will be in the `yaml` output.  Instead of dumping the whole thing, let's be surgical:
+
+```bash
+$ kubectl get csr/btoll -o jsonpath="{.status.certificate}" | base64 -d | tee btoll.crt
+-----BEGIN CERTIFICATE-----
+MIIB+jCB46ADAgECAhA6dFutCgg5iVxenCGUuL+RMA0GCSqGSIb3DQEBCwUAMBUx
+EzARBgNVBAMTCmt1YmVybmV0ZXMwHhcNMjMwOTI0MjEyNDM1WhcNMjQwOTIzMjEy
+NDM1WjAQMQ4wDAYDVQQDEwVidG9sbDAqMAUGAytlcAMhAIvoiJezh+Bpk13+tASq
+LrmSQ1Qv1KGH4qOOig8REqoao0YwRDATBgNVHSUEDDAKBggrBgEFBQcDAjAMBgNV
+HRMBAf8EAjAAMB8GA1UdIwQYMBaAFKdgz8XZNjnVcoxzNGGgrbgzlYKQMA0GCSqG
+SIb3DQEBCwUAA4IBAQAYuJW5S9f5hDTYZaTvuYg8IzWOkzSA4T+E+M9h3vQQVxbP
+eP9JI9yYBlW5bFMvJWOzkHR/WnCCuqms6LEtb0nXHxYbVYrgj/c07/1NWLR+JbQ0
+MWQgp6kgYIyUA+VU1XFBp6Qm2QUOXKxelVek98wwXyIBDJTnRjn2Ny9TtDs3D/8Q
+9TZLeyQMCXLv8WB6U9zDQhzCFaHiAscysS++dk9hNsI97XljPBsI6kVZkMn/kNon
+v4CKIKX4r0QG3AF7peSWUqqHFS8neOMFlBJVgCYyiN7idVtZvJDRYm1BittDaHZQ
+VZlCnJ8J+p6Th7Wcl8IhXgdvQbAdVygvIQhSqQzY
+-----END CERTIFICATE-----
+```
+
+Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.
+
+```bash
+$ cp ~/.kube/config{,.orig}
+$ kubectl config set-credentials btoll --client-key=btoll.key --client-certificate=btoll.crt --embed-certs=true
+$ kubectl config set-context btoll --cluster=kubernetes --user=btoll
+Context "btoll" created.
+```
+
+We can now see that the `btoll` user has been successfully created:
+
+```bash
+$ kubectl config get-users
+NAME
+btoll
+kubernetes-admin
+```
+
+Now, let's change the context and issue commands as the `btoll` user:
+
+```bash
+$ kubectl config current-context
+kubernetes-admin@kubernetes
+$ kubectl config use-context btoll
+Switched to context "btoll".
+$ kubectl config current-context
+btoll
+```
+
+```bash
+$ kubectl get pods
+Error from server (Forbidden): nodes is forbidden: User "btoll" cannot list resource "pods" in API group "" in the namespace "default"
+```
+
+Oh noes.
+
+Is that a mistake?  Let's see if I can list the nodes.
+
+```bash
+$ kubectl auth can-i list pods
+no
+```
+
+Ok, so what can I do?
+
+```bash
+$ kubectl auth can-i --list
+Resources                                       Non-Resource URLs   Resource Names   Verbs
+selfsubjectreviews.authentication.k8s.io        []                  []               [create]
+selfsubjectaccessreviews.authorization.k8s.io   []                  []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                  []               [create]
+                                                [/api/*]            []               [get]
+                                                [/api]              []               [get]
+                                                [/apis/*]           []               [get]
+                                                [/apis]             []               [get]
+                                                [/healthz]          []               [get]
+                                                [/healthz]          []               [get]
+                                                [/livez]            []               [get]
+                                                [/livez]            []               [get]
+                                                [/openapi/*]        []               [get]
+                                                [/openapi]          []               [get]
+                                                [/readyz]           []               [get]
+                                                [/readyz]           []               [get]
+                                                [/version/]         []               [get]
+                                                [/version/]         []               [get]
+                                                [/version]          []               [get]
+                                                [/version]          []               [get]
+```
+
+Um, not much.
+
+Well, fear not, son.  All we need to do is create a role and bind it to the new `btoll` user.  This is `RBAC`.  First, switch back to the `kubernetes-admin` role, which has the necessary permissions to create the `clusterrolebinding` object:
+
+```bash
+$ kubectl config use-context kubernetes-admin@kubernetes
+Switched to context "kubernetes-admin@kubernetes".
+```
+
+Now, create the binding:
+
+```bash
+$ kubectl create clusterrolebinding btoll --user=btoll --clusterrole=view
+clusterrolebinding.rbac.authorization.k8s.io/btoll created
+```
+
+```bash
+$ kubectl get clusterrolebindings/btoll -oyamL
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: "2023-09-25T00:12:10Z"
+  name: btoll
+  resourceVersion: "3628"
+  uid: 6d3509a6-03f7-42ab-b48e-4ecc9d3f2a9f
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: btoll
+```
+
+Now, we can view the pods of the cluster:
+
+```bash
+$ kubectl auth can-i list pods
+yes
+$ kubectl get pods
+No resources found in default namespace.
+```
+
+Here's a fun `bash` script that does everything we covered in this section:
+
+```bash
+#!/bin/bash
+
+set -eo pipefail
+
+LANG=C
+umask 0022
+
+if [ -z "$1" ]
+then
+    echo "[ERROR] You must provide a user name."
+    echo "$0 USERNAME"
+    exit 1
+fi
+
+NAME="$1"
+
+if kubectl config get-users | grep --quiet "$NAME"
+then
+    echo "[ERROR] User \`$NAME\` already exists."
+    exit 1
+fi
+
+read -p "Cluster role for user \`$NAME\`? [admin, edit, view] " ROLE
+
+if ! ( [ "$ROLE" = admin ] || [ "$ROLE" = edit ] || [ "$ROLE" = view ] )
+then
+    echo "[ERROR] You must select a valid cluster role."
+    exit 1
+fi
+
+openssl genpkey -out "$NAME.key" -algorithm ed25519
+openssl req -new -key "$NAME.key" -out "$NAME.csr" -subj "/CN=$NAME/O=$ROLE"
+
+cat <<EOF | kubectl apply -f -
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: $NAME
+spec:
+  request: $(base64 $NAME.csr | tr -d "\n")
+  signerName: kubernetes.io/kube-apiserver-client
+  expirationSeconds: 86400
+  usages:
+  - client auth
+EOF
+
+kubectl certificate approve "$NAME"
+kubectl get csr "$NAME" -o jsonpath="{.status.certificate}" | base64 -d > "$NAME.crt"
+kubectl config set-credentials "$NAME" --client-key="$NAME.key" --client-certificate="$NAME.crt" --embed-certs=true
+kubectl config set-context "$NAME" --cluster=kubernetes --user="$NAME"
+
+kubectl create clusterrolebinding "$NAME" --user="$NAME" --clusterrole="$ROLE"
+
+kubectl delete csr "$NAME"
+rm "$NAME.csr"
+
+```
+
+> There's also a nice script called [`kubernetes-adduser`] that I used as inspiration.
+
 ## Vagrant
 
 Vagrant is a great tool, and I use it all the time.  Instead of using the `VirtualBox` GUI or the [`VBoxManage`] command-line tool to create and provision a virtual machine(s), you can write a little Ruby to do so, instead.
 
 This makes setup and tear down a simple command.  Probably everybody already knows this.
 
-Anyway, I created a `Vagrantfile` and several shell scripts in [Kubernetes lab repository] on my GitHub that will allow you to bootstrap a cluster using `kubeadm`.  There are values defined at the top of the `Vagrantfile` that configure things such as number of worker nodes, memory, CPUs, et al.  You can change them to whatever suits you (or fork and improve).
+Anyway, I created a `Vagrantfile` and several shell scripts in [`Kubernetes` lab repository] on my GitHub that will allow you to bootstrap a cluster using `kubeadm`.  There are values defined at the top of the `Vagrantfile` that configure things such as number of worker nodes, memory, CPUs, et al.  You can change them to whatever suits you (or fork and improve).
 
 Currently, it's not applying any of the manifests, but you can do using the files in `/VAGRANTFILE_LOCATION/manifests/`.  So, after you `ssh` into the machine, run the following commands:
 
 ```bash
-$ k apply -f /vagrant/manifests/deployment.yaml
+$ kubectl apply -f /vagrant/manifests/deployment.yaml
 deployment.apps/benjamintoll created
-$ k apply -f /vagrant/manifests/node_port.yaml
+$ kubectl apply -f /vagrant/manifests/node_port.yaml
 service/benjamintoll created
 ```
 
-This will install a Kubernetes Deployment of the most dangerous website in the world.  To access it, simply point your browser at one of the nodes:
+This will install a `Kubernetes` Deployment of the most dangerous website in the world.  To access it, simply point your browser at one of the nodes:
 
 ```bash
 http://10.0.0.21:31117/
@@ -743,20 +1008,20 @@ VM, run `vagrant status NAME`.
 
 There you have it.  It ended up being a longer than I wanted, but that's what happens when you fly by the seat of your pants.
 
-Incidentally, there are online sandboxes that you can play with, but I don't recommend them, as you won't learn anything about setting up Kubernetes.  Understanding the core Kubernetes components, such as what is installed in the control plane, is absolutely essential.
+Incidentally, there are online sandboxes that you can play with, but I don't recommend them, as you won't learn anything about setting up `Kubernetes`.  Understanding the core `Kubernetes` components, such as what is installed in the control plane, is absolutely essential.
 
 Of course, the sandboxes do have their place, just not here on `benjamintoll.com`.
 
 ## References
 
-- [Kubernetes lab repository]
+- [`Kubernetes` lab repository]
 - [CNI - the Container Network Interface](https://github.com/containernetworking/cni)
 - [A brief overview of the Container Network Interface (CNI) in Kubernetes](https://www.redhat.com/sysadmin/cni-kubernetes)
 - [Kubernetes Security - Best Practice Guide](https://github.com/freach/kubernetes-security-best-practice)
 - [How to Monitor Kubernetes With the Official Dashboard](https://www.howtogeek.com/devops/how-to-monitor-kubernetes-with-the-official-dashboard/)
 - [Life of a Packet](https://www.youtube.com/watch?v=0Omvgd7Hg1I)
 
-[Kubernetes]: https://kubernetes.io/
+[`Kubernetes`]: https://kubernetes.io/
 [`minikube`]: https://minikube.sigs.k8s.io/docs/
 <!--[`minikube`]: https://minikube.sigs.k8s.io/docs/start/-->
 [`kubeadm`]: https://kubernetes.io/docs/reference/setup-tools/kubeadm/
@@ -790,7 +1055,7 @@ Of course, the sandboxes do have their place, just not here on `benjamintoll.com
 [Install the metrics server]: https://github.com/kubernetes-sigs/metrics-server#installation
 [Dashboard]: https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
 [`VBoxManage`]: /2022/12/29/on-vboxmanage/
-[Kubernetes lab repository]: https://github.com/btoll/vagrantfiles/tree/main/k8s/labs/base
+[`Kubernetes` lab repository]: https://github.com/btoll/vagrantfiles/tree/main/k8s/labs/base
 [`kubeadm` uses for `kubeadm init`]: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-config/#cmd-config-print-init-defaults
 [`kubeadm` uses for `kubeadm join`]: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-config/#cmd-config-print-join-defaults
 [synopsis]: https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/#synopsis
@@ -800,4 +1065,5 @@ Of course, the sandboxes do have their place, just not here on `benjamintoll.com
 [`bash-completion`]: https://github.com/scop/bash-completion
 [champing at the bit]: https://grammarist.com/usage/champing-chomping-at-the-bit/
 [here you go]: https://www.youtube.com/watch?v=nsCIeklgp1M
+[`kubernetes-adduser`]: https://github.com/brendandburns/kubernetes-adduser
 
