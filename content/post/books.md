@@ -26,6 +26,7 @@ It's a small list, as favorites can be, and I may add to it in time.
 
 ### Programming
 
+- [The Little Schemer](https://mitpress.mit.edu/9780262560993/the-little-schemer/)
 - [Hacking: the Art of Exploitation](https://nostarch.com/hacking2.htm)
 - [The C Programming Language](https://en.wikipedia.org/wiki/The_C_Programming_Language)
 - [Professional JavaScript for Web Developers](https://www.wiley.com/en-us/Professional+JavaScript+for+Web+Developers-p-9780764579080)
