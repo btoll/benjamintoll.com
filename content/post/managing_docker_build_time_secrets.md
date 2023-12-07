@@ -14,7 +14,7 @@ For instance, here is something you definitely don't want to do.  In the followi
 
 `Dockerfile`
 
-<pre class="math">
+```Dockerfile
 FROM alpine
 
 RUN apk add --no-cache openssh-client git
@@ -28,11 +28,11 @@ RUN chmod 600 /test-key && \
     git clone git@github.com:btoll/private-repo.git
 
 RUN rm test-key
-</pre>
+```
 
 Here, we're copying the private key in the build context into the container.  After successfully authenticating, the private repository is cloned and the private key is removed.
 
-```
+```bash
 $ docker build -t test .
 Sending build context to Docker daemon  5.632kB
 Step 1/5 : FROM alpine
@@ -58,7 +58,7 @@ Successfully tagged test:latest
 
 Let's check if the `test-key` private key is still in the container:
 
-```
+```bash
 $ docker run --rm -it test stat /test-key
 stat: cannot stat '/test-key': No such file or directory
 ```
@@ -69,7 +69,7 @@ Uh, not so fast, bucko.  Put your pants back on.
 
 Let's check the history of the new `test` image:
 
-```
+```bash
 $ docker history test
 IMAGE          CREATED          CREATED BY                                      SIZE      COMMENT
 ba08f46515a3   17 seconds ago   /bin/sh -c rm test-key                          0B
@@ -91,7 +91,7 @@ I have a sneaking suspicion that we'd better check all of those layers!
 
 > Curious about the `<missing>` layers?  See [this SO answer] for more information.
 
-```
+```bash
 $ docker run --rm -it ba0 stat /test-key
 stat: cannot stat '/test-key': No such file or directory
 $
@@ -127,7 +127,7 @@ stat: cannot stat '/test-key': No such file or directory
 
 # The Solution
 
-Now that we know what the problem is, what is the solution?  Well, let's first take a look at the `--ssh` flag that was introduced by Docker to handle the problem in a way that didn't involve [misusing current features].
+Now that we know what the problem is, what is the solution?  Well, let's first take a look at the [`--ssh`] flag that was introduced by Docker to handle the problem in a way that didn't involve [misusing current features].
 
 ### Enable Buildkit Builds
 
@@ -135,35 +135,41 @@ First, we need to [enable BuildKit builds].  We can do this in a number of diffe
 
 1. Setting the DOCKER_BUILDKIT environment variable.
 
-        $ export DOCKER_BUILDKIT=1
+    ```bash
+    $ export DOCKER_BUILDKIT=1
+    ```
 
 1. Setting the environment variable when invoking the build command:
 
-        $ DOCKER_BUILDKIT=1 docker build .
+    ```bash
+    $ DOCKER_BUILDKIT=1 docker build .
+    ```
 
 1. Enable by default (restart the daemon afterwards):
 
-        $ cat << EOF >> /etc/docker/daemon.json
-        { "features": { "buildkit": true } }
-        EOF
+    ```bash
+    $ cat << EOF >> /etc/docker/daemon.json
+    { "features": { "buildkit": true } }
+    EOF
+    ```
 
 ### `--ssh` option
 
 `Dockerfile`
 
-<pre class="math">
+```Dockerfile
 FROM alpine
 
 RUN apk add --no-cache openssh-client git
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 RUN --mount=type=ssh git clone git@github.com:btoll/private-repo.git
-</pre>
+```
 
 Note that only the `RUN` commands that have explicitly mounted as `type=ssh` have access to the forwarded agent.  The other `RUN` commands aren't aware of the SSH agent and are merrily going about their little lives in blissful ignorance.  This syntax will set up the `SSH_AUTH_SOCK` environment variable, which contains the location of the [Unix domain socket] that the agent uses in communication with other processes.
 
 Let's now build the image with the `--ssh` option to allow for the SSH connectivity via the agent.  First, make sure that the SSH agent on the host has been started and the private key added to it via the `ssh-add` command (use `ssh-add -l` to list the fingerprints currently known to the agent):
 
-```
+```bash
 $ eval $(ssh-agent) && ssh-add
 Agent pid 2269
 Enter passphrase for /home/kilgoretrout/.ssh/private.key:
@@ -197,7 +203,7 @@ $ DOCKER_BUILDKIT=1 docker build -t test --ssh default .
 
 The `--ssh` option allows the Docker Engine to [forward the SSH agent] connection into the container, obviating the need to physically copy the private key into the container.
 
-```
+```bash
 $ docker history test
 IMAGE          CREATED          CREATED BY                                      SIZE      COMMENT
 2514edbea523   17 seconds ago   RUN /bin/sh -c git clone git@github.com:btol…   98kB      buildkit.dockerfile.v0
@@ -209,7 +215,7 @@ IMAGE          CREATED          CREATED BY                                      
 
 And we can see that there's only one layer.  Nice!  But, did it work?
 
-```
+```bash
 $ docker run --rm -it test stat private-repo
   File: private-repo
   Size: 4096            Blocks: 8          IO Block: 4096   directory
@@ -222,7 +228,7 @@ Change: 2021-04-26 23:42:53.484363958 +0000
 
 It did, the private repository has been cloned and is in the filesystem!  Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee!
 
-```
+```bash
 $ docker images test
 REPOSITORY   TAG       IMAGE ID       CREATED              SIZE
 test         latest    2514edbea523   About a minute ago   23.6MB
@@ -236,7 +242,7 @@ The second example involves other types of secrets, such as files that contain l
 
 For the sake of time, I'll use the same example [from the documentation] to demonstrate the use of the `--secret` option:
 
-<pre class="math">
+```Dockerfile
 FROM alpine
 
 # shows secret from default secret location:
@@ -244,11 +250,11 @@ RUN --mount=type=secret,id=mysecret cat /run/secrets/mysecret
 
 # shows secret from custom secret location:
 RUN --mount=type=secret,id=mysecret,dst=/foobar cat /foobar
-</pre>
+```
 
 Create the secret and build the image (using plain output, i.e., `--progress=plain`):
 
-```
+```bash
 $ echo THIS IS A SECRET > mysecret.txt
 $
 $ DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain \
@@ -291,7 +297,7 @@ $ DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain \
 
 We can see from the output that the secret is indeed accessible by each layer created by `RUN`.  Now, let's see if the secret is in the final image:
 
-```
+```bash
 $ docker history test
 IMAGE          CREATED         CREATED BY                                      SIZE      COMMENT
 ff6efbcda070   5 minutes ago   RUN /bin/sh -c cat /foobar # buildkit           0B        buildkit.dockerfile.v0
@@ -312,7 +318,7 @@ Nope, it's not there!  [Kool Moe Dee].
 
 Of course, we suspected as much because the `/run` directory is a [`tmpfs`] filesystem:
 
-```
+```bash
 $ df /run
 Filesystem     1K-blocks  Used Available Use% Mounted on
 tmpfs            1614340  1800   1612540   1% /run
@@ -351,7 +357,7 @@ The end.
 [Ruh roh!]: https://www.youtube.com/watch?v=R3SaxRRfJ4E
 [Rickety Cricket!]: https://www.youtube.com/watch?v=qBAcmJdAKV8
 [misusing current features]: https://github.com/moby/moby/issues/13490#issue-81134963
-[enable BuildKit builds]: https://docs.docker.com/develop/develop-images/build_enhancements/#to-enable-buildkit-builds
+[enable BuildKit builds]: https://www.baeldung.com/ops/enable-buildkit-docker-compose
 [`tmpfs`]: https://en.wikipedia.org/wiki/Tmpfs
 [Filesystem Hierarchy Standard]: https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
 [In the official docs]: https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information

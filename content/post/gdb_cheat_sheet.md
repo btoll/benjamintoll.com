@@ -195,7 +195,7 @@ end
 
 Let's see some examples.  We'll use the following simple program:
 
-```
+```c
 #include <stdio.h>
 
 int fibonacci(int n) {
@@ -463,7 +463,7 @@ Besides the obvious benefits of seeing the source code of what is being executed
 
 For example, let's move the `slen` function into its own file:
 
-```
+```c
 #include <stdlib.h>
 #include <stdio.h>
 #include "slen.c"

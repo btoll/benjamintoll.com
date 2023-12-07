@@ -27,7 +27,7 @@ Let's get started.
 
 Here's a simple and contrived example, which is close to the canonical example you'll see on most websites that demonstrate the technique:
 
-```
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -49,7 +49,7 @@ For example, since there is no bounds checking, the call to `strcpy` can overflo
 
 > The [`strcpy` man page] warns that the function is susceptible to a buffer overrun and that the recommended function call is `strncpy`, where the programmer specifies the length of the copy.
 
-```
+```bash
 $ gcc -o cat_pictures cat_pictures.c
 $ ./cat_pictures foobar
 foobar
@@ -63,7 +63,7 @@ You can see that the character array `foobar`, being six bytes in length, is pri
 
 Let's compile that again with a flag to turn off the memory protection:
 
-```
+```bash
 $ gcc -fno-stack-protector -o cat_pictures cat_pictures.c
 $ ./cat_pictures AAAAAAAAAAAAAAAAAAA
 AAAAAAAAAAAAAAAAAAA
@@ -343,8 +343,8 @@ Now that we've seen how to overflow a buffer through to the return value, let's 
 
 First, we'll create some shell code:
 
-```
-echo and now you do what they told ya | hexdump -v -e '"\\x" 1/1 "%02x"' ; echo
+```bash
+$ echo and now you do what they told ya | hexdump -v -e '"\\x" 1/1 "%02x"' ; echo
 ```
 
 Note that there isn't anything malicious here, it's just encoding the string "and now you do what they told ya" into hex and adding the return and newline control characters.  The `-e` flag allows us to pass a format string to [`hexdump`].
@@ -357,7 +357,7 @@ The output:
 
 And the updated `cat_pictures.c` script:
 
-```
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -396,7 +396,7 @@ Breakpoint 1, main (argc=1, argv=0x7fffffffdf78) at cat_pictures.c:15
 
 Append the address `0x555555555145` to our input and call the program again (this time from the command line):
 
-```
+```bash
 $ ./cat_pictures $(perl -e 'print "A"x18 . "\x45\x51\x55\x55\x55\x55"')
 AAAAAAAAAAAAAAAAAAEQUUUU
 and now you do what they told ya
@@ -492,7 +492,7 @@ int main() {
 
 Back on the command line, we'll see if it worked:
 
-```
+```bash
 $ ./dog_adoption
 get another dog
 ```
