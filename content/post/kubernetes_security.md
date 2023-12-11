@@ -1,6 +1,6 @@
 +++
 title = "On Kubernetes Security"
-date = "2022-09-02T04:41:53Z"
+date = "2023-09-22T04:41:53Z"
 draft = true
 
 +++
@@ -19,7 +19,7 @@ Well, the config file, read by `kubectl` before each request, contains the locat
 
 Let's take a look the certificates that were created by the PKI when the cluster was created.  I've ssh'd into the control plane and cd'd to `/etc/kubernetes/pki`.  Let's list the contents:
 
-```
+```bash
 /etc/kubernetes/pki$ ls -1
 apiserver-etcd-client.crt
 apiserver-etcd-client.key
@@ -40,7 +40,7 @@ sa.pub
 
 Let's taking a look at the CA cert:
 
-```
+```bash
 $ openssl x509 -in ca.crt -text
 Certificate:                                                                                                                                                        [32/174]
     Data:
@@ -103,7 +103,7 @@ The following information indicate that this is *probably* a self-signed cert:
 
 Interestingly, the kube-config for the `kube-proxy` has its config as data in a ConfigMap that is inside the `kube-system` namespace.  You can view it like this:
 
-```
+```bash
 $ kubectl get cm -n kube-system kube-proxy -oyaml
 ```
 
@@ -150,7 +150,7 @@ Here are the steps:
 
 Sweet, the CSR object was sent to the apiserver.  Let's list it:
 
-```
+```bash
 $ kubectl get csr
 NAME         AGE     SIGNERNAME                            REQUESTOR          CONDITION
 btoll-user   8m57s   kubernetes.io/kube-apiserver-client   kubernetes-admin   Pending
@@ -158,7 +158,7 @@ btoll-user   8m57s   kubernetes.io/kube-apiserver-client   kubernetes-admin   Pe
 
 Note that it's in the "Pending" state.  The Kubernetes [garbage collector] will destroy the CSR object after one hour, so make sure to approve and retrieve it before then!
 
-```
+```bash
 $ kubectl certificate approve btoll-user
 certificatesigningrequest.certificates.k8s.io/btoll-user approved
 $
@@ -169,7 +169,7 @@ btoll-user   23m   kubernetes.io/kube-apiserver-client   kubernetes-admin   Appr
 
 And now we see that state has been changed.  However, we can't rest on our laurels, the object could still be gc-d.  Oh noes!  Let's fly into action:
 
-```
+```bash
 $ kubectl get csr btoll-user -o jsonpath='{.status.certificate}' | base64 --decode > btoll.crt
 ```
 
@@ -185,7 +185,7 @@ One common way of authentication in Kubernetes is to use [x.509 certificates] wh
 
 So, how can one view the information in the certificate?  The certificate can be viewed in the kube-config file and is [Base64]-encoded.  To view the structure of the file, issue the following command:
 
-```
+```bash
 $ kubectl config view --raw
 ```
 
@@ -193,7 +193,7 @@ $ kubectl config view --raw
 
 Here is a sample output, redacted for brevity:
 
-```
+```bash
 $ kubectl config view
 apiVersion: v1
 clusters:
@@ -222,13 +222,13 @@ That's great, but how can you actually see the contents of the actual certificat
 
 First, extract the value of the `client-certificate-data` key into a file:
 
-```
+```bash
 $ kubectl config view --raw -o jsonpath='{.users[0].user.client-certificate-data}' | base64 --decode > admin.crt
 ```
 
 Then, dump the contents of the certificate to `stdout`:
 
-```
+```bash
 $ openssl x509 -in admin.crt -text
 ...
 $
@@ -249,7 +249,7 @@ Note the "CN" and the "O" fields.  This is the information that the apiserver wi
 
 Lastly, if we look at the Pods in the `default` namespace using the increased verbosity, we can see that the location of the apiserver has been read from the kube-config file located in `$HOME/.kube/config`.
 
-```
+```bash
 $ kubectl get po -v6
 I0420 23:05:02.548528   15640 loader.go:379] Config loaded from file:  /home/btoll/.kube/config
 I0420 23:05:02.561294   15640 round_trippers.go:445] GET https://10.8.8.10:6443/api/v1/namespaces/default/pods?limit=500 200 OK in 7 milliseconds
@@ -265,7 +265,7 @@ The Service Account Secret will be automatically mounted as a volume and accessi
 
 Let's create a new Service Account `ben-sa` with no specified authorizations.  Note see that the `ben-sa-token-xhgl5` Secret was automatically created by the controller when it saw that the Service Account had been created:
 
-```
+```bash
 $ kubectl create serviceaccount ben-sa
 serviceaccount/ben-sa created
 $
@@ -301,7 +301,7 @@ token:      eyJhbGciOiJSUzI1NiIsImtpZCI6InJPTnYxNENmdzZVbGhPZ1FYb1QzblNqWnRZTEtK
 
 Let's jump onto a Pod and then access the apiserver using the mounted files from the Secret.
 
-```
+```bash
 $ kubectl get po
 NAME                            READY   STATUS    RESTARTS   AGE
 benjamintoll-84b456c644-5l76b   1/1     Running   0          14m
@@ -361,7 +361,7 @@ root@benjamintoll-84b456c644-5l76b:/# curl --cacert $CACERT --header "Authorizat
 
 We couldn't list the Pods because we're not authorized by the `ben-sa` Service Account (note that we had already been authenticated by the certificate presented to the apiserver).
 
-```
+```bash
 $ kubectl auth can-i list pods --as=system:serviceaccount:default:ben-sa
 no
 $
@@ -388,14 +388,14 @@ Now, let's create some roles to enable us to list the Pods.  Since I created my 
 
 Let's see if there any any roles defined:
 
-```
+```bash
 $ kubectl get roles
 No resources found in default namespace.
 ```
 
 That's a big no.  Let's remedy that!
 
-```
+```bash
 $ kubectl create role ben-role --verb get,list --resource pods
 role.rbac.authorization.k8s.io/ben-role created
 $
@@ -437,14 +437,14 @@ rules:
 
 This, however, only defines the role and the functions that the role can perform.  If we were to try and list the Pods (impersonating the `ben-sa` Service Account), we'd still be denied because we haven't bound it to the Service Account:
 
-```
+```bash
 $ kubectl auth can-i list pods --as=system:serviceaccount:default:ben-sa
 no
 ```
 
 And we'll bind it now:
 
-```
+```bash
 $ kubectl create rolebinding ben-role-binding --role ben-role --serviceaccount default:ben-sa
 rolebinding.rbac.authorization.k8s.io/ben-role-binding created
 $
@@ -462,7 +462,7 @@ benjamintoll-84b456c644-d7tb6   1/1     Running   0          97m
 
 Weeeeeeeeeeeeeeeeeeeeee!
 
-```
+```bash
 $ kubectl describe rolebindings.rbac.authorization.k8s.io
 Name:         ben-role-binding
 Labels:       <none>
@@ -506,7 +506,7 @@ subjects:
   namespace: default
 ```
 
-```
+```bash
 $ kubectl cluster-info
 Kubernetes control plane is running at https://10.8.8.10:6443
 CoreDNS is running at https://10.8.8.10:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy

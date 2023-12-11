@@ -92,7 +92,7 @@ $ how-can-i-help
 `licensecheck`
 `uscan`
 `autopkgtest`
-`debci`
+[`debci`](https://wiki.debian.org/debci)
 
 ---
 
