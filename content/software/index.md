@@ -14,10 +14,7 @@ title = "Software"
 - [Music Theory]
 - [Scale Buddy]
 - [Simple Chat]
-- Trivia
-    + [`trivial`]
-    + [`trivial-admin`]
-    + [`awesome-trivia`]
+- [Trivial]
 
 ## Online Tools
 
@@ -47,9 +44,7 @@ title = "Software"
 [Music Theory]: /music-theory
 [Scale Buddy]: https://github.com/btoll/scale_buddy
 [Simple Chat]: https://github.com/btoll/simple-chat
-[`trivial`]: https://github.com/btoll/trivial
-[`trivial-admin`]: https://github.com/btoll/trivial-admin
-[`awesome-trivia`]: https://github.com/btoll/awesome-trivia
+[Trivial]: https://github.com/btoll/trivial
 
 [Italian Dictionary]: https://italy.benjamintoll.com
 [CSSCompress]: /tools/css_compress/

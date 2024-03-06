@@ -22,7 +22,7 @@ The parent process should then [`wait`] on its child process(es) to finish execu
 
 The signature looks like this:
 
-```
+```c
 int child_pid = wait(&exit_status);
 ```
 
@@ -146,7 +146,7 @@ int main() {
 
 Just compile and run:
 
-```
+```bash
 $ gcc -o zombie zombie.c
 $ ./zombie
 PID = 9174
@@ -155,14 +155,14 @@ PID = 0
 
 To see that it is indeed a zombie process, let's use our old friend [`ps`]:
 
-```
+```bash
 $ ps ax | grep Z
 9174 pts/3    Z+     0:00 [zombie] <defunct>
 ```
 
 To further illustrate, running `ps` with the child PID, it's clear that it is still shows the `./zombie` process as its parent and **not** PID 1, which is what it would be if the process was an orphan that had been adopted by `init`.
 
-```
+```bash
 $ ps -o ppid= -p 9174
 9173
 ```
@@ -221,7 +221,7 @@ int main() {
 
 Just compile and run:
 
-```
+```bash
 $ gcc -o orphan orphan.c
 $ ./orphan
 PID = 19257
@@ -242,7 +242,7 @@ As we'd expect, the orphaned process is directly below the root process.
 
 Also, running `ps` with the child PID, it's clear that it has indeed been re-parented to PID 1.
 
-```
+```bash
 $ ps -o ppid= -p 19257
   1
 ```

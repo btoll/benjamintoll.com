@@ -75,7 +75,7 @@ done
 
 if $DEPLOY
 then
-    if ! ssh onf "docker-compose pull && docker-compose up -d"
+    if ! ssh dinesh "docker-compose pull && docker-compose up -d"
     then
         echo -e "\n$RED_FG[$0]$END_FG_COLOR Remote command execution failed to pull new image(s)."
         exit 1
