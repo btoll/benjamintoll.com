@@ -700,6 +700,8 @@ Go ahead and `grep` for yourself if you don't believe me, I'll be waiting right 
 $ openssl genpkey -out btoll.key -algorithm ed25519
 ```
 
+Generate a [certificate signing request (CSR)] using the new private key.  I'll set the [Common Name (CN)] field to be my username:
+
 ```bash
 $ openssl req -new -key btoll.key -out btoll.csr -subj "/CN=btoll/O=edit"
 ```
@@ -710,23 +712,31 @@ Instead of taking the easy way out and using files from the control plane (which
 
 ```bash
 $ cat <<EOF | kubectl apply -f -
-> apiVersion: certificates.k8s.io/v1
-> kind: CertificateSigningRequest
-> metadata:
->   name: btoll
-> spec:
->   request: $(base64 btoll.csr | tr -d "\n")
->   signerName: kubernetes.io/kube-apiserver-client
->   expirationSeconds: 86400
->   usages:
->   - client auth
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: btoll
+spec:
+  request: $(base64 btoll.csr | tr -d "\n")
+  signerName: kubernetes.io/kube-apiserver-client
+  expirationSeconds: 86400
+  usages:
+  - client auth
 EOF
 certificatesigningrequest.certificates.k8s.io/btoll created
 ```
 
-> The request will only be for one day.  It's probably not a good idea to grant this request a large expiration date.
+> The request will only be for one day.  It's probably not a good idea to grant this request too large of an expiration date.
 
-The cluster now only has received the request, it has granted it yet.  Let's approve it, giving it the same name we gave it in the certificate request:
+Sweet, the CSR object was sent to the `apiserver`.  Let's list it:
+
+```bash
+$ kubectl get csr
+NAME    AGE     SIGNERNAME                            REQUESTOR          REQUESTEDDURATION   CONDITION
+btoll   5m10s   kubernetes.io/kube-apiserver-client   kubernetes-admin   24h                 Pending
+```
+
+The cluster now only has received the request, it has granted it yet, as we can see from the `Pending` state.  Let's approve it, giving it the same name we gave it in the certificate request:
 
 ```bash
 $ kubectl certificate approve btoll
@@ -738,7 +748,7 @@ Let's check it out, yo:
 ```bash
 $ kubectl get csr/btoll
 NAME    AGE     SIGNERNAME                            REQUESTOR          REQUESTEDDURATION   CONDITION
-btoll   5m10s   kubernetes.io/kube-apiserver-client   kubernetes-admin   24h                 Approved,Issued
+btoll   5m20s   kubernetes.io/kube-apiserver-client   kubernetes-admin   24h                 Approved,Issued
 ```
 
 We need the certificate that `Kubernetes` generated for us, which will be in the `yaml` output.  Instead of dumping the whole thing, let's be surgical:
@@ -1066,4 +1076,6 @@ Of course, the sandboxes do have their place, just not here on `benjamintoll.com
 [champing at the bit]: https://grammarist.com/usage/champing-chomping-at-the-bit/
 [here you go]: https://www.youtube.com/watch?v=nsCIeklgp1M
 [`kubernetes-adduser`]: https://github.com/brendandburns/kubernetes-adduser
+[certificate signing request (CSR)]: https://www.ssl.com/faqs/what-is-a-csr/
+[Common Name (CN)]: https://www.ssl.com/faqs/common-name/
 
