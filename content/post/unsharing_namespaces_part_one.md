@@ -74,10 +74,9 @@ The `uts` [Unix Timesharing System namespace] is basically the hostname namespac
 As a simple example, observe the following:
 
 ```bash
-# On host.
+# On host, the following command puts us in a new Bourne shell.
 $ sudo unshare --uts sh
 
-# The following command puts us in a new Bourne shell.
 # So, now we're inside the "container" process.
 $ hostname
 kilgore-trout
@@ -103,11 +102,13 @@ The [`pid` namespace] is interesting because we first have to know something abo
 
 `/proc` is a pseudo-filesystem that is created by the kernel and is an interface to kernel data structures.  Essentially, this means that user space can get information from the kernel and set properties that are read from the kernel by reading from and writing to these files.
 
-We're interested in the `/proc` filesystem because of its detailed information about all of the running processes.  When, for example, the `ps` command is executed, it reads its information from `/proc`.  So, creating an unshared `pid` namespace isn't simply specifying the option as part of the `unshare` command; we need to also tell the kernel to create a new `/proc` filesystem, in which it will write **only** process information for the new namespace.
+We're interested in the `/proc` filesystem because of its detailed information about all of the running processes.  When, for example, the [`ps`] command is executed, it reads its information from `/proc`.  So, when creating an unshared `pid` namespace, it's not enough to simply specify the option as part of the `unshare` command (i.e., `unshare --pid`); we also need to tell the kernel to create a new `/proc` filesystem, in which it will write **only** process information for the new namespace.
 
-But, wait, there is *already* a `/proc` filesystem!  Won't a new `/proc` filesystem interfere with this older one?  Indeed it would, observant grasshopper.
+> This is crucially important because we don't want a child namespace to have a view of its parents `pid` namespace and all of its running processes.  Allowing this would be giving away a lot of unintended information that could perhaps be used for nefarious purposes.
 
-What we need is to create another, different view of the filesystem for the new process.  Perhaps we could install another [`rootfs`] within this filesystem, and then **change** the **root** of the filesystem to this new `rootfs`.
+But, wait, there is *already* a `/proc` filesystem!  Won't a new `/proc` filesystem interfere or conflict with this older one?  Indeed it would, observant grasshopper.
+
+What we need is to create another, different view of the filesystem for the new process.  Perhaps we could install another [`rootfs`] within this filesystem, and then **change the root** of the filesystem to this new `rootfs`.
 
 This will change the root of what the process can see, essentially restricting its access and what it can do (for example, the new root filesystem may only have a small fraction of the binaries that are available in the main root filesystem).  There are many upsides to this (for example, greater security), as evidenced by the fact that `chroot`s have been used in the Unix world for decades.
 
@@ -119,20 +120,23 @@ $ sudo su -
 # curl http://dl-cdn.alpinelinux.org/alpine/v3.9/releases/x86_64/alpine-minirootfs-3.9.0-x86_64.tar.gz | tar -xz -C rootfs/
 ```
 
-> We're running as a privileged user for all commands, mostly out of convenience when we start unsharing namespaces (as this is a privileged operation), but also to avoid the `./dev/null: Cannot mknod: Operation not permitted` error when untarring the tarball in the `rootfs/` directory.
+> We're running as a privileged user for all commands simply out of convenience.
 
 And `unshare` the `pid` namespace and change the root in the same fell command:
 
 ```bash
 # unshare --pid --fork chroot rootfs sh
-# ls
+/ # ls
 bin    dev    etc    home   lib    media  mnt    opt    proc   root   run    sbin   srv    sys    tmp    usr    var
 ```
+
+> Note my prompt.  Yours may be different.
 
 This is doing the following:
 
 - unsharing the `pid` namespace
-- creating a `chroot` rooted in the `rootfs/` filesystem that was just downloaded and installed (putting us into the new `chroot`, as well)
+- creating a `chroot` rooted in the `rootfs/` filesystem that was just downloaded and installed
+- putting us into the new `chroot`
 - starting a new Bourne shell in the `chroot`
 
 > Why `--fork`?  From the `unshare` man page:
@@ -146,7 +150,7 @@ Let's [`sleep`] in the container process and then inspect the process ID from th
 In the container process:
 
 ```bash
-# sleep 1000
+/ # sleep 1000
 ```
 
 In another terminal on the host:
@@ -155,25 +159,41 @@ In another terminal on the host:
 $ ps -C sleep
     PID TTY          TIME CMD
 2290330 pts/1    00:00:00 sleep
+```
+
+Now, using its `pid`, let's see what the kernel tells us about its `root`, that is, its view of the filesystem:
+
+```bash
 $ sudo ls -l /proc/2290330/root
 lrwxrwxrwx 1 root root 0 Aug  8 01:52 /proc/2290330/root -> /root/rootfs
 ```
 
-From the host, we can see that the `sleep` process indeed has a different view of the filesystem (that is, the kernel is informing us that the root of process ID 2290330 is `/root/rootfs`).  Its root is the new `rootfs` in the `rootfs` directory, and the process only sees this subsystem of the entire host filesystem.
+From the host, we can see that the `sleep` process indeed has a different view of the filesystem (that is, the kernel is informing us that the `root` of process ID 2290330 is `/root/rootfs`).  Its `root` is the new `rootfs` in the `rootfs` directory, and the process only sees this subsystem of the entire host filesystem.  In other words, its world is very limited, and this is a good thing.
+
+For fun, let's see what a host process reports as its `root`:
+
+```bash
+$ sudo ls -l /proc/$$/root
+lrwxrwxrwx 1 btoll btoll 0 Apr 21 13:40 /proc/574264/root -> /
+```
+
+This is another way we can fortify our learning by actively demonstrating that a host process **not** running in a `chroot` has a very different view of the filesystem than a "container" process running in a `chroot`.
+
+If you're unfamiliar with `bash` internal variable [`$$`], it is the `pid` of the current shell.
 
 > Note that the process only has a high number from the perspective of the host.  In the chroot (the "container"), it would have a different and lower number.
 
 However, `ps` still isn't working in the container process.  You may receive an error or it may just return the column headers with no running processes listed:
 
 ```bash
-# ps
+/ # ps
 Error, do this: mount -t proc proc /proc
 ```
 
 Or:
 
 ```bash
-# ps
+/ # ps
 PID   USER     TIME  COMMAND
 ```
 
@@ -182,37 +202,48 @@ Why isn't it reporting on any running processes?  We know that it should have at
 Listing out the `/proc` directory tells us why.  It's empty, of course.
 
 ```bash
-# ls /proc
-#
+/ # ls /proc
+/ #
 ```
 
 Either way, we need to mount the `/proc` pseudo-filesystem before we're able to see anything.  Just as with the main `/proc` filesystem in the `/` root, it will contain information written to it by the kernel about the running processes, but, importantly, **only** those running in this `chroot`:
 
 ```bash
-# mount -t proc proc /proc
+/ # mount -t proc proc /proc
 ```
 
 Now, `ps` should be able to list the running processes:
 
 ```bash
-# ps
+/ # ps
     PID TTY          TIME CMD
       1 ?        00:00:00 sh
      46 ?        00:00:00 ps
 ```
 
-Sweet, that worked!  With one simple command and an easily downloaded `rootfs`, we've gone a fair way toward making a running container!
+Sweet, that worked!  And, as expected, the `sh` process is `pid` 1.  With one simple command and an easily downloaded `rootfs`, we've gone a fair way toward making a running container!
 
 > Note that we'll get a similar error when executing the `mount` command in the container process before the `/proc` filesystem is mounted:
 >
->     # mount
+>     / # mount
 >     mount: failed to read mtab: No such file or directory
->     # mount -t proc proc /proc
->     # mount
+>     / # mount -t proc proc /proc
+>     / # mount
 >     /dev/sda2 on /target type ext4 (rw,relatime,errors=remount-ro)
 >     proc on /proc type proc (rw,relatime)
 >
 > More on this in the next section.
+>
+> ---
+>
+> **Note** that I've also received the following, so your mileage may vary:
+>
+> ```bash
+> / # mount
+> mount: no /proc/mounts
+> ```
+>
+> Either ways, the result is the same:  the `chroot` isn't reporting any `mount` points.
 
 Weeeeeeeeeeeeeeeeeeeeeeee
 
@@ -222,23 +253,23 @@ Weeeeeeeeeeeeeeeeeeeeeeee
 
 Creating a `mnt` namespace is important so the parent `mnt` namespace isn't shared with child processes and subsequently the host mount table isn't littered with entries that had been mounted in child container processes and not unmounted, leaving a relic that hangs around like your next-door neighbor.
 
-Since the `mnt` namespace is otherwise inherited and shared, these mount points can be seen from the host and will appear in its mount table.
+Since the `mnt` namespace is otherwise inherited and shared, any `mount` created in the "container" will be seen from the host and will appear in its mount table.
 
-Imagine having a host that continually spawns hundreds, if not thousands, of containers whose needs include bind mounting directories from the host and/or mounting (pseudo-)filesystems in the container, like `/proc`.  Of course, if the container process remembers to clean up after itself by umounting any mount points before exiting (or in a trap), then the mount entries are removed, but who remembers to do that?  Well, I do, of course, but other people that aren't me?  No way.
+Imagine having a host that continually spawns hundreds, if not thousands, of containers whose needs include bind mounting directories from the host and/or mounting (pseudo-)filesystems in the container, like `/proc`.  Of course, if the container process remembers to clean up after itself by umounting any mount points before exiting (or in a [`trap`]), then the mount entries are removed, but who remembers to do that?  Well, I do, of course, but other people that aren't me?  No way.
 
-Also, and more importantly, sharing the same `mnt` namespace with the host is a huge security risk.  Remember, once the host is compromised, which is bad enough, then the attacker has access to every container running on the kernel.  Depending on the shared hosting and its infrastructure, this could be really bad (although I assume, and hope, that cloud providers run the containers in virtual machines, but that only partly mitigates it.  For example, if there are multiple containers running in the same VM, that would be the same problem).  So, not only do you have to worry about your own security, you have to worry about your neighbor's.
+Also, and more importantly, sharing the same `mnt` namespace with the host is a huge security risk.  Remember, once the host is compromised by a process breaking out of a container, which is bad enough, then the attacker has access to every container running on the kernel.  Depending on the shared hosting and its infrastructure, this could be really bad (although I assume, and hope, that cloud providers run the containers in virtual machines, but that only partly mitigates it.  For example, if there are multiple containers running in the same VM, that would be the same problem).  So, not only do you have to worry about your own security, you have to worry about your neighbor's.
 
 First, let's take a look at mounting from within the container process that inherits (shares) its `mnt` namespace with its parent:
 
 ```bash
 $ sudo unshare bash
-(container) # mkdir source
-(container) # touch source/HELLO
-(container) # mkdir target
-(container) # mount --bind source target
-(container) # ls target
+# mkdir source
+# touch source/HELLO
+# mkdir target
+# mount --bind source target
+# ls target
 HELLO
-container # exit
+# exit
 exit
 ```
 Back on the host, we can still see the mount point listed by the `mount` command:
@@ -250,32 +281,38 @@ $ mount | ag target
 
 This is unfortunate but easily fixed.
 
-> Note in the example below that we don't need to recreate the `source` and `target` directories because the `bash` process had the same root filesystem (`/`), and so the directories created in the "container" were created on the host's root filesystem, which, of course, will persist when exiting the subprocess (the "container").
->
-> Another way to say it is that the new process did not `chroot` to a subdirectory on the host filesystem, so it has the same view of the filesystem as the host.
+You'll notice that in the example below that we don't need to recreate the `source` and `target` directories.  This is because the `bash` process has the same root filesystem (`/`) as that of the host, and so the directories created in the "container" were created on the host's root filesystem (which, of course, persist when exiting the subprocess (the "container")).
 
-To remove this entry from the host's list of mount points, simply run the same command as before and unmount the bind mount:
+This would be a different story if the the new process had `chroot`ed to a subdirectory on the host filesystem.  In that scenario, the `rootfs` used as the subprocess' filesystem in the `chroot` would be entirely separate from the host, and any files and directories created in the `chroot` will not be on the host.
+
+Back to our story, to remove the `mount` point entry from the host's list of `mount` points, simply run the same command as before and unmount the bind mount:
 
 ```bash
 $ sudo unshare bash
 $ umount target
 ```
 
-And, on the host:
+And, on the host, it's gonzo:
 
 ```bash
 $ mount | ag target
 $
 ```
 
+> Of course, you can always remote the `mount` point from the host:
+>
+> ```bash
+> $ sudo umount /path/to/target
+> ```
+
 Now, let's do this properly.  Create an unshared process with its own `mnt` namespace:
 
 ```bash
 $ sudo unshare --mount bash
-(container) # mount --bind source target
-(container) # ls target
+# mount --bind source target
+# ls target
 HELLO
-container # exit
+# exit
 exit
 ```
 
@@ -292,7 +329,7 @@ Weeeeeeeeeeeeeeeeeeeeeee
 
 ---
 
-Before moving on to the next section, let's take a look at some information made available to us by the kernel in `/proc` that is interesting and instructive.
+Before moving on to the last section of this very generous article, let's take a look at some information made available to us by the kernel in `/proc` that is interesting and instructive.
 
 Each process in `/proc` has a `mounts` file that informs us what mounts, if any, were created by any process.  For example, to see the mount points for PID 1 (on my system that is `systemd`), you can do:
 
@@ -300,53 +337,53 @@ Each process in `/proc` has a `mounts` file that informs us what mounts, if any,
 $ sudo cat /proc/1/mounts
 ```
 
-You'll see a list that is strikingly similar, or perhaps the same, as that of `mount`.
+You'll see a list that is strikingly similar, or perhaps the same, as that of the `mount` command.
 
-Now, let's take a look at an example where a process is created with its own unshared `mnt` namespace.  Run the same commands as before:
+Now, let's take a look at an example where a process is created with its own unshared `mnt` namespace.  We'll issue the same commands as before:
 
 ```bash
 $ sudo unshare --mount bash
-(container) # mkdir source
-(container) # touch source/HELLO
-(container) # mkdir target
-(container) # mount --bind source target
-(container) # ls target
+# mkdir source
+# touch source/HELLO
+# mkdir target
+# mount --bind source target
+# ls target
 HELLO
 ```
 
 So far, so good.  We need to look at the process information on the host in `/proc`, so let's get the PID number from the container environment:
 
 ```bash
-(container) # echo $$
+# echo $$
 2521485
 ```
 
-> The [Bash and Bourne special parameter] `$$` expands to the process ID of the shell (in a subshell, it's always the PID of the invoking shell).
+> As aforementioned, the [Bash and Bourne special parameter] `$$` expands to the process ID of the shell (in a subshell, it's always the PID of the invoking shell).
 
 As expected, it's a high number because the process has inherited the `pid` namespace of its parent.  We can use `ps` to confirm that:
 
 ```bash
-(container) # ps
+# ps
     PID TTY          TIME CMD
 2521380 pts/1    00:00:00 sudo
-2521485 pts/1    00:00:00 sh
+2521485 pts/1    00:00:00 bash
 2521847 pts/1    00:00:00 ps
 ```
 
-Armed with the PID of the Bourne shell process, we can now see its mount points.
+Armed with the PID of the [Bourne-Again SHell] process, we can now see its mount points.
 
-> Since the container process has unshared its `mnt` namespace from its parent, the mount point entry won't show by running `mount` on host, so the following method is the only way to see from the host what is in a container process' `mnt` namespace.
+> Since the container process has unshared its `mnt` namespace from its parent, the mount point entry won't show by running `mount` on the host, so the following method is the only way to see from the host what is in a container process' `mnt` namespace.
 
 First, just as a sanity check, we'll make sure that that process can be seen from the host:
 
 ```bash
-$ ps -C sh
+$ ps -C bash
     PID TTY          TIME CMD
-   1891 tty1     00:00:00 sh
-   2200 pts/0    00:00:00 sh
- 965293 pts/1    00:00:22 sh
-2353178 pts/0    00:00:00 sh
-2521485 pts/1    00:00:00 sh
+   1891 tty1     00:00:00 bash
+   2200 pts/0    00:00:00 bash
+ 965293 pts/1    00:00:22 bash
+2353178 pts/0    00:00:00 bash
+2521485 pts/1    00:00:00 bash
 ```
 
 Yes, there it is, listed last.  Of course it would be, but I am, well, paranoid.  Now, let's look at the method with which we can see what is in a process's unshared `mnt` namespace.  The expectation is that we'll only see what has been mounted (`source`, in this case).
@@ -368,25 +405,29 @@ Wait, what?!?  In addition to the mount point created by the process that we exp
 
 Well, it's because the mount information for each process is contained in `/proc` within each PID's directory entry, as we've seen above.  And, because we haven't unshared the `pid` namespace **and** (most importantly) created the process in its own `chroot`, its view of the world will still be that of its parent, and it will get all of its mount information from `/proc` on the host.
 
+> Of course, running the `mount` command in the "container" will also list all of the host's mounts for the same reason.
+
 So let's create **its** own `pid` namespace and `chroot` to get only the information we expect.
 
 ```bash
-$ sudo unshare --pid --fork --mount chroot rootfs sh
-(container) # echo $$
+$ sudo unshare --pid --fork --mount chroot rootfs bash
+# echo $$
 1
-(container) # ps
+# ps
 Error, do this: mount -t proc proc /proc
-(container) # mount -t proc proc /proc
-(container) # ls -l /proc/$$/exe
+# mount -t proc proc /proc
+# ls -l /proc/$$/exe
 lrwxrwxrwx 1 root root 0 Aug  8 23:30 /proc/1/exe -> /bin/busybox
-(container) # mkdir source
-(container) # touch source/CIAO
-(container) # mkdir target
-(container) # mount --bind source target
-(container) # ls target/
-CIAO
-(container) # sleep 1000
+# mkdir -p source
+# touch source/CIAO
+# mkdir -p target
+# mount --bind source target
+# ls target/
+CIAO HELLO
+# sleep 1000
 ```
+
+> Remember, since we didn't create a `chroot`, the `source` and `target` directories and any contents will still be present on the host machine, and thus listing the entries of one of them will also produce our old friend `HELLO`.
 
 And on the host:
 
@@ -401,13 +442,9 @@ proc /proc proc rw,relatime 0 0
 
 And there we have it, it's only listing the two mount points that we just created in the container, and nothing from its parent `mnt` namespace.
 
-<!--
-> Interestingly, the `sleep` "trick" works because any process that is forked is going to be a descendant of the host's PID 1 unless explicitly unshared by an `unshare` call (or another means).  So, the forked process will inherit the parent's namespaces.
--->
+So, we don't need to `cat` out the mount points for the parent `bash` process (PID 1) and instead can look at any process in the process tree that hasn't unshared its `mnt` namespace (because all other processes will have the same shared view of the mount points).
 
-So, we don't need to `cat` out the mount points for the parent `sh` process (PID 1) and instead can look at any process in the process tree that hasn't unshared its `mnt` namespace (because all other processes will have the shared view of the mount points).
-
-Here is the proof they're sharing the same namespace (the first is `sh` and the second is `sleep`):
+Here is the proof they're sharing the same namespace (the first is `bash` and the second is `sleep`):
 
 ```bash
 $ sudo ls -l /proc/2528059/ns/ | ag mnt
@@ -416,7 +453,7 @@ $ sudo ls -l /proc/2528091/ns/ | ag mnt
 lrwxrwxrwx 1 root root 0 Aug  8 20:57 mnt -> mnt:[4026533227]
 ```
 
-As this is starting to get fairly long, this is a good point to stop and continue in [On Unsharing Namespaces, Part Two] where we'll cover the `net` and `user` namespaces..
+As this is starting to get fairly long, I will stop rambling on and continue in [On Unsharing Namespaces, Part Two] where we'll cover the `net` and `user` namespaces.
 
 ## Summary
 
@@ -446,4 +483,8 @@ I hope you have found this article scintillating and that you've been titillated
 [`sleep`]: https://www.man7.org/linux/man-pages/man1/sleep.1.html
 [Bash and Bourne special parameter]: https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html
 [On Unsharing Namespaces, Part Two]: /2022/12/14/on-unsharing-namespaces-part-two/
+[`ps`]: https://www.man7.org/linux/man-pages/man1/ps.1.html
+[`$$`]: https://codefather.tech/blog/bash-dollar-dollar-variable/
+[`trap`]: https://linuxhandbook.com/bash-trap-command/
+[Bourne-Again SHell]: https://en.wikipedia.org/wiki/Bash_(Unix_shell)
 
