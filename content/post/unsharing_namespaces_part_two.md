@@ -6,11 +6,11 @@ date = "2022-12-14T00:06:29Z"
 
 "There is no such thing as a Docker container!"
 
--- Kilgore Trout to Gaias Julius Caesar, March 15, 44 B.C.E.
+-- "Stabby" Kilgore Trout to Gaias Julius Caesar, March 15, 44 B.C.E.
 
 ---
 
-This is the second installment in a riveting series.  Be sure to have read [the first part], which covers the `uts`, `pid` and `mnt` namespaces!
+This is the second installment in a riveting series.  Be sure to have read the [first part], which covers the `uts`, `pid` and `mnt` namespaces!
 
 ---
 
@@ -35,13 +35,13 @@ This is the second installment in a riveting series.  Be sure to have read [the 
 
 ### Network
 
-Unsharing the `net` [network namespace] allows for the process to have its own IPv4 and IPv6 stacks, network links, firewall rules and IP routing tables (among others.
+Unsharing the `net` [network namespace] allows for the process to have its own IPv4 and IPv6 stacks, network links, firewall rules and IP routing tables (among others).
 
 Let's look at the difference between sharing, or inheriting, the `net` namespace from the parent process and unsharing it.
 
 #### Sharing
 
-Obviously, in the absence of the `--net` option to `unshare`, the `bash` program running in the forked process will inherit the `--net` namespace from its parent, and we can see this by listing out the processes `ns` directory in `/proc`:
+In the absence of the `--net` option to `unshare`, the `bash` program running in the forked process below will inherit the `--net` namespace from its parent, and we can see this by listing out the processes `ns` directory in `/proc`:
 
 ```bash
 # On the host.
@@ -52,7 +52,7 @@ $ ls -l /proc/$$/ns | ag net
 lrwxrwxrwx 1 btoll btoll 0 Aug  9 17:52 net -> net:[4026532008]
 ```
 
-Next, we demonstrate on the host that PID 1 (`systemd` on my Debian `bullseye` distro) indeed has the same `net` namespace, which the containing process inherited through its parent.
+Then, on the host, we demonstrate that `pid` 1 (`systemd` on my Debian `bullseye` distro) indeed has the same `net` namespace, which the containing process inherited:
 
 ```bash
 # On the host, where PID 1 is `systemd`.
@@ -62,7 +62,7 @@ $ sudo ls -l /proc/1/ns | ag net
 lrwxrwxrwx 1 root root 0 Aug  7 20:19 net -> net:[4026532008]
 ```
 
-Back in the container process, we can show that the new process can see all of the same namespaced network interfaces as the host and accesses the same routing table since it inherited the same `net` namespace:
+Further, back in the container process, since it inherited the same `net` namespace we can show that the new process can see all of the same namespaced network interfaces as the host and accesses the same routing table:
 
 ```bash
 $ ip a
@@ -81,7 +81,7 @@ $ ip a
     inet6 fe80::2308:ab5:dc8:cdae/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
 $
-$ ip route
+$ ip r
 default via 192.168.1.1 dev wlp3s0 proto dhcp metric 600
 169.254.0.0/16 dev wlp3s0 scope link metric 1000
 172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
@@ -90,7 +90,7 @@ default via 192.168.1.1 dev wlp3s0 proto dhcp metric 600
 
 #### Unsharing
 
-Now, when creating its own `net` namespace, we can also see that the `net` namespaces are not the same:
+Ok, now, let's create a process with its own `net` namespace.   Immediately, we can see that the `net` namespaces are not the same, using the same steps as before:
 
 ```bash
 # On the host.
@@ -109,7 +109,7 @@ $ sudo ls -l /proc/1/ns | ag net
 lrwxrwxrwx 1 root root 0 Aug  7 20:19 net -> net:[4026532008]
 ```
 
-Back in the container process, we can show that the new process only has a [`loopback`] interface and has no routing table information:
+More, back in the container process, we can show that the new process only has a [`loopback`] interface and has no routing table information:
 
 ```bash
 # ip a
@@ -132,25 +132,25 @@ Let's now establish network connectivity between the host and the container proc
 
 Conceptually, we can think of this as a cable that connects the default `net` network namespace with the new `net` network namespace of the container.
 
-Let's list some characteristics of `veth` devices (from the manpage):
+Here are some characteristics of `veth` devices (from the manpage):
 
 - they can act as tunnels between network namespaces to create a bridge to a physical network device in another namespace, but can also be used as standalone network devices
-- always created in interconnected pairs
+- always created in interconnected pairs, such as:
     ```bash
-    $ sudo ip link add <p1-name> type veth peer name <p2-name>
+    $ sudo ip link add p1-name type veth peer name p2-name
     ```
     + `p1-name` and `p2-name` are the names assigned to the two connected end points
 - packets transmitted on one device in the pair are immediately received on the other device
-- when either devices is down the link state of the pair is down
+- when either device is down the link state of the pair is down
 
 > Anyone with an interest in container networking should pay particular attention to these little fellas.
 >
 > `veth` devices have a particularly interesting use case: placing one end of a `veth` pair in one network namespace and the other end in another network namespace allows for communicating between network namespaces.
 >
-> For example (using the `netns` parameter):
+> Here is another example (using the `netns` parameter):
 >
 > ```bash
-> $ sudo ip link add <p1-name> netns <p1-ns> type veth peer <p2-name> netns <p2-ns>
+> $ sudo ip link add p1-name netns p1-ns type veth peer p2-name netns p2-ns
 > ```
 
 We'll start by creating the new process with its own unshared `net` network namespace:
@@ -159,7 +159,7 @@ We'll start by creating the new process with its own unshared `net` network name
 $ sudo unshare --net bash
 ```
 
-Right away, we can see that the new process has its own `net` namespace that is distinct from the host:
+Again, we can see that the new process has its own `net` namespace that is distinct from the host.  This time, we'll show the difference by using the [`lsns`] command with custom columns:
 
 ```bash
 # lsns --type net -o NS,PID,COMMAND | ag "systemd|bash"
@@ -167,11 +167,11 @@ Right away, we can see that the new process has its own `net` namespace that is 
 4026532801 2561438 bash
 ```
 
+As we can see from the column options passed to the output parameter (`-o`), the first column is the `net` namespace, the second the process ID and the third the command that created the process (notably, the first column has different values).
+
 > If there were no accessible namespaces, the result would be empty.
 
-As we can see from the column options passed to the output parameter (`-o`), the first column is the `net` namespace, the second the process ID and the third the command that created the process.
-
-You could also list all of the namespaces of a process by passing the `-p|` option the `PID`:
+You could also list all of the namespaces of a process by passing the `-p` option the `pid`:
 
 ```bash
 # lsns -p $$
@@ -186,16 +186,7 @@ You could also list all of the namespaces of a process by passing the `-p|` opti
 4026532160 net         2  2561438 root bash
 ```
 
-We'll need that PID of the new process in order to create its virtual network interface.  Note that we can also get it inside the container by echoing out the current process ID using a [special Bash parameter]:
-
-```bash
-# echo $$
-2561438
-```
-
-> The previous command (`lsns`) were run in the container, but it could have also been run on the host.  Also, note that the command is limiting the output to only the namespace (`NS`), process ID (`PID`) and command (`COMMAND`).
-
-Note that there are no entries in the routing table yet in the container, and the only device is `loopback`:
+Let's look at networking information.  Note that there are no entries in the routing table yet in the container, and the only device is `loopback`:
 
 ```bash
 # ip route
@@ -207,11 +198,11 @@ Dump terminated
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 ```
 
-Ok, that's great.  Let's now connect the new `net` namespace to the default `net` namespace with that `PID`.  Run the following command on the host.
-
-You can still be in the container in another terminal, so don't exit the container, which removes the namespace, unless you created a persistent namespace, which is beyond the scope of this tutorial (we haven't created one here, by the way).
+Let's now connect the new `net` namespace to the default `net` namespace with that `pid`.  Run the following command on the host, first getting the `pid` of the new process which we'll need to create its virtual network interface (we can also get it inside the container by echoing out the current process ID using a [special Bash parameter]):
 
 ```bash
+# echo $$
+2561438
 $ sudo ip link add ve1 netns 2561438 type veth peer name ve2 netns 1
 ```
 
@@ -270,7 +261,7 @@ $ ip a
 
 > Bringing an interface `UP` means to enable it.  What does `LOWER_UP` mean, then?
 >
-> It is a physical layer link flag.  `LOWER_UP` indicates that an `Ethernet` cable was plugged in and that the device is connected to the network, that is, it can send and receive encoded and decoded information from its physical medium source, be it electricity, light or radio waves.
+> It signals that it is a physical layer link flag.  `LOWER_UP` indicates that an `Ethernet` cable was plugged in and that the device is connected to the network, that is, it can send and receive encoded and decoded information from its physical medium source, be it electricity, light or radio waves.
 
 Of course, in order to be able to send traffic to the devices, both need to be assigned an IP address on the same network.
 
@@ -289,7 +280,7 @@ First, in the container:
        valid_lft forever preferred_lft forever
 ```
 
-As soon as the IP is associated, a route has been added to the container's routing table:
+As soon as the IP is associated, a route has been added to the container's routing table (since its using [`CIDR`] notation, the kernel automatically adds a routing entry):
 
 ```bash
 # ip route
@@ -310,7 +301,7 @@ $ ip a
        valid_lft forever preferred_lft forever
 ```
 
-Likewise, when the IP address was associated with the host's virtual Ethernet device, a new route was added to its routing table:
+Likewise, when the IP address was associated with the host's virtual Ethernet device, a new route was added to its routing table (again, because `CIDR` notation was used):
 
 ```bash
 $ ip route
@@ -358,9 +349,12 @@ Weeeeeeeeeeeeeeeeeeeeeeee
 
 Note that the `veth` device and the route in the routing table will both be removed automatically from the host when the container is exited.
 
-If the two processes can't communicate, i.e., the `ping`s don't work, make sure that the new network you configured for the container processes don't conflict with any others.
+If the two processes can't communicate, i.e., the `ping`s don't work, make sure that the new network you configured for the container processes doesn't conflict with any others.
 
----
+Check out the following two resources for more information:
+
+- [On Linux Container Networking]
+- [Linux Networking GitHub Repository]
 
 ### User
 
@@ -374,7 +368,7 @@ This would mean, to put it mildly, that you would be fucked.  Remember that the 
 
 Sadly, most people who run containers use Docker, and Docker was not built with security in mind.  It was an afterthought.  Maybe a Docker Captain can tell you about it someday.
 
-So, what does one do?  Curse the decision to promote Docker?  Well, yes.  But, also, *critically*, use the `user` namespace to map the `root` user in the container to a non-privileged account on the host.  That way, if an attacker breaks out of the container, the worst they can do is delete the poems in your home directory.
+So, what does one do?  Curse the decision to promote Docker?  Well, yes.  Alias docker to [`podman`]?  Also, yes.  But, further, *critically*, use the `user` namespace to map the `root` user in the container to a non-privileged account on the host.  That way, if an attacker breaks out of the container, the worst they can do is delete the poems in your home directory.
 
 In addition, the effective user on the host can have greater capabilities inside the container running as `root`.
 
@@ -400,7 +394,7 @@ $ sudo unshare bash
 uid=0(root) gid=0(root) groups=0(root)
 ```
 
-That's interesting and to be expected.  Let's now create that a process with an unshared `user` namespace.
+That's interesting and to be expected.  Let's now create a process with an unshared `user` namespace:
 
 ```bash
 $ unshare --user bash
@@ -408,21 +402,14 @@ $ id
 uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)
 ```
 
-Ok, the `nobody` user.  Let's confirm that the process has a `user` namespace distinct from the default.
-
-In the container:
-
-```bash
-$ echo $$
-2713100
-```
+Ok, the `nobody` user.  Let's confirm that the process has a `user` namespace distinct from the host:
 
 On the host:
 
 ```bash
 $ lsns -t user | ag "systemd|bash"
 4026531837 user      57    1881 btoll /lib/systemd/systemd --user
-4026533574 user       1 2768612 btoll bash
+4026533574 user       1 2713100 btoll bash
 ```
 
 > Why can't we run the `lsns` as an unprivileged user in the container as before?
@@ -435,25 +422,35 @@ Ok, let's now do the mapping.
 
 The `/proc/PID/uid_map` and `/proc/PID/gid_map` are the kernel interfaces for the user and group IDs, respectively, for each process.
 
+
+First, we need to get the `pid` of the "container" (really, the `bash` process):
+
+In the container:
+
+```bash
+$ echo $$
+2713100
+```
+
 On the host:
 
 ```bash
 $ sudo echo "0 1000 1" >> /proc/2713100/uid_map
 ```
 
+> These special `/proc` files can only be written to once.
+
 Let's break that down (`0 1000 1`):
 
 1. (0) The first number is the start of the range of the user IDs that will be used **in the container**.
 1. (1000) The second number is the start of the range of the user IDs that will be mapped to **on the host**.
-1. (1) The last number states the number of user IDs (the length of the range) that will be mapped in the container.  Only one user ID that is given, since we only expect one user for this container.  That's a good thing.
+1. (1) The last number states the number of user IDs (the length of the range) that will be mapped in the container.  Only one user ID is given, since we only expect one user for this container.  That's a good thing.
 
-This example is doing the following, in plain English: "Map the effective user ID on the host with user ID 1000 to the user ID of 1 in the container, and only allocate one user ID."
+This example is doing the following, in plain English: "Map the effective user ID on the host with user ID 1000 to the user ID of 0 in the container, and only allocate one user ID."
 
 The end result is that my `btoll` (1000) user on the host is now seen as `root` in the new `user` namespace in the container.
 
 [Kool moe dee].
-
-> These special `/proc` files can only be written to once.
 
 After running the mapping command above, we see that the mapping has taken effect in the container:
 
@@ -537,6 +534,8 @@ uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)
 
 However, if we give the user in that container escalated privileges by running the now-familiar mapping command on the host, we can effect that by mapping the non-privileged user on the host to the `root` user in the container.  This will allow us to do what we want.  Remember, if the `root` user does find a way to break out of the `user` namespace, the damage will be limited to only what the `btoll` user is permitted to do on the host.
 
+> And, although dangerously handsome and charming, the `btoll` user won't be able to do any effective damage on the host due to lack of permissions.
+
 Again, this will look like the following, if the new container process has the PID 2713100:
 
 ```bash
@@ -587,7 +586,7 @@ You may be thinking to yourself, "hey, the format of the `/proc/PID/uid_map` loo
 
 And you'd be right.  Unfortunately, I haven't been able to ascertain the provenance of those files.
 
-Are they an implementation detail of an [OCI spec]?  Does they predate the burgeoning popularity and ubiquity of containers?  After all, the files are listed in the [`useradd` man page] in the `FILES` section, and the [`getuid`] and [`getgid`] system calls, et al., also use them.
+Are they an implementation detail of an [OCI spec]?  Do they predate the burgeoning popularity and ubiquity of containers?  After all, the files are listed in the [`useradd` man page] in the `FILES` section, and the [`getuid`] and [`getgid`] system calls, et al., also use them.
 
 Does [the Shadow] know?
 
@@ -610,11 +609,13 @@ Um.
 - [On Unsharing Namespaces, Part One]
 - [Container Security by Liz Rice](https://containersecurity.tech/)
 - [Containers From Scratch - Liz Rice - GOTO 2018](https://www.youtube.com/watch?v=8fi7uSYlOdc)
+- [On Linux Container Networking]
+- [Linux Networking GitHub Repository]
 - [Trivy](https://github.com/aquasecurity/trivy)
 - [Index of /alpine/](http://dl-cdn.alpinelinux.org/alpine/)
 - [Linux Bridges, IP Tables & CNI Plug-Ins: A Container Networking Deep Dive](https://www.youtube.com/watch?v=z-ITjDQT7DU)
 
-[the first part]: /2022/08/08/on-unsharing-namespaces-part-one/
+[first part]: /2022/08/08/on-unsharing-namespaces-part-one/
 [namespaces]: https://www.man7.org/linux/man-pages/man7/namespaces.7.html
 [network namespace]: https://www.man7.org/linux/man-pages/man7/network_namespaces.7.html
 [On Unsharing Namespaces, Part One]: /2022/08/08/on-unsharing-namespaces-part-one/
@@ -633,4 +634,8 @@ Um.
 [the Shadow]: https://en.wikipedia.org/wiki/The_Shadow
 [subuid(5) man page]: https://www.man7.org/linux/man-pages/man5/subuid.5.html
 [`veth`]: https://man7.org/linux/man-pages/man4/veth.4.html
+[`CIDR`]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
+[On Linux Container Networking]: /2023/11/28/on-linux-container-networking/
+[Linux Networking GitHub Repository]: https://github.com/btoll/linux-networking
+[`podman`]: https://podman.io/
 
