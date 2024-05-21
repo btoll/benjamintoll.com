@@ -17,31 +17,31 @@ I've recently read [this sweet book] which explores GDB in some depth, so let's 
 
 ## Contents
 
-- <a href="#breakpoints">Breakpoints</a>
-    1. <a href="#set-persistent-breakpoint">Set Persistent Breakpoint</a>
-    1. <a href="#set-temporary-breakpoint">Set Temporary Breakpoint</a>
-    1. <a href="#conditional-breakpoint">Conditional Breakpoint</a>
-    1. <a href="#list-breakpoints">List Breakpoints</a>
-    1. <a href="#clear-breakpoint">Clear Breakpoint</a>
-    1. <a href="#enable-breakpoint">Enable Breakpoint</a>
-    1. <a href="#disable-breakpoint">Disable Breakpoint</a>
-    1. <a href="#delete-breakpoint">Delete Breakpoint</a>
-
-- <a href="#breakpoint-command-lists">Breakpoint Command Lists</a>
-
-- <a href="#watchpoints">Watchpoints</a>
-    1. <a href="#set-watchpoint">Set Watchpoint</a>
-    1. <a href="#conditional-watchpoint">Conditional Watchpoint</a>
-    1. <a href="#delete-watchpoint">Delete Watchpoint</a>
-
-- <a href="#other-gdb-commands">Other GDB Commands</a>
-    1. <a href="#continue">continue</a>
-    1. <a href="#finish">finish</a>
-    1. <a href="#next">next</a>
-    1. <a href="#step">step</a>
-    1. <a href="#until">until</a>
-
-- <a href="#text-user-interface-mode">Text User Interface Mode</a>
+- [Breakpoints](#breakpoints)
+    + [Set Persistent Breakpoint](#set-persistent-breakpoint)
+    + [Set Temporary Breakpoint](#set-temporary-breakpoint)
+    + [Conditional Breakpoint](#conditional-breakpoint)
+    + [List Breakpoints](#list-breakpoints)
+    + [Clear Breakpoint](#clear-breakpoint)
+    + [Enable Breakpoint](#enable-breakpoint)
+    + [Disable Breakpoint](#disable-breakpoint)
+    + [Delete Breakpoint](#delete-breakpoint)
+- [Breakpoint Command Lists](#breakpoint-command-lists)
+- [Watchpoints](#watchpoints)
+    + [Set Watchpoint](#set-watchpoint)
+    + [Conditional Watchpoint](#conditional-watchpoint)
+    + [Delete Watchpoint](#delete-watchpoint)
+- [Other GDB Commands](#other-gdb-commands)
+    + [continue](#continue)
+    + [finish](#finish)
+    + [next](#next)
+    + [step](#step)
+    + [until](#until)
+    + [shell](#shell)
+    + [call](#call)
+- [Miscellaneous](#miscellaneous)
+    + [info](#info-proc)
+- [Text User Interface Mode](#text-user-interface-mode)
 
 ---
 
@@ -441,6 +441,35 @@ slen (s=0x7fffffffe2ca "foobar") at slen.c:4
 - u(ntil) *filename:function*
 - u(ntil) *filename:line_number*
 
+### shell
+
+- she(ll)
+    + Temporarily exit to a command line.
+    + `exit` to get back to `gdb`.
+- she(ll) *function*
+- she(ll) xargs -0 printf %s\\n < /proc/6074/environ
+    + Print the environment variables (set when the process was first created) for PID 6074.
+    + Doesn't show any environment variables then added via [`setenv`].
+
+
+### call
+
+- cal(l)
+    + Call a `C` library function.
+- cal(l) getenv("SHELL")
+
+## Miscellaneous
+
+### `i(nfo) proc`
+
+```gdb
+(gdb) info proc
+process 471165
+cmdline = '/foo/a.out foobar'
+cwd = '/foo'
+exe = '/foo/a.out'
+```
+
 ---
 
 ## Text User Interface Mode
@@ -499,4 +528,5 @@ Lastly, if you start up GDB without issuing the `-tui` switch but want to see th
 [a sweet tutorial]: https://ftp.gnu.org/old-gnu/Manuals/gdb/html_chapter/gdb_19.html
 [Kool Moe Dee]: https://en.wikipedia.org/wiki/Kool_Moe_Dee
 [curses]: https://en.wikipedia.org/wiki/Curses_(programming_library)
+[`setenv`]: https://www.man7.org/linux/man-pages/man3/setenv.3.html
 

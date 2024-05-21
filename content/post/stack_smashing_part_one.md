@@ -418,7 +418,7 @@ int adoption() {
     int current = 4;
     int *ret;
 
-    ret = &amp;current + 5; <span style="color: green;">[1]</span>
+    ret = &amp;current + 5;     <span style="color: green;">[1]</span>
     *ret += 24; 	    <span style="color: green;">[2]</span>
 
     return current;
@@ -507,8 +507,10 @@ In [the second half], I'll be showing how to exploit the `cat_pictures.c` progra
 
 ## References
 
-- https://nostarch.com/hacking2.htm
-- https://insecure.org/stf/smashstack.html
+- [Hacking: The Art of Exploitation](https://nostarch.com/hacking2.htm)
+- [Smashing The Stack For Fun And Profit](https://insecure.org/stf/smashstack.html)
+- [On Debugging with GDB](/2018/05/19/on-debugging-with-gdb/)
+- [On Cheat Sheets: GDB](/2019/11/09/on-cheat-sheets-gdb/)
 
 [Stack smashing]: https://en.wikipedia.org/wiki/Stack_buffer_overflow
 [NX bit]: https://en.wikipedia.org/wiki/NX_bit

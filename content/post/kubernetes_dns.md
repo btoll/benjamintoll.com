@@ -423,8 +423,6 @@ Interestingly, there is another way to create an A record.  Everybody knows that
 
 For example, if the `.spec.hostname: foo`, then:
 
-```yaml
-
 ```bash
 $ kubectl exec debug -it -- hostname
 foo

