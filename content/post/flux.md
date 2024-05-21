@@ -20,6 +20,7 @@ If you want an in-depth technical article on Flux, then this is not the article 
 - [The `config/` Directory](#the-config-directory)
 - [Image Updating](#image-updating)
 - [`sealed-secrets`](#sealed-secrets)
+    + [`kustomize`](#kustomize)
 - [Cleanup](#cleanup)
 - [References](#references)
 
@@ -767,7 +768,198 @@ Make sure that you've given the PAT all the things it needs.
 
 ## `sealed-secrets`
 
-TODO
+Sealed secrets are an easy way to encrypt sensitive data (i.e., secrets) and safely store them in a Git repository in the cloud along with your source code and infrastructure "code".
+
+This is accomplished through public key cryptography.  Both the private and public keys are stored in the cluster, and the former is never revealed.  It's possible to export the public key, although this is not necessary to create a sealed secret and can be done through use of the `kubeseal` binary.
+
+Here are some of the advantages of using sealed secrets:
+
+1. Can be scoped to a namespace as the namespace is part of the encryption.  Only users that have access to the same namespace can read it.
+
+1. The `secret`'s name is also included in the encryption process so a user cannot change the `secret`'s name to one that they have access to.
+
+To allow the `secret` to be renamed within the same namespace in which it was created, add the following annotation to the `SealedSecret` manifest:
+
+Let's now install `sealedsecrets`:
+
+```bash
+$ kubectl create -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.26.2/controller.yaml
+rolebinding.rbac.authorization.k8s.io/sealed-secrets-service-proxier created
+rolebinding.rbac.authorization.k8s.io/sealed-secrets-controller created
+clusterrolebinding.rbac.authorization.k8s.io/sealed-secrets-controller created
+customresourcedefinition.apiextensions.k8s.io/sealedsecrets.bitnami.com created
+service/sealed-secrets-controller created
+role.rbac.authorization.k8s.io/sealed-secrets-service-proxier created
+service/sealed-secrets-controller-metrics created
+role.rbac.authorization.k8s.io/sealed-secrets-key-admin created
+clusterrole.rbac.authorization.k8s.io/secrets-unsealer created
+serviceaccount/sealed-secrets-controller created
+deployment.apps/sealed-secrets-controller created
+```
+
+And view the controller pod:
+
+```bash
+$ kubectl -n kube-system get po -l name=sealed-secrets-controller
+NAME                                         READY   STATUS    RESTARTS   AGE
+sealed-secrets-controller-7f4d55d696-ldp9w   1/1     Running   0          20m
+```
+
+The controller will create an encryption key the first time it starts and keep this in a `secret`.  There are a couple of ways to easily see the public key, the first one being the logs of the controller:
+
+```bash
+$ kubectl -n kube-system logs -l name=sealed-secrets-controller --tail 3
+time=2024-05-05T02:34:52.205Z level=INFO msg="Certificate generated" certificate="-----BEGIN CERTIFICATE-----\nMIIEzTCCArWgAwIBAgIRAN3k65FSzB2lotax1qL3vXgwDQYJKoZIhvcNAQELBQAw\nADAeFw0yNDA1MDUwMjM0NTJaFw0zNDA1MDMwMjM0NTJaMAAwggIiMA0GCSqGSIb3\nDQEBAQUAA4ICDwAwggIKAoICAQDGGRNMPKxtvi0u+N2Us5YIF952AGArX7HuB5+7\nblNvjwszm5pysZNm2Ax/P+h0U1M17KyYvm7nAoIzq/tUfLRMWo6FogG4MUjrcKhN\nYiNs6PCKQe1GLvHay5VhE7FGnaPUqWKqsRjB64Ud8X4hIrkIQIS6DIj1SmqooB3Z\n4S7p2rvyorTLj7nl/XmZtqtm1bUtSY+Qwh6C5RisxYG4cL4f9+wBzrL+qUsNn/qf\n+Me9NAAVVsQRJ9Xn3fbH3/aq+aRfhiH2w9Gz1PVJpYBayjOP29Mra1a/K28IlbDS\nXO2GZ94mzPj3HrKqTU4xhsrthGgPCyu6QwiM3ZVWrzgspVHhGEcN7QP2TFyqOpFr\nR96DaA7HoIQo1epbv6AC6ia5B+cAaBpN2FV8bFAXgMvM4/wi2al7srQZ2YND7BnF\naKiR+sYVWwPqrSGz90wH7Iv+PSrN5WEuJ6rfmPl4lgBru/t34gw7j9RQTiPU1Nfa\nPXNGFl2HDj/wu3EVdebYsnDaEfj+lENu8BxyejCTI4ByOoa4dHy3dee0+DjbqpL6\n8muH40chk6XEEs7VVu0yjBvkSYxTuvVAnW8lwLSTzR3LYrYqIEO8Zjc4q3HmeMjY\n8+8m7tATU2hGTAwSOlaYr8XozTCEutCfbmrGfTD9NaTtL7/alKcxX3tn2akHoY6j\n3FUJVQIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAAEwDwYDVR0TAQH/BAUwAwEB/zAd\nBgNVHQ4EFgQU922A/KptBVeruxFXC67Ambp1he8wDQYJKoZIhvcNAQELBQADggIB\nABE2TXwJhBs35qOdHyVkyaLIJLhCEI790Af1VykdwvbQ+9poYfkxOV2kM/bx5AkT\n3qoq1ObQipwRMNYuYYNSECJqVJ+o2Qk05s3NA5qYjMRH7XHrxrz9PmCzWK9T/8kW\ndSG44l5PSuSNowZ6HRBglA/tr6dWUStyBZWFsGTVqbK1EVBKvLqvbvPYLSyCsOab\n8IU8/BPuwAU52D9NfBRer2pYuT39qX9ju5tfaY3SSb+y3xh/J13q9Zk5GqhUNOBn\nV4iQvNgrmuOp208mZ2FhbODhkBPAsP8K+QmZ+JIw7xGyOF9UXVKg8YWKub2a80rG\ncF49iuITP1yv3VRD7jlaSjpTRSME+dT4og9xkVZUGSoy8e1FtrIvO/B9GI0IeiDF\n+RyxSmJ8nIWA+vMs/OK6MTIL9hh1F9yA3KDyiH6DD7j/SRzCW28YARAUVt8ABCxX\nxIutBIWwhvPBtMs7HeO+GcOzavFP+RQSokeH1wbWmPTHY3EfTsOWY6IZRLYgd6mG\nDYqB4asbN0Un2Q3H8BTPE8gjkdgjZOBR4CJAuRqzLVCIwsq+wASWdbzX++CeSa8E\noRoMykXE00BqgjSAJmk/T8waFJ4ePHPAUEbJK1NU7aiIEs84d964ddD6irO9VDNI\nuv25D1xvQSm2USyOsYB3SadRB0ROS3tr61Js/uzgzjfO\n-----END CERTIFICATE-----\n"
+time=2024-05-05T02:34:52.205Z level=INFO msg="HTTP server serving" addr=:8080
+time=2024-05-05T02:34:52.205Z level=INFO msg="HTTP metrics server serving" addr=:8081
+```
+
+An easier way to get the active key is to export it from the cluster using the following method:
+
+```bash
+$ kubeseal --fetch-cert > public-cert.pem
+```
+
+> A new key will also be created every 30 days.  This will be the active key.  The older keys are still kept to be able to decrypt old secrets.
+
+Get the encryption key from the `secret` in the `kube-system` namespace:
+
+```bash
+$ kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key=active -oyaml
+```
+
+Or:
+
+```bash
+$ kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key
+NAME                      TYPE                DATA   AGE
+sealed-secrets-keyq5ltb   kubernetes.io/tls   2      5h8m
+```
+
+```yaml
+sealedsecrets.bitnami.com/namespace-wide: "true"
+```
+
+In addition, to allow the sealed secret to be updated, add the following annotation to the `SealedSecret` manifest:
+
+```yaml
+sealedsecrets.bitnami.com/managed: "true"
+```
+
+To create the `sealedsecret`, we'll install the `kubeseal` tool:
+
+```bash
+$ curl -L https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.26.2/kubeseal-0.26.2-linux-amd64.tar.gz \
+| sudo tar -xz -C /usr/local/bin
+```
+
+```bash
+$ echo -n bar \
+| kubectl create secret generic sealed-secret --dry-run=client --from-file=test=/dev/stdin -o yaml > mysecret.yaml
+$ kubeseal -f secret.yaml -w sealedsecret.yaml
+```
+
+If there is no output to `stdout`, then the `sealedsecret` was created correctly.  We can verify this by then checking its return value:
+
+```bash
+$ cat sealedsecret.yaml | kubeseal --validate
+$ echo $?
+0
+```
+
+Set key auto-rotation:
+
+```bash
+--key-renew-period=5m
+```
+
+Backup all keys:
+
+```bash
+$ kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key -oyaml > sealed_secret_keys_backup.yaml
+```
+
+Re-encrypt with a newer active key:
+
+```bash
+$ < sealed_secret.yaml kubeseal --re-encrypt -oyaml > re-sealed_secret.yaml
+```
+
+### `kustomize`
+
+I didn't find that using `sealedsecrets` with `kustomize` was entirely straightforward.  The best resource I found to implement this was a [comment on a Github issue] in the `bitnami-labs` `sealed-secrets` repository.
+
+The following is a basic implementation:
+
+`kustomization.yaml`
+
+```yaml
+namespace: default
+
+commonAnnotations:
+  onCallPager: 1-800-328-7448
+  app.kubernetes.io/managed-by: "Kilgore Trout"
+
+commonLabels:
+  app: benjamintoll
+  distributed: required
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - sealed-secret.yaml                              (1)
+
+configurations:                                     (2)
+  - sealed-secret-config.yaml
+
+secretGenerator:                                    (3)
+  - name: sample-secret
+    type: Opaque
+    files:
+      - sealed-secret.yaml
+    options:
+      annotations:
+        config.kubernetes.io/local-config: "true"
+
+```
+
+Notes:
+
+1. Add the `sealedsecret` definition to the array.  Without this entry, the `sealedsecret` won't be deployed.
+1. The `sealedsecret` configuration needs to explicitly tell `kustomize` how to find its name.  This is necessary, as `kustomize` by default will append a hash value to the name of the `sealedsecret`.  By teaching `kustomize` how to find the canonical name in the `sealedsecret` manifest, it doesn't matter if the name of the `sealedsecret` is dynamically changed.
+1. This will generate the secret, referencing the `sealed-secret.yaml` manifest.  The `config.kubernetes.io/local-config: "true"` annotation means that the Kubernetes secret will not be dumped to `stdout` (in other words, the secret won't be able to be decoded as only the `sealedsecret` will be printed to `stdout`).
+
+Ok, let's now take a look at the configuration file:
+
+`sealed-secret-config.yaml`
+
+```yaml
+nameReference:
+- kind: Secret
+  fieldSpecs:
+  - kind: SealedSecret
+    path: metadata/name
+  - kind: SealedSecret
+    path: spec/template/metadata/name
+
+```
+
+Lastly, reference the secret in the workload manifest.  The following is a snippet from a deployment:
+
+```yaml
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: benjamintoll
+        image: btoll/benjamintoll.com:latest
+        envFrom:
+        - configMapRef:
+            name: env-benjamintoll
+        - secretRef:
+            name: sealed-secret
+```
 
 ## Cleanup
 
@@ -810,4 +1002,5 @@ done
 [all the `kustomize` maintainers support its addition]: https://github.com/kubernetes-sigs/kustomize/issues/3205
 [semver]: https://en.wikipedia.org/wiki/Software_versioning#Semantic_versioning
 [Kool Moe Dee]: https://en.wikipedia.org/wiki/Kool_Moe_Dee
+[comment on a Github issue]: https://github.com/bitnami-labs/sealed-secrets/issues/167#issuecomment-1805190708
 
