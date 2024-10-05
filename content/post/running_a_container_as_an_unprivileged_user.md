@@ -170,7 +170,7 @@ $ ag --nonumber vagrant /etc/subuid
 vagrant:100000:65536
 ```
 
-We can easily verify what the UID maps to on the host by running the sleep command in the container (also, sending the container to the backgroun) and then finding its UID on the host:
+We can easily verify what the UID maps to on the host by running the sleep command in the container (also, sending the container to the background) and then finding its UID on the host:
 
 ```bash
 $ docker run --rm -d alpine sleep 1000
@@ -202,6 +202,34 @@ drwx-----x  2 root root   4096 Sep 19 10:39 volumes
 ```
 
 ## Podman
+
+```bash
+$ podman run --rm alpine cat /proc/self/uid_map
+         0       1000          1
+         1     100000      65536
+```
+
+This means that root in the container maps to the UID 1000, which is the `vagrant` user running in the virtual machine from which this command was ran.  And, there is only one allocated subordinate UID.
+
+However, UID 1 in the container is mapped to 100000 on the virtual machine host and is allocated 65,536 UIDs.  This is confirmed by viewing the entry in `/etc/subuid`:
+
+```bash
+$ grep vagrant /etc/subuid
+vagrant:100000:65536
+```
+
+Run as root:
+
+```bash
+$ sudo podman run --rm alpine cat /proc/self/{u,g}id_map
+         0          0 4294967295
+         0          0 4294967295
+```
+
+Here we see the default Docker behavior.
+
+TODO
+Run a container with a bind mount and create files in it that will then be persisted to the host.
 
 ## Docker
 

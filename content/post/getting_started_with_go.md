@@ -15,6 +15,7 @@ date = "2022-08-05T19:13:06Z"
     + [Creating Binaries](#creating-binaries)
 - [Managing Caches](#managing-caches)
     + [Removing Caches](#removing-caches)
+- [Importing A Local Module](#importing-a-local-module)
 - [Publishing](#publishing)
 - [Viewing Documentation](#viewing-documentation)
 - [Vim Plugin](#vim-plugin)
@@ -22,6 +23,10 @@ date = "2022-08-05T19:13:06Z"
 - [Programming](#programming)
     + [`init` function](#init-function)
     + [Embedding Static Files](#embedding-static-files)
+    + [Passing Command-Line Arguments](#passing-command-line-arguments)
+    + [Getting User Input](#getting-user-input)
+    + [Multi-Dimensional Arrays](#multi-dimensional-arrays)
+- [Runtime](#runtime)
 - [References](#references)
 
 <!--- [Install Binaries to GOBIN](#install-binaries-to-GOBIN)-->
@@ -126,6 +131,7 @@ There are several ways to add dependencies to a module:
     >     $ go get rsc.io/quote@4cf76c2
     >     $ go get rsc.io/quote@bugfixes
     >
+    > This can be used to bot upgrade or downgrade a package to a specific version.
 
 - `go get tidy`
 
@@ -157,7 +163,7 @@ Each command will:
     + `go.sum` ([from the docs]):
         - Contains cryptographic hashes that represent the module's dependencies.  Go tools use these hashes to authenticate downloaded modules, attempting to confirm that the downloaded module is authentic.  Where this confirmation fails, Go will display a security error.
 1. Add a `require` directive(s) to `go.mod` for all direct dependencies and their indirect dependencies.
-1. If needed, downloads module source code (can download from a module proxy).
+1. If needed, downloads module source code (can download from a module proxy) into the module cache.
 1. Authenticates the downloaded deps.
 
 ```bash
@@ -243,6 +249,28 @@ $ go env | ag cache
 GOCACHE="/home/btoll/.cache/go-build"
 GOMODCACHE="/home/btoll/go/pkg/mod"
 ```
+
+## Importing A Local Module
+
+If you run `go mod tidy` on a module that has a dependency that has not yet been published (see below), then the download will fail and nothing will be added to the `go.mod` file.
+
+If the module is local (for example, you're currently developing it), then you can run the following command to have the Go runtime successfully import it into your module:
+
+```bash
+$ go mod edit -replace github.com/btoll/super-secret=../super-secret
+```
+
+This will add the following entry into `go.mod`:
+
+```go
+replace github.com/btoll/super-secret => ../super-secret
+```
+
+> Note that this is the module "path" and not the path of a package within the module.
+
+This is nice and saves you from having to possibly to a search and replace all through your module's packages.
+
+> Of course, this isn't the only reason for use the `replace` directive.
 
 ## Publishing
 
@@ -388,7 +416,91 @@ func NewSocketServer(uri URI) *SocketServer {
 }
 ```
 
+### Passing Command-Line Arguments
+
+Use `os.Args` or the `flags` package.
+
+### Getting User Input
+
+Here is a dead simple example:
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	var name string
+	var band string
+	fmt.Print("What is your name and favorite band: ")
+	_, err := fmt.Scanf("%s %s", &name, &band)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	fmt.Printf("Hi %s, you are correct that %s is the greatest band\n", name, band)
+}
+```
+
+### Multi-Dimensional Arrays
+
+```go
+a := [3][3]int{
+    {0, 1, 2},
+    {3, 4, 5},
+    {6, 7, 8},
+}
+```
+
 Weeeeeeeeeeeeeeee
+
+## Runtime
+
+Goroutines are lightweight application-level threads that have separate and independent executions.
+
+The number of logical cores is the product of the number of physical cores times the number of threads that can run on each core (i.e., hardware threads).
+
+The Go runtime has its own scheduler that multiplexes the goroutines on the OS level threads.  So, it schedules an arbitrary number of goroutines onto an arbitrary number of OS threads (`m:n` multiplexing).
+
+The operating system scheduler manages the operating system threads for each logical core in the system.  Within the Go runtime, each of of these threads will have a queue associated with it called the LRQ (the local run queue), which in turn consist of all the goroutines that will be executed within the context of that thread.
+
+The Go runtime scheduler does the scheduling and the context switching of the goroutines belonging to a particular LRQ.
+
+There is also a GRQ (global run queue) which contain all the goroutines that haven't been moved to any LRQ of any OS thread.  The Go scheduler will assign a goroutine from this queue to the LRQ of any OS thread.
+
+The Go scheduler is a cooperative scheduler, so it is non-preemptive.  Cooperative scheduling is a style of scheduling in which the OS never interrupts a running process to initiate a context switch from one process to another.
+
+The process must voluntarily yield control periodically or when logically blocked on a resource.
+
+Context switching may happen when a goroutine is called.
+
+Examples of context switching:
+
+- function calls
+- garbage collection
+- network calls
+- channel operations
+- on using the `go` keyword
+
+But again, it's up to the scheduler to do a context switch (or not).
+
+To find out the number of logical processors on a machine:
+
+### Goroutines vs Threads
+
+- goroutines are cheaper
+    + the stack is only a few KBs in size and can grow and shrink
+    + for threads, the stack size has to be specified (usually 1MB) and it's fixed
+- goroutines are multiplexed to a fewer number of OS threads
+- context switching time of goroutines is much faster
+- goroutines communicate using channels
+
+```go
+fmt.Printf("%d\n", runtime.NumCPU)
+```
 
 ## References
 
@@ -398,6 +510,7 @@ Weeeeeeeeeeeeeeee
 - [Managing module source](https://go.dev/doc/modules/managing-source)
 - [How to Write Go Code](https://go.dev/doc/code)
 - [go.mod file reference](https://go.dev/doc/modules/gomod-ref)
+- [Understanding the Go runtime (1.21)](https://golab.io/talks/understanding-the-go-runtime)
 
 [Install Go]: https://go.dev/doc/install
 [`github.com/btoll/stymie-go`]: https://github.com/btoll/stymie-go
