@@ -230,6 +230,15 @@ List the time zones using `timedatectl list-timezones`.  Remember, you can use t
 
 You can also use `timedatectl set-ntp` to enable `NTP` (or to disable, if you feel like living on the edge).
 
+> If you get an error when running the command `timedatectl set-ntp` that is similar to `Failed to set ntp: NTP not supported`, then you may not have the `NTP` service installed.  Simply run the following command:
+> ```bash
+> $ sudo apt-get install systemd-timesyncd
+> ```
+> You can then enable it on system startup:
+> ```bash
+> $ sudo apt-get enable systemd-timesyncd
+> ```
+
 When setting the time zone without using `timedatectl`, simply create a symlink to the appropriate file in `/usr/share/zoneinfo` to the system [`/etc/localtime`] file:
 
 ```bash
