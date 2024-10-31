@@ -18,6 +18,7 @@ date = "2022-08-05T19:13:06Z"
 - [Importing A Local Module](#importing-a-local-module)
 - [Publishing](#publishing)
 - [Viewing Documentation](#viewing-documentation)
+- [Installing Delve](#installing-delve)
 - [Vim Plugin](#vim-plugin)
 - [Troubleshooting](#troubleshooting)
 - [Programming](#programming)
@@ -323,6 +324,14 @@ To include the Playground, use the `-play` switch:
 $ godoc -play
 ```
 
+## Installing Delve
+
+```bash
+$ go install github.com/go-delve/delve/cmd/dlv@latest
+```
+
+This will install [`Delve`] to the location of `$GOBIN`.
+
 ## Vim Plugin
 
 You're going to want to use [`vim-go`].  Here is how to install using [`vim-plug`]:
@@ -527,4 +536,5 @@ fmt.Printf("%d\n", runtime.NumCPU)
 [embed]: https://pkg.go.dev/embed
 [`trivial` package]: https://pkg.go.dev/github.com/btoll/trivial
 [`github-release`]: https://github.com/btoll/github-release/
+[`Delve`]: https://github.com/go-delve/delve
 

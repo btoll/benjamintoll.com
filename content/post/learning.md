@@ -26,6 +26,8 @@ Of course, this is a work in progress...
 - Know Unix.
 - Know TCP/IP.
 - Know public key cryptography.
+- Know regular expressions, this will help you more than you'll think.
+- Know virtualization.
 - Use Vim :)
 
 The End.

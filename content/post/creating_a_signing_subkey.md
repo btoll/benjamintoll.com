@@ -164,7 +164,7 @@ Is this correct? (y/N)
 
 In [the next article], we'll learn how to create an encrypted `USB` drive to store the main private keypair offline.
 
-For now, we'll do some hand-waving and pretend that it's already been done.
+For now, we'll do some hand-waving and pretend that the encrypted drive has already been created.
 
 ---
 
@@ -227,7 +227,7 @@ Donzo.
 
 ## Conclusion
 
-Go the unspiritual successor of this fine article, [On Creating an Encrypted USB Drive].
+Go to the unspiritual successor of this fine article, [On Creating an Encrypted USB Drive].
 
 ## References
 
