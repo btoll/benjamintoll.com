@@ -1,6 +1,7 @@
 +++
 title = "On Dynamically Creating EC2 Instances That Log To S3"
 date = "2024-09-26T12:09:16-04:00"
+draft = true
 
 +++
 

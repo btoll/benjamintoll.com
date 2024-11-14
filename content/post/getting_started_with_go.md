@@ -23,11 +23,20 @@ date = "2022-08-05T19:13:06Z"
 - [Troubleshooting](#troubleshooting)
 - [Programming](#programming)
     + [`init` function](#init-function)
+    + [`defer` function](#defer-function)
     + [Embedding Static Files](#embedding-static-files)
     + [Passing Command-Line Arguments](#passing-command-line-arguments)
     + [Getting User Input](#getting-user-input)
     + [Multi-Dimensional Arrays](#multi-dimensional-arrays)
+- [Concurrency](#concurrency)
+    + [WaitGroups](#waitgroups)
+    + [Channels](#channels)
+        - [Unbuffered](#unbuffered)
+        - [Buffered](#buffered)
+        - [Select Statement](#select-statement)
+        - [For Loop](#for-loop)
 - [Runtime](#runtime)
+    + [Goroutines vs Threads](#goroutines-vs-threads)
 - [References](#references)
 
 <!--- [Install Binaries to GOBIN](#install-binaries-to-GOBIN)-->
@@ -297,7 +306,12 @@ $ go get golang.org/x/tools/cmd/godoc
 $ go install golang.org/x/tools/cmd/godoc
 ```
 
-You'll then see the `godoc` binary in `$GOPATH/bin`.
+> If you're outside of a module, you'll need to specify the version, i.e.:
+> ```bash
+> $ go install golang.org/x/tools/cmd/godoc@latest
+> ```
+
+You'll then see the `godoc` binary in `$GOPATH/bin` (or `$GOBIN`).
 
 ```bash
 $ godoc --help
@@ -306,17 +320,18 @@ $ godoc --help
 It's possible to load docs locally via a builtin web server, which will also include your own types.  For example, go to the root directory of your package and run:
 
 ```bash
+$ cd $HOME/projects/trivial
 $ godoc -http :3030
 using module mode; GOMOD=/home/btoll/projects/trivial/go.mod
 ```
 
 > The default port is `6060`, so if that's acceptable, you can just run `godoc` by itself.
 
-You'll then see your package listed under the "Third party" header.
+You should then see your package listed under the "Third party" header.
 
 Optionally, browse to the package:
 
-`http://localhost:6060/pkg/github.com/btoll/trivial/trivial/`
+`http://localhost:6060/pkg/github.com/btoll/trivial/`
 
 To include the Playground, use the `-play` switch:
 
@@ -398,7 +413,22 @@ Everybody knows that the `main` function is the first function that is run in th
 
 This is the [niladic] `init` function, and you can define one in every file.  They will all get run before the `main` function in the `main` package.
 
+This can be helpful when wanting to use build constraints to build packages based upon incremental access, such as free content versus paid subscriptions.
+
 You can [read more about the `init` function] in the Go docs.
+
+### `defer` function
+
+The `defer` function will push the function onto a stack which is evaluated after the surrounding function exits.  It's most common use case is that of performing some kind of cleanup, such as closing an opened file.
+
+There are three simple rules:
+
+1. A deferred function's arguments are evaluated when the defer statement is evaluated.
+1. Deferred function calls are executed in Last In First Out order after the surrounding function returns.
+1. Deferred functions may read and assign to the returning function's named return values.
+    - This is especially handy when recovering from a panic.
+
+Taken from the article [Defer, Panic, and Recover](https://go.dev/blog/defer-panic-and-recover) on [the Go blog].
 
 ### Embedding Static Files
 
@@ -466,6 +496,129 @@ a := [3][3]int{
 
 Weeeeeeeeeeeeeeee
 
+## Concurrency
+
+### WaitGroups
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		fmt.Println("hello world")
+		wg.Done()
+	}()
+
+	wg.Wait()
+}
+```
+
+### Channels
+
+A channel is treated as an open collection in Go (i.e., there isn't a known number of elements, unlike other collection types like arrays, slices and maps).
+
+### Unbuffered
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var wg sync.WaitGroup
+	ch := make(chan string)
+	wg.Add(1)
+
+	go func() {
+		ch <- "hello world"
+	}()
+
+	go func() {
+		fmt.Println(<-ch)
+		wg.Done()
+	}()
+
+	wg.Wait()
+}
+```
+
+### Buffered
+
+### Select Statement
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+func main() {
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+
+	go func() {
+		ch1 <- "there was no van hagar"
+	}()
+
+	go func() {
+		ch2 <- "sammy hagar is a whinger"
+	}()
+
+	// Without this statement, the `ch2` message is always printed.
+	// It allows the runtime to register two goroutines with the scheduler.
+	time.Sleep(10 * time.Millisecond)
+
+    // The runtime will randomly select a case if more than one is available.
+	select {
+	case m := <-ch1:
+		fmt.Println(m)
+	case m := <-ch2:
+		fmt.Println(m)
+	}
+}
+```
+
+> Adding a `default` case to the select statement makes it non-blocking.
+
+### For Loop
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    ch := make(chan int)
+
+    go func() {
+        for i := 0; i < 10; i++ {
+            ch <- i
+        }
+
+        // Without the `close` function the code will deadlock.
+        close(ch)
+    }()
+
+    for msg := range ch {
+        fmt.Println("msg", msg)
+    }
+}
+```
+
 ## Runtime
 
 Goroutines are lightweight application-level threads that have separate and independent executions.
@@ -513,6 +666,8 @@ fmt.Printf("%d\n", runtime.NumCPU)
 
 ## References
 
+- [the Go blog]
+- [Go Modules Reference](https://go.dev/ref/mod)
 - [Download and install](https://go.dev/doc/install)
 - [Tutorial: Get started with Go](https://go.dev/doc/tutorial/getting-started)
 - [Managing dependencies](https://go.dev/doc/modules/managing-dependencies)
@@ -537,4 +692,4 @@ fmt.Printf("%d\n", runtime.NumCPU)
 [`trivial` package]: https://pkg.go.dev/github.com/btoll/trivial
 [`github-release`]: https://github.com/btoll/github-release/
 [`Delve`]: https://github.com/go-delve/delve
-
+[the Go blog]: https://go.dev/blog/
