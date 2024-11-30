@@ -1,7 +1,6 @@
 +++
 title = "On LVM"
 date = "2024-10-31T17:24:49-04:00"
-draft = true
 
 +++
 

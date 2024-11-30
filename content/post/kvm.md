@@ -1,7 +1,6 @@
 +++
 title = "On KVM"
 date = "2024-10-31T17:48:19-04:00"
-draft = true
 
 +++
 
