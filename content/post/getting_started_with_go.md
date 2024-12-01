@@ -11,6 +11,9 @@ date = "2022-08-05T19:13:06Z"
     + [Adding Dependencies](#adding-dependencies)
     + [Removing Dependencies](#removing-dependencies)
     + [Listing Dependencies](#listing-dependencies)
+    + [Verifying Dependencies](#verifying-dependencies)
+    + [Tidying Dependencies](#tidying-dependencies)
+- [Inspecting The Dependency Graph](#inspecting-the-dependency-graph)
 - [Managing Binaries](#managing-binaries)
     + [Creating Binaries](#creating-binaries)
 - [Managing Caches](#managing-caches)
@@ -19,6 +22,7 @@ date = "2022-08-05T19:13:06Z"
 - [Publishing](#publishing)
 - [Viewing Documentation](#viewing-documentation)
 - [Installing Delve](#installing-delve)
+    + [Debugging](#debugging)
 - [Vim Plugin](#vim-plugin)
 - [Troubleshooting](#troubleshooting)
 - [Programming](#programming)
@@ -33,6 +37,7 @@ date = "2022-08-05T19:13:06Z"
     + [Channels](#channels)
         - [Unbuffered](#unbuffered)
         - [Buffered](#buffered)
+    + [Control Flow Constructs](#control-flow-constructs)
         - [Select Statement](#select-statement)
         - [For Loop](#for-loop)
 - [Runtime](#runtime)
@@ -83,7 +88,7 @@ Create a `go.mod` file which will track all of the module's dependencies.  This 
 go mod init [module-path]
 ```
 
-`module-path` is the name of the new module.  Typically, it is a path to a reachable public location, such as [`github.com/btoll/stymie-go`].  This is because the `go` tooling will need to be able to access it when it's used in another project.
+`module-path` is the name of the new module.  Typically, it is a path to a reachable public location, such as [`github.com/btoll/stymie This is because the `go` tooling will need to be able to access it when it's used in another project.
 
 For example:
 
@@ -131,10 +136,18 @@ There are several ways to add dependencies to a module:
 
       require rsc.io/quote v1.5.2
 
+    > To get by version prefix (can contain any minor and patch version):
+    >
+    >     $ go get rsc.io/quote@v3
+    >
     > To add a specific version of a dependency:
     >
     >     $ go get rsc.io/quote@1.5.2
     >     $ go get rsc.io/quote@latest
+    >
+    > To add a range:
+    >
+    >     $ go get rsc.io/quote@>1.5.2
     >
     > Or, to add a specific commit or branch name:
     >
@@ -143,7 +156,7 @@ There are several ways to add dependencies to a module:
     >
     > This can be used to bot upgrade or downgrade a package to a specific version.
 
-- `go get tidy`
+- [`go mod tidy`](#tidying-dependencies)
 
     + This will download module dependencies to `GOPATH/pkg/mod` and record their versions in your `go.mod` file.
     + Also, it removes requirements on modules that aren't used anymore.
@@ -172,9 +185,12 @@ Each command will:
         - Describes the module, including its module path (in effect, its name) and its dependencies ... Though you can edit the `go.mod` file, you'll find it more reliable to make changes through go commands.
     + `go.sum` ([from the docs]):
         - Contains cryptographic hashes that represent the module's dependencies.  Go tools use these hashes to authenticate downloaded modules, attempting to confirm that the downloaded module is authentic.  Where this confirmation fails, Go will display a security error.
+        - Note that the hashes are also time-dependent.
 1. Add a `require` directive(s) to `go.mod` for all direct dependencies and their indirect dependencies.
 1. If needed, downloads module source code (can download from a module proxy) into the module cache.
 1. Authenticates the downloaded deps.
+
+> What does `// indirect` mean next to a package dependency in `go.mod`?  This indicates that a package has been downloaded but is not yet used in the application's source code.
 
 ```bash
 $ go run main.go
@@ -192,6 +208,8 @@ require (
         rsc.io/sampler v1.3.0 // indirect
 )
 ```
+
+> Note that `go mod download` will download the specified package to the cache (`GOMODCACHE`) but not into a project.
 
 ### Removing Dependencies
 
@@ -211,6 +229,93 @@ List all modules instead of packages, along with the latest version available fo
 
 ```bash
 $ go list -m -u all
+```
+
+List all the versions of a particular module:
+
+```bash
+$ go list -m -versions github.com/prometheus/client_model
+github.com/prometheus/client_model v0.1.0 v0.2.0 v0.3.0 v0.4.0 v0.5.0 v0.6.0 v0.6.1
+```
+
+> Note that the module doesn't need to be a dependency, `go list` can query any reachable (publicly-accessible) module.
+
+### Verifying Dependencies
+
+This will verify the hashes in `go.sum` against the checksums in the module cache directory (`GOMODCACHE`):
+
+```bash
+$ go mod help verify
+usage: go mod verify
+
+Verify checks that the dependencies of the current module,
+which are stored in a local downloaded source cache, have not been
+modified since being downloaded. If all the modules are unmodified,
+verify prints "all modules verified." Otherwise it reports which
+modules have been changed and causes 'go mod' to exit with a
+non-zero status.
+
+See https://golang.org/ref/mod#go-mod-verify for more about 'go mod verify'.
+```
+
+```bash
+$ cd ~/projects/stymie
+$ go mod verify
+all modules verified
+```
+
+Yay.
+
+This check should be included in any CI pipeline.  Of course, it may be expensive depending upon the number of dependencies in your application, as Go will need to recalculate the checksums.
+
+Here is a manual way we can verify the checksums:
+
+```bash
+$ grep diceware ~/projects/stymie/go.sum
+github.com/btoll/diceware v0.0.0-20230901070742-3113761c9ce0 h1:uAFFudk2wkq+Z/Za7idAeaV66HduqkX1qxNrB4e7Ecc=
+github.com/btoll/diceware v0.0.0-20230901070742-3113761c9ce0/go.mod h1:ndKQSuTtAJJ85eTPXiwhZBBYBdbuy/YL+zgmgzRoQFA=
+$ cat $GOPATH/pkg/mod/cache/download/github.com/btoll/diceware/\@v/v0.0.0-20230901070742-3113761c9ce0.ziphash
+h1:uAFFudk2wkq+Z/Za7idAeaV66HduqkX1qxNrB4e7Ecc=
+```
+
+Then, we can do a simple test:
+
+```bash
+$ test 'h1:uAFFudk2wkq+Z/Za7idAeaV66HduqkX1qxNrB4e7Ecc=' = 'h1:uAFFudk2wkq+Z/Za7idAeaV66HduqkX1qxNrB4e7Ecc='
+$ echo $?
+0
+```
+
+> Note that the hashes are also time-dependent.
+
+Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+### Tidying Dependencies
+
+Tidying a module will build and walk the dependency graph.
+
+```txt
+Tidy makes sure go.mod matches the source code in the module.
+It adds any missing modules necessary to build the current module's
+packages and dependencies, and it removes unused modules that
+don't provide any relevant packages. It also adds any missing entries
+to go.sum and removes any unnecessary ones.
+```
+
+```bash
+$ go mod tidy
+```
+
+You may also consider having a step that calls `go mod tidy` in the CI build.
+
+## Inspecting The Dependency Graph
+
+```bash
+$ go mod why github.com/btoll/diceware
+```
+
+```bash
+$ go mod graph
 ```
 
 ## Managing Binaries
@@ -235,6 +340,22 @@ Instead, it saves the compiled package in the local build cache (GOCACHE).
 ```bash
 $ go build
 ```
+
+To build the binary from a `vendor/` directory instead of the cache:
+
+```bash
+$ go build -mod=vendor .
+```
+
+To build the binary and not allow `go.mod` to be written to during the build, add the `readonly` flag:
+
+```bash
+$ go build -mod=readonly .
+```
+
+It may be a good idea to add this to any CI production builds.
+
+> Note that `go build` does not also [verify your module dependencies](#verifying-dependencies).
 
 ## Managing Caches
 
@@ -347,6 +468,82 @@ $ go install github.com/go-delve/delve/cmd/dlv@latest
 
 This will install [`Delve`] to the location of `$GOBIN`.
 
+### Debugging
+
+There are two main ways to begin debugging a program.
+
+1. Start debugger as a client.
+
+    ```bash
+    $ dlv debug
+    Type 'help' for list of commands.
+    (dlv) b main.bar
+    Breakpoint 1 set at 0x4ae5ae for main.bar() ./main.go:6
+    (dlv) c
+    > [Breakpoint 1] main.bar() ./main.go:6 (hits goroutine(1):1 total:1) (PC: 0x4ae5ae)
+         1: package main
+         2:
+         3: import "fmt"
+         4:
+         5: // this is a foo
+    =>   6: func bar() string {
+         7:         fmt.Println("calling bar")
+         8:
+         9:         foo := func() string {
+        10:                 return "bar"
+        11:         }
+    (dlv)
+    ```
+
+    Note that this will compile a binary with debugging symbols behind the scenes.
+    For instance, if you were to suspend the debugging process, you could list out the current directory and see the executable:
+
+    ```bash
+	(dlv)
+    [1]+  Stopped                 dlv debug
+    $ ls
+    __debug_bin4154898554  go.mod  main.go  main_test.go
+    $ file __debug_bin4154898554
+    __debug_bin4154898554: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=3ROhDmaPxCHxrjJ0Mj_-/ekHFwOjV8EJYwQR/P_UsfyJky35zJnK-vAoO/yEpvUxlYYB4FihpPMDk3, with debug_info, not stripped
+    ```
+
+1. Debug a pre-compiled binary.
+
+    ```bash
+    $ dlv exec ./fibonacci -- 20
+    Type 'help' for list of commands.
+    (dlv) b main.fibonacci
+    Breakpoint 1 set at 0x49928e for main.fibonacci() ./main.go:12
+    (dlv) c
+    > [Breakpoint 1] main.fibonacci() ./main.go:12 (hits goroutine(1):1 total:1) (PC: 0x49928e)
+    Warning: debugging optimized function
+         7:         "strconv"
+         8: )
+         9:
+        10: var m = make(map[int]int)
+        11:
+    =>  12: func fibonacci(n int) int {
+        13:         if n < 2 {
+        14:                 return n
+        15:         }
+        16:
+        17:         var f int
+    (dlv)
+    ```
+
+    > Note that function parameters come after `--` in the `dlv exec` command above.
+
+    To complete the program, clear the breakpoint before continuing.  Else, the breakpoint will continue to be hit, because this is a recursive function:
+
+	```bash
+	(dlv) clearall
+	Breakpoint 1 cleared at 0x49928e for main.fibonacci() ./main.go:12
+	(dlv) c
+	6765
+	Process 2160328 has exited with status 0
+	(dlv)
+	```
+
 ## Vim Plugin
 
 You're going to want to use [`vim-go`].  Here is how to install using [`vim-plug`]:
@@ -366,6 +563,8 @@ You're going to want to use [`vim-go`].  Here is how to install using [`vim-plug
         + Will install the binaries in the first defined location from the following short list:
             - `g:go_bin_path`
             - `go env GOBIN` or `$GOPATH/bin`
+
+In addition, see the amazing getting started guide on [On vim-go].
 
 ## Troubleshooting
 
@@ -555,7 +754,15 @@ func main() {
 
 ### Buffered
 
+## Control Flow Constructs
+
 ### Select Statement
+
+The `select` statement is comparable to the `switch` statement.
+
+Note that, unlike `switch` statements, the selection of a statement, even when all have messages ready to be received, is non-deterministic.  This is intentional, because asynchronous behavior should not be thought of and reasoned about synchronously.  So, the runtime will decide pseudo-randomly.
+
+The statement will block until at least one `case` is actionable.  However, adding a `default` case will make the statement non-blocking.
 
 ```go
 package main
@@ -570,13 +777,13 @@ func main() {
 	ch1 := make(chan string)
 	ch2 := make(chan string)
 
-	go func() {
+	go func(ch1 chan<- string) {
 		ch1 <- "there was no van hagar"
-	}()
+	}(ch1)
 
-	go func() {
+	go func(ch2 chan<- string) {
 		ch2 <- "sammy hagar is a whinger"
-	}()
+	}(ch2)
 
 	// Without this statement, the `ch2` message is always printed.
 	// It allows the runtime to register two goroutines with the scheduler.
@@ -591,6 +798,8 @@ func main() {
 	}
 }
 ```
+
+Note that the anonymous Go functions are each closing over a channel variable so that we can specify the direction of the channel.  This is good practice and leverages the power of the compiler to ensure that the channel is flowing in the intended direction.
 
 > Adding a `default` case to the select statement makes it non-blocking.
 
@@ -675,9 +884,10 @@ fmt.Printf("%d\n", runtime.NumCPU)
 - [How to Write Go Code](https://go.dev/doc/code)
 - [go.mod file reference](https://go.dev/doc/modules/gomod-ref)
 - [Understanding the Go runtime (1.21)](https://golab.io/talks/understanding-the-go-runtime)
+- [On vim-go]
 
 [Install Go]: https://go.dev/doc/install
-[`github.com/btoll/stymie-go`]: https://github.com/btoll/stymie-go
+[`github.com/btoll/stymie`]: https://github.com/btoll/stymie
 [Go's getting started tutorial]: https://go.dev/doc/tutorial/getting-started#call
 [`go.mod`]: https://go.dev/doc/modules/gomod-ref
 [`go.sum`]: https://go.dev/doc/modules/managing-source#repository
@@ -693,3 +903,5 @@ fmt.Printf("%d\n", runtime.NumCPU)
 [`github-release`]: https://github.com/btoll/github-release/
 [`Delve`]: https://github.com/go-delve/delve
 [the Go blog]: https://go.dev/blog/
+[On vim-go]: /2024/11/30/on-vim-go/
+
