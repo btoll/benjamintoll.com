@@ -67,7 +67,7 @@ The image below is taken from the Yubico documentation:
 
 Thankfully, yes.  On Ubuntu systems, install the following tool:
 
-```
+```bash
 $ sudo apt install -y yubikey-manager
 ```
 
@@ -75,7 +75,7 @@ $ sudo apt install -y yubikey-manager
 
 If you're like me and you reasonably expected the package to install a `yubikey-manager` binary, it doesn't.  Instead, it installs the `ykman` binary:
 
-```
+```bash
 $ dpkg -L yubikey-manager
 /.
 /usr
@@ -96,20 +96,20 @@ Libraries:
 
 To list all connected YubiKeys:
 
-```
+```bash
 $ ykman list --serials
 10358814
 ```
 
 To manage the connection modes:
 
-```
+```bash
 $ ykman config mode [OPTIONS] MODE
 ```
 
 To inspect the device:
 
-```
+```bash
 $ ykman info
 Device type: YubiKey 5 NFC
 Serial number: 10358814
@@ -134,11 +134,29 @@ FIDO2           Enabled Enabled
 
 Check the status of the slots:
 
-```
+```bash
 $ ykman otp info
 Slot 1: programmed
 Slot 2: empty
 ```
+
+Swap the slots:
+
+```bash
+$ ykman otp swap
+Swap the two slots of the YubiKey? [y/N]: y
+Swapping slots...
+```
+
+Now, check the status of the slots again:
+
+```bash
+$ ykman otp info
+Slot 1: empty
+Slot 2: programmed
+```
+
+> Programming the second slot will entail pressing the Yubikey for a longer period of time.
 
 [Visit the docs] for all OTP commands and examples.
 
@@ -154,7 +172,7 @@ You can't.
 
 To program the second slot for OTP, we want to use the `yubiotp` subcommand.  View its help menu:
 
-```
+```bash
 $ ykman otp yubiotp -h
 Usage: ykman otp yubiotp [OPTIONS] [1|2]
 
@@ -179,7 +197,7 @@ To make it as easy as possible for this demo, we'll set the following flags to a
 - `--generate-private-id`
 - `--generate-key`
 
-```
+```bash
 $ ykman otp yubiotp 2 --serial-public-id --generate-private-id --generate-key
 Using YubiKey serial as public ID: vvcccckubcbu
 Using a randomly generated private ID: 43c91024f0d1
@@ -194,7 +212,7 @@ Opening upload form in browser: https://upload.yubico.com/proceed/019b6220-18e9-
 
 Verify that the second slot has indeed been programmed:
 
-```
+```bash
 $ ykman otp info
 Slot 1: programmed
 Slot 2: programmed
@@ -206,7 +224,7 @@ Slot 2: programmed
 
 Deleting is easy.  Here we're deleting the contents we just added in the previous question:
 
-```
+```bash
 $ ykman otp delete 2
 Do you really want to delete the configuration of slot 2? [y/N]: y
 Deleting the configuration of slot 2...
@@ -214,7 +232,7 @@ Deleting the configuration of slot 2...
 
 However, if intending to upload it to YubiCloud, we'll have to create another public id.  Unfortunately, you can't delete a public id from Yubicloud.  No big deal, we'll just create the new credentials without the `--serial-public-id` flag which will force us to enter a new one:
 
-```
+```bash
 $ ykman otp yubiotp 2 --generate-private-id --generate-key
 Enter public ID: vvcccckubcbb
 Using a randomly generated private ID: 1aa8db0e8853
@@ -272,7 +290,7 @@ int main() {
 }
 </pre>
 
-```
+```bash
 $ gcc -o yubikey yubikey.c
 $ ./yubikey
 Touch YubiKey: vvbbbbbbbbbbkjdkhrjvfefkccceghkdbevnherdkcnr
@@ -304,7 +322,7 @@ if __name__ == "__main__":
     yubikey()
 </pre>
 
-```
+```bash
 $ python yubikey.py
 Touch YubiKey: vvbbbbbbbbbbnbffgebhcgkrbdjblvgvicvkjrbigvit
 YubiKey encoded string vvbbbbbbbbbbnbffgebhcgkrbdjblvgvicvkjrbigvit

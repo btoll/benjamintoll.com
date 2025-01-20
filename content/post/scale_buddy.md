@@ -41,7 +41,7 @@ Learning what?  Well, scales, dummy!  Scale Buddy currently supports the followi
     + Locrian ♯2 / Aeolian ♭5
     + Super Locrian / altered dominant / altered
 
-It's written in Python.  Why?  [Who knows!]
+It's written in both Go and Python.  Why?  [Who knows!]
 
 There are plans to add more, as time allows.
 
@@ -49,24 +49,24 @@ There are plans to add more, as time allows.
 
 Since it's a command-line tool, it's not as convenient as web application.  Deal with it!  If that's what you want, there are plenty already available online, so use one of them.  After all, I really don't care if you use this, because I didn't do it for you.  How self-centered you are.  Disgusting.
 
-Anyway, you can use crappy old Docker if you don't want to install it on your system.  Using a container is generally a good option if you want to keep from having to install other people's shitty little programs.
+Anyway, you can use [Podman] or crappy old Docker if you don't want to install it on your system.  Using a container is generally a good option if you want to keep from having to install other people's shitty little programs.
 
 ```bash
-docker pull btoll/scale_buddy:beta
+podman pull btoll/scale-buddy:beta
 ```
 
-Or, you can clone [the GitHub repository] and install it that way.  There are no official release versions, just `beta`.  It's not on PyPi.
+Or, you can clone [`scale-buddy`] and install it that way.  There are no official release versions, just `beta`.  It's not on PyPi.
 
 ## Examples
 
 ```bash
-$ docker run --init --rm scale_buddy:beta G
+$ podman run --init --rm scale-buddy:beta G
 G major:
 G  A  B  C  D  E  F♯
 ```
 
 ```bash
-$ docker run --init --rm scale_buddy:beta G --with-minor
+$ podman run --init --rm scale-buddy:beta G --with-minor
 G major:
 G  A  B  C  D  E  F♯
 
@@ -81,7 +81,7 @@ G  A  B♭  C  D  E  F♯
 ```
 
 ```bash
-$ docker run --init --rm scale_buddy:beta G --with-minor --with-pentatonic
+$ podman run --init --rm scale-buddy:beta G --with-minor --with-pentatonic
 G major:
 G  A  B  C  D  E  F♯
 
@@ -104,13 +104,13 @@ G    B♭    C    D    F
 For sharps and flats, there are the `--sharp` and `--flat` switches, respectively:
 
 ```bash
-$ docker run --init --rm scale_buddy:beta --sharp F
+$ podman run --init --rm scale-buddy:beta --sharp F
 F♯ major:
 F♯  G♯  A♯  B  C♯  D♯  E♯
 ```
 
 ```bash
-$ docker run --init --rm scale_buddy:beta --flat E
+$ podman run --init --rm scale-buddy:beta --flat E
 E♭ major:
 E♭  F  G  A♭  B♭  C  D
 ```
@@ -122,11 +122,17 @@ The algorithm is fairly simple.  Which means that I went through several more co
 Basically, the tonic, or starting point, of the scale doesn't matter.  Rather, the intervals are what is important, as long as the algorithm has access to it.  Here is the `dict` that contains the current scale intervals:
 
 <pre class="math">
-scale_intervals = {
-    "major": ( 2, 2, 1, 2, 2, 2, 1 ),
-    "harmonic_minor": ( 2, 1, 2, 2, 1, 3, 1 ),
-    "melodic_minor": ( 2, 1, 2, 2, 2, 2, 1 ),
-    "natural_minor": ( 2, 1, 2, 2, 1, 2, 2 ), # aeolian
+var scaleIntervals = map[string][]int{
+	"major":           {2, 2, 1, 2, 2, 2, 1},
+	"dorian":          {2, 1, 2, 2, 2, 1, 2},
+	"phrygian":        {1, 2, 2, 2, 1, 2, 2},
+	"lydian":          {2, 2, 2, 1, 2, 2, 1},
+	"mixolydian":      {2, 2, 1, 2, 2, 1, 2},
+	"locrian":         {1, 2, 2, 1, 2, 2, 2},
+	"harmonicMinor":   {2, 1, 2, 2, 1, 3, 1},
+	"melodicMinor":    {2, 1, 2, 2, 2, 2, 1}, // jazz minor
+	"naturalMinor":    {2, 1, 2, 2, 1, 2, 2}, // Aeolian
+	"alteredDominant": {1, 2, 1, 2, 2, 2, 2},
 }
 </pre>
 
@@ -150,12 +156,12 @@ Scale Buddy even has its own theme song:
 
 ## References
 
-- [Scale Buddy](https://github.com/btoll/scale_buddy)
+- [`scale-buddy`](https://github.com/btoll/scale-buddy)
 - [Circle of Fifths](https://en.wikipedia.org/wiki/Circle_of_fifths#/media/File:Circle_of_fifths_deluxe_4.svg)
 
 [Who knows!]: https://en.wikipedia.org/wiki/The_Shadow
-[the GitHub repository]: https://github.com/btoll/scale_buddy
 [semitones]: https://en.wikipedia.org/wiki/Semitone
 [circle of fifths]: https://en.wikipedia.org/wiki/Circle_of_fifths
 [there are many great resources]: https://www.youtube.com/watch?v=-fErw8WPvw0
+[Podman]: https://podman.io/
 

@@ -629,6 +629,12 @@ Nope.
 
 Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 
+> It's important to know when to use the `export` keyword when sourcing a script and when it's not necessary.
+>
+> For instance, if a script is sourcing another shell script that has several variables defined, then it's not necessary to preface each variable with the keyword `export` (thus, turning them into environment variables) if they are only to be used in the single script (i.e., the script that is sourcing).
+>
+> However, if the script that is sourcing is in turn calling other scripts that are expecting to use the variables, then the must be environment variables, so the keyword `export` is mandatory.  This, of course, is how subprocesses inherit its parent's environment.
+
 ## Aliases
 
 To unmask a command that has been masked by an alias, preface the command with a backslash (`\l`):

@@ -1,7 +1,6 @@
 +++
 title = "On Filtering And Manipulating Text"
 date = "2024-10-17T12:09:52-04:00"
-draft = true
 
 +++
 

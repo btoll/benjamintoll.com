@@ -507,6 +507,11 @@ There are two main ways to begin debugging a program.
     __debug_bin4154898554: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=3ROhDmaPxCHxrjJ0Mj_-/ekHFwOjV8EJYwQR/P_UsfyJky35zJnK-vAoO/yEpvUxlYYB4FihpPMDk3, with debug_info, not stripped
     ```
 
+    > To start it with parameters, separate the call to `dlv debug` and the params with a double-hyphen (`--`):
+    > ```bash
+    > $ dlv debug -- -version 4.18 -channel stable -environment stage,integration
+    > ```
+
 1. Debug a pre-compiled binary.
 
     ```bash
