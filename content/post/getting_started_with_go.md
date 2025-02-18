@@ -890,6 +890,7 @@ fmt.Printf("%d\n", runtime.NumCPU)
 - [go.mod file reference](https://go.dev/doc/modules/gomod-ref)
 - [Understanding the Go runtime (1.21)](https://golab.io/talks/understanding-the-go-runtime)
 - [On vim-go]
+- [100 Go Mistakes and How to Avoid Them](https://100go.co/)
 
 [Install Go]: https://go.dev/doc/install
 [`github.com/btoll/stymie`]: https://github.com/btoll/stymie
