@@ -9,6 +9,7 @@ date = "2024-11-30T12:59:09-05:00"
 ---
 
 - [`GoBuild`](#gobuild)
+- [`GoBuildTags`](#gobuildtags)
 - [`GoCoverage`](#gocoverage)
 - [`GoDef`](#godef)
 - [`GoDoc`](#godoc)
@@ -33,7 +34,7 @@ date = "2024-11-30T12:59:09-05:00"
 
 ## `GoBuild`
 
-This does exactly what you think.  Simply call `:GoBuild`.  Under the covers, it does the following (from the docs):
+This does exactly what you think.  Simply call `:GoBuild`.  Under the covers, it does the following (from [the docs]):
 
 
 - No binaries are created; you can call `:GoBuild` multiple times without polluting your workspace.
@@ -58,6 +59,85 @@ endfunction
 Depending on the name of the file, this will either compile the test cases or build the program.
 
 See [Build it](https://github.com/fatih/vim-go/wiki/Tutorial#build-it) in the [vim-go-tutorial].
+
+## `GoBuildTags`
+
+I've needed to use this when [`gopls`] has been unable to compile a Go file, usually a test suite, due to a build tag.
+
+From [the docs]:
+
+```vim
+:GoBuildTags [tags]
+
+    Changes the build tags for various commands. If you have any file that
+    uses a custom build tag, such as `// +build integration`, this command
+    can be used to pass it to all tools that accepts tags, such as gopls,
+    go test, etc.
+
+    The build tags is cleared (unset) if `""` is given. If no arguments are
+    given it prints the current build tags.
+```
+
+To remedy this, here are several ways to pass the custom build tag through to the tools that accept tags:
+
+```bash
+$ vim -c ":GoBuildTags osde2e" managed_cluster_validating_webhooks_test.go
+```
+
+Or:
+
+```bash
+$ GOFLAGS=-tags=osde2e vim managed_cluster_validating_webhooks_test.go
+```
+
+Or, open the file as usual and enter a `vim-go` editor command:
+
+```bash
+$ vim managed_cluster_validating_webhooks_test.go
+:GoBuildTags osde2e
+```
+
+Let's now take a look at using `gopls` directly and see how the presence of a build tag influences its behavior.
+
+Suppose we wish to list all of the references for the symbol `newPrometheusRule` in the following file (note the line and column specifiers attached to the file name).  However, if you get the following error, it means that there could be a build tag/constraint that is preventing `gopls` from being able to compile the binary with the specified file included:
+
+```bash
+$ gopls references ./managed_cluster_validating_webhooks_test.go:653:21
+gopls: no package metadata for file file:///home/btoll/projects/redhat/managed-cluster-validating-webhooks/test/e2e/managed_cluster_validating_webhooks_test.go
+```
+
+Let's take a peek at the file to confirm our suspicions:
+
+```bash
+$ head -5 managed_cluster_validating_webhooks_test.go
+//go:build osde2e
+// +build osde2e
+
+package osde2etests
+
+```
+
+[Whoomp!  There it is.]
+
+One way around this is to declare the build tag in the `GOFLAGS` environment variable:
+
+```bash
+$ GOFLAGS=-tags=osde2e gopls references --declaration ./managed_cluster_validating_webhooks_test.go:653:21
+/home/btoll/projects/redhat/managed-cluster-validating-webhooks/test/e2e/managed_cluster_validating_webhooks_test.go:591:3-20
+/home/btoll/projects/redhat/managed-cluster-validating-webhooks/test/e2e/managed_cluster_validating_webhooks_test.go:613:12-29
+/home/btoll/projects/redhat/managed-cluster-validating-webhooks/test/e2e/managed_cluster_validating_webhooks_test.go:625:13-30
+/home/btoll/projects/redhat/managed-cluster-validating-webhooks/test/e2e/managed_cluster_validating_webhooks_test.go:639:12-29
+/home/btoll/projects/redhat/managed-cluster-validating-webhooks/test/e2e/managed_cluster_validating_webhooks_test.go:645:11-28
+/home/btoll/projects/redhat/managed-cluster-validating-webhooks/test/e2e/managed_cluster_validating_webhooks_test.go:653:12-29
+```
+
+> The `--declaration` switch will include the declaration of the specified identifier in the results.
+
+<!--
+https://github.com/golang/tools/blob/master/gopls/doc/settings.md#buildflags-string
+https://en.wikipedia.org/wiki/Language_Server_Protocol
+https://stackoverflow.com/questions/78334335/gopls-stops-working-if-build-tags-are-added
+-->
 
 ## `GoCoverage`
 
@@ -439,4 +519,7 @@ Just set it and forget it, my child.
 [`Ultisnips`]: https://github.com/SirVer/ultisnips
 [builtin examples]: https://github.com/fatih/vim-go/blob/master/gosnippets/UltiSnips/go.snippets
 [abbreviations]: https://vim.fandom.com/wiki/Using_abbreviations
+[the docs]: https://github.com/fatih/vim-go/blob/master/doc/vim-go.txt
+[`gopls`]: https://pkg.go.dev/golang.org/x/tools/gopls
+[Whoomp!  There it is.]: https://www.youtube.com/watch?v=ffCEr327W44
 

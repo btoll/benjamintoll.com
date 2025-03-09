@@ -92,7 +92,7 @@ A common use case would be to integrate this into a CI/CD pipeline.  For instanc
 
 For this demo, I'm using [Bitbucket Pipelines] and [`ngrok`] to set up the `ssh` port forwarding.
 
-On a side note, I wouldn't use `ngrok` unless you don't have access to a public server which you can use to do the port forwarding.  There's no point in using `ngrok` and tools like it when you can just use the foundation technology on which it's built upon.
+On a side note, I wouldn't use `ngrok` unless you don't have access to a public server which you can use to do the port forwarding.  There's no point in using `ngrok` and tools like it when you can just use the foundational technology on which it's built upon.
 
 `Dockerfile`
 
