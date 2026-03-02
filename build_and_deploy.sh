@@ -7,8 +7,9 @@ GREEN_FG=$(tput setaf 2 2>/dev/null)
 RED_FG=$(tput setaf 1 2>/dev/null)
 END_FG_COLOR=$(tput sgr0 2>/dev/null)
 
+BIN=podman
 DEPLOY=false
-DOCKER_ID=btoll
+IMAGE_ID="$USER"
 FULL_IMAGE_NAME=
 IMAGE_NAME=benjamintoll.com
 TAG_NAME=()
@@ -40,14 +41,14 @@ build_image () {
     #     1000
     # The container doesn't have a `btoll` user, for example, so it will use 1000
     # as the owner in the container which will map to the `btoll` user on the host.
-    if ! docker run --rm -it -e USER="$(id -u "$USER")" -v "$(pwd)":/src btoll/hugo:0.80.0
+    if ! $BIN run --rm -it -e USER="$(id -u "$USER")" -v "$(pwd)":/src btoll/hugo:0.80.0
 #    if ! systemd-nspawn --machine hugo --quiet
     then
         echo -e "\n$RED_FG[$0]$END_FG_COLOR The $FULL_IMAGE_NAME site could not be generated."
         exit 1
     fi
 
-    if ! docker build -t "$FULL_IMAGE_NAME" .
+    if ! $BIN build -t "$FULL_IMAGE_NAME" .
     then
         echo -e "\n$RED_FG[$0]$END_FG_COLOR The image $FULL_IMAGE_NAME could not be built."
         exit 1
@@ -56,17 +57,23 @@ build_image () {
     echo -e "\n$GREEN_FG[$0]$END_FG_COLOR Successfully built $FULL_IMAGE_NAME."
 }
 
+# If you have docker installed you're a twit.
+if command -v docker > /dev/null
+then
+    BIN=docker
+fi
+
 for item in ${TAG_NAME[*]}
 do
-    FULL_IMAGE_NAME="$DOCKER_ID/$IMAGE_NAME:$item"
+    FULL_IMAGE_NAME="$IMAGE_ID/$IMAGE_NAME:$item"
 
     build_image
 
     if $DEPLOY
     then
-        if ! docker push "$FULL_IMAGE_NAME"
+        if ! $BIN push "$FULL_IMAGE_NAME"
         then
-            echo -e "\n$RED_FG[$0]$END_FG_COLOR \`docker push\` failed for $FULL_IMAGE_NAME"
+            echo -e "\n$RED_FG[$0]$END_FG_COLOR \`$BIN push\` failed for $FULL_IMAGE_NAME"
             exit 1
         fi
         echo -e "\n$GREEN_FG[$0]$END_FG_COLOR Successfully pushed $FULL_IMAGE_NAME to Docker Hub."

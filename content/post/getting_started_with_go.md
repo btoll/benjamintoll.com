@@ -5,6 +5,7 @@ date = "2022-08-05T19:13:06Z"
 +++
 
 - [Installing Go](#installing-go)
+- [Managing Multiple Installations](#managing-multiple-installations)
 - [Go Environment Variables](#go-environment-variables)
 - [Enabling Dependency Tracking](#enabling-dependency-tracking)
 - [Managing Dependencies](#managing-dependencies)
@@ -48,7 +49,7 @@ date = "2022-08-05T19:13:06Z"
 
 ## Installing Go
 
-First, [Install Go] from the official docs.
+First, [Install Go] from the official docs.  You can also view [all Go versions].
 
 Next, change into the downloads directory and execute the following commands:
 
@@ -57,6 +58,10 @@ $ sudo tar xvf go1.19.linux-amd64.tar.gz -C /usr/local
 $ go version
 go version go1.19 linux/amd64
 ```
+
+## Managing Multiple Installations
+
+See [On Managing Multiple Go Installations](/2026/03/01/on-managing-multiple-go-installations/).
 
 ## Go Environment Variables
 
@@ -725,6 +730,31 @@ func main() {
 }
 ```
 
+Note that in Go versions >= 1.25 that this has been simplified.  Check out the [WaitGroup.Go method](https://appliedgo.net/spotlight/go-1.25-waitgroup-go/).
+
+The above example can now be written as:
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var wg sync.WaitGroup
+
+    wg.Go(func() {
+		fmt.Println("hello world")
+	})
+
+	wg.Wait()
+}
+```
+
+Nice.
+
 ### Channels
 
 A channel is treated as an open collection in Go (i.e., there isn't a known number of elements, unlike other collection types like arrays, slices and maps).
@@ -883,6 +913,7 @@ fmt.Printf("%d\n", runtime.NumCPU)
 - [the Go blog]
 - [Go Modules Reference](https://go.dev/ref/mod)
 - [Download and install](https://go.dev/doc/install)
+- [Managing Go installations]
 - [Tutorial: Get started with Go](https://go.dev/doc/tutorial/getting-started)
 - [Managing dependencies](https://go.dev/doc/modules/managing-dependencies)
 - [Managing module source](https://go.dev/doc/modules/managing-source)
@@ -893,6 +924,8 @@ fmt.Printf("%d\n", runtime.NumCPU)
 - [100 Go Mistakes and How to Avoid Them](https://100go.co/)
 
 [Install Go]: https://go.dev/doc/install
+[all Go versions]: https://go.dev/dl/
+[Managing Go installations]: https://go.dev/doc/manage-install
 [`github.com/btoll/stymie`]: https://github.com/btoll/stymie
 [Go's getting started tutorial]: https://go.dev/doc/tutorial/getting-started#call
 [`go.mod`]: https://go.dev/doc/modules/gomod-ref

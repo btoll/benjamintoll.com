@@ -23,9 +23,13 @@ date = "2021-05-10T11:55:04-04:00"
 
 # 20<sup>th</sup> Century
 
+- sam altman
 - jeff bezos
+- bill gates
 - steve jobs
+- alex karp
 - elon musk
+- peter thiel
 - mark zuckerberg
 - auto-tune
 - microsoft

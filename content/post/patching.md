@@ -94,7 +94,7 @@ void main(int argc, char **argv) {
 +++ projects/sandbox/foo2.c      2019-07-07 12:55:21.155537240 -0400
 @@ -1,6 +1,7 @@
  #include &lt;stdio.h&gt;
- 
+
  void main(int argc, char **argv) {
 -    printf(&quot;I'm a little foo, hear me roar\n&quot;);
 +    char *name = &quot;foo&quot;;
