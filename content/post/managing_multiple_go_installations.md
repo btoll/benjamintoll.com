@@ -60,10 +60,25 @@ But, what about the Go environment variables such as `GOROOT`, `GOPATH` and `GOB
 $ go env GOROOT GOPATH GOBIN
 /usr/local/go
 /home/btoll/go
-/home/btoll/go/bin
+
 ```
 
-Nice, those are sensible defaults, and, in fact, the same values that I used to explictly set when launching interactive shells.
+Ok, [two out of three ain't bad](https://www.youtube.com/watch?v=k5hWWe-ts2s).
+
+Let's go ahead and set `GOBIN` in your Bash file of choice, as we'll definitely need that:
+
+```bash
+export GOBIN="$HOME/go/bin"
+export PATH="$HOME/bin:$GOBIN:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin"
+```
+
+Source the file.  Since I set mine in `.bash_env`, I'll source that one:
+
+```
+$ . ~/.bash_env
+```
+
+Nice, those are sensible defaults, and, in fact, the first two are the same values I have been using to explictly set when launching interactive shells.
 
 So to recap, we've now answered three of the questions posed in the [Introduction](#introduction).  Specifically:
 
@@ -81,7 +96,7 @@ So to recap, we've now answered three of the questions posed in the [Introductio
 
 **Q.** Should I define `GOROOT` and `GOPATH`?  What about `GOBIN`?
 
-**A.** No need.  The Go tooling will set sensible defaults.
+**A.** Only need to set `GOBIN`, as the Go tooling will set sensible defaults for the others.
 
 ---
 
