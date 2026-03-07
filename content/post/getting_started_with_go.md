@@ -22,8 +22,12 @@ date = "2022-08-05T19:13:06Z"
 - [Importing A Local Module](#importing-a-local-module)
 - [Publishing](#publishing)
 - [Viewing Documentation](#viewing-documentation)
-- [Installing Delve](#installing-delve)
-    + [Debugging](#debugging)
+- [Debugging](#debugging)
+    + [Installing Delve](#installing-delve)
+    + [Compiling With Debug Symbols](#compiling-with-debug-symbols)
+    + [Debugging Methods](#debugging-methods)
+    + [Troubleshooting Delve](#troubleshooting-delve)
+    + [Dumping The Stack Trace](#dumping-the-stack-trace)
 - [Vim Plugin](#vim-plugin)
 - [Troubleshooting](#troubleshooting)
 - [Programming](#programming)
@@ -465,7 +469,9 @@ To include the Playground, use the `-play` switch:
 $ godoc -play
 ```
 
-## Installing Delve
+## Debugging
+
+### Installing Delve
 
 ```bash
 $ go install github.com/go-delve/delve/cmd/dlv@latest
@@ -473,7 +479,24 @@ $ go install github.com/go-delve/delve/cmd/dlv@latest
 
 This will install [`Delve`] to the location of `$GOBIN`.
 
-### Debugging
+### Compiling With Debug Symbols
+
+Build it with debugging symbols (i.e, optimizations turned off):
+
+```bash
+$ go build -o fibonacci -gcflags="all=-N -l"
+$ ls
+fibonacci*  go.mod  main.go
+```
+
+- `-gcflags`: This specifies options for the Go garbage collector when compiling Go code.
+- `all`: This applies the specified flags to all packages being built.
+- `-N`: Disables optimizations. This means that the compiler will not optimize the code, which can make debugging easier by preserving variable names and keeping the code structure intact.
+- `-l`: Disables [inlining] of functions. This helps in debugging as well, making it easier to track function calls.
+
+> Or, debug it using `dlv debug`, which compiles, turns off optimizations and inlining for you.
+
+### Debugging Methods
 
 There are two main ways to begin debugging a program.
 
@@ -501,6 +524,9 @@ There are two main ways to begin debugging a program.
     ```
 
     Note that this will compile a binary with debugging symbols behind the scenes.
+    > $ dlv debug --help
+	> Compiles your program with optimizations disabled, starts and attaches to it.
+	> ...
     For instance, if you were to suspend the debugging process, you could list out the current directory and see the executable:
 
     ```bash
@@ -553,6 +579,168 @@ There are two main ways to begin debugging a program.
 	Process 2160328 has exited with status 0
 	(dlv)
 	```
+
+### Troubleshooting Delve
+
+One reason to disable [inlining] when debugging is that it enables the debugger to access functions that otherwise would be inaccessible.  For instance, this is a program compiled without optimizations and inlining disabled:
+
+```dlv
+> main.main() ./main.go:32 (PC: 0x4a70c0)
+Warning: debugging optimized function
+Command failed: function main.myAtoi is inlined
+```
+
+The solution is either to start Delve in debugging mode (`dlv debug`) which automatically compiles your program with optimizations disabled, starts and attaches to it, or to compile it with `go build` and the proper `gcflags`.  Here is the output of a debug session using `dlv debug`:
+
+```dlv
+$ dlv debug -- 50
+Type 'help' for list of commands.
+(dlv) b main.main
+Breakpoint 1 set at 0x4cc2d3 for main.main() ./main.go:30
+(dlv) c
+> [Breakpoint 1] main.main() ./main.go:30 (hits goroutine(1):1 total:1) (PC: 0x4cc2d3)
+    25:                 f = v
+    26:         }
+    27:         return f
+    28: }
+    29:
+=>  30: func main() {
+    31:         n, err := myAtoi(os.Args[1])
+    32:         if err != nil {
+    33:                 log.Fatalln(err)
+    34:         }
+    35:         fmt.Println(fibonacci(n))
+(dlv) call myAtoi(os.Args[1])
+> main.main() ./main.go:30 (PC: 0x4cc2d3)
+Values returned:
+        ~r0: 50
+        ~r1: error nil
+
+    25:                 f = v
+    26:         }
+    27:         return f
+    28: }
+    29:
+=>  30: func main() {
+    31:         n, err := myAtoi(os.Args[1])
+    32:         if err != nil {
+    33:                 log.Fatalln(err)
+    34:         }
+    35:         fmt.Println(fibonacci(n))
+(dlv) c
+12586269025
+Process 1365022 has exited with status 0
+(dlv)
+```
+
+Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+However, there are times when even turning off optimizations won't help.  Observe using `dlv debug`:
+
+```dlv
+$ dlv debug -- 50
+Type 'help' for list of commands.
+(dlv) c
+12586269025
+Process 1375124 has exited with status 0
+(dlv) r
+Process restarted with PID 1375390
+(dlv) b main.main
+Breakpoint 1 set at 0x4cc233 for main.main() ./main.go:26
+(dlv) c
+> [Breakpoint 1] main.main() ./main.go:26 (hits goroutine(1):1 total:1) (PC: 0x4cc233)
+    21:                 f = v
+    22:         }
+    23:         return f
+    24: }
+    25:
+=>  26: func main() {
+    27:         n, err := strconv.Atoi(os.Args[1])
+    28:         if err != nil {
+    29:                 log.Fatalln(err)
+    30:         }
+    31:         fmt.Println(fibonacci(n))
+(dlv) call strconv.Atoi(s)
+> [Breakpoint 1] main.main() ./main.go:26 (hits goroutine(1):1 total:1) (PC: 0x4cc233)
+Command failed: could not find symbol value for s
+```
+
+Now, observe using a compiled binary with optimizations and inlining disabled:
+
+```dlv
+$ go build -gcflags="all=-N -l"
+$ ls
+fibonacci*  go.mod  main.go
+$ dlv exec ./fibonacci -- 50
+Type 'help' for list of commands.
+(dlv) b main.main
+Breakpoint 1 set at 0x4cc233 for main.main() ./main.go:26
+(dlv) c
+> [Breakpoint 1] main.main() ./main.go:26 (hits goroutine(1):1 total:1) (PC: 0x4cc233)
+    21:                 f = v
+    22:         }
+    23:         return f
+    24: }
+    25:
+=>  26: func main() {
+    27:         n, err := strconv.Atoi(os.Args[1])
+    28:         if err != nil {
+    29:                 log.Fatalln(err)
+    30:         }
+    31:         fmt.Println(fibonacci(n))
+(dlv) call strconv.Atoi(s)
+> [Breakpoint 1] main.main() ./main.go:26 (hits goroutine(1):1 total:1) (PC: 0x4cc233)
+Command failed: could not find symbol value for s
+```
+
+```dlv
+(dlv) call strings.Split(os.Args[2], "\r\n")
+> main.main() ./main.go:30 (PC: 0x4a70ea)
+Warning: debugging optimized function
+Command failed: could not find symbol value for strings
+```
+
+Or:
+
+```dlv
+(dlv) call strconv.Atoi(s)
+> main.main() ./main.go:28 (PC: 0x4cc265)
+Command failed: can not call optimized function internal/strconv.Atoi when regabi is in use
+```
+
+These are probably failing due to optimization issues in the internal Go libraries over which you have no control.  One way to workaround this is to wrap the `strconv.Atoi` library call in a local function:
+
+```go
+func myAtoi(s string) (int, error) {
+    return strconv.Atoi(s)
+}
+```
+
+This will then work:
+
+```dlv
+(dlv) call myAtoi(os.Args[1])
+> main.main() ./main.go:32 (PC: 0x4cc356)
+Values returned:
+        ~r0: 50
+        ~r1: error nil
+```
+
+### Dumping The Stack Trace
+
+Call the [`runtime.Stack`](https://pkg.go.dev/runtime#Stack) method in the `runtime` package:
+
+```go
+buf := make([]byte, 1<<16)
+stackSize := runtime.Stack(buf, false)
+fmt.Printf("\n%s\n", string(buf[:stackSize]))
+```
+
+As a bonus, here is a `gs` [Vim abbreviation](https://vimhelp.org/map.txt.html#abbreviations) that expands into the code printed above:
+
+```vim
+nnoremap <leader>gs obuf := make([]byte, 1<<16)<cr>stackSize := runtime.Stack(buf, false)<cr>fmt.Printf("\n%s\n", string(buf[:stackSize]))<esc>
+```
 
 ## Vim Plugin
 
