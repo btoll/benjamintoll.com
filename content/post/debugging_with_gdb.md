@@ -25,7 +25,7 @@ I'm going to work with a very basic and contrived example just to keep things si
 Here is the code:
 
 ```c
-void foo(int a, int b, char c, char d) {
+int foo(int a, int b, char c, char d) {
     int eleet;
     char buf[10];
 
@@ -33,6 +33,8 @@ void foo(int a, int b, char c, char d) {
     buf[0] = 'C';
     buf[1] = 'A';
     buf[2] = 'T';
+
+    return 0;
 }
 
 int main(void) {
@@ -108,7 +110,7 @@ You can view the code by using the `list` or `l` command:
 
 ```gdb
 (gdb) l
-1       void foo(int a, int b, char c, char d) {
+1       int foo(int a, int b, char c, char d) {
 2           int eleet;
 3           char buf[10];
 4
@@ -116,8 +118,9 @@ You can view the code by using the `list` or `l` command:
 6           buf[0] = 'C';
 7           buf[1] = 'A';
 8           buf[2] = 'T';
-9       }
-10
+9           return 0;
+10      }
+11
 (gdb)
 11      int main(void) {
 12          foo(1, 2, 'a', 'b');
@@ -327,7 +330,7 @@ To view the code:
 
 ```gdb
 (gdb) l foo
-1       void foo(int a, int b, char c, char d) {
+1       int foo(int a, int b, char c, char d) {
 2           int eleet;
 3           char buf[10];
 4
@@ -335,8 +338,9 @@ To view the code:
 6           buf[0] = 'C';
 7           buf[1] = 'A';
 8           buf[2] = 'T';
-9       }
-10
+9           return 0;
+10       }
+11
 (gdb)
 ```
 
@@ -454,7 +458,7 @@ Start by altering the code:
 ```c
 #include <stdlib.h>
 
-void foo(int a, int b, char c, char d) {
+int foo(int a, int b, char c, char d) {
     int eleet;
     char buf[10];
 
@@ -462,6 +466,8 @@ void foo(int a, int b, char c, char d) {
     buf[0] = 'C';
     buf[1] = 'A';
     buf[2] = 'T';
+
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -482,7 +488,7 @@ Reading symbols from stack_example...done.
 (gdb) l
 1       #include <stdlib.h>
 2
-3       void foo(int a, int b, char c, char d) {
+3       int foo(int a, int b, char c, char d) {
 4           int eleet;
 5           char buf[10];
 6
@@ -490,15 +496,16 @@ Reading symbols from stack_example...done.
 8           buf[0] = 'C';
 9           buf[1] = 'A';
 10          buf[2] = 'T';
+11          return 0;
 (gdb)
-11      }
-12
-13      int main(int argc, char **argv) {
-14          char *e = getenv(argv[1]);
-15          foo(1, 2, 'a', 'b');
-16      }
-17
-(gdb) b 15
+12      }
+13
+14      int main(int argc, char **argv) {
+15          char *e = getenv(argv[1]);
+16          foo(1, 2, 'a', 'b');
+17      }
+18
+(gdb) b 14
 Breakpoint 1 at 0x6fe: file stack_example_env_var_test.c, line 15.
 (gdb) r TESTVAR
 Starting program: /home/btoll/sandbox/c/hacking_the_art_of_exploitation/stack_example TESTVAR

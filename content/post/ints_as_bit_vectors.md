@@ -42,40 +42,39 @@ There are many ways to solve this:
 
 Let's implement the last option.
 
-is_palidrome_permutation.c
+is_palindrome_permutation.c
 
-```
+```c
 #include <stdlib.h>
 #include <stdio.h>
 
 int translate(char c) {
     if (c >= 'a' && c <= 'z')
         return c - 'a';
+    if (c >= 'A' && c <= 'Z')
+        return c - 'A';
 
     return -1;
 }
 
-void load_up_vector(char* s, int* v) {
+void load_vector(char* s, int* v) {
     for (int i = 0; s[i] != '\0'; i++) {
         int j = translate(s[i]);
 
         if (j != -1) {
-	    int d = 1 << j;
-
-            if ((*v & d) > 0) *v ^= d;
-            else *v |= d;
-	}
+             *v ^= 1 << j;
+        }
     }
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
     if (argc < 2) {
         printf("Usage: %s <string>\n", argv[0]);
         exit(1);
     }
 
     int v = 0;
-    load_up_vector(argv[1], &v);
+    load_vector(argv[1], &v);
     printf("%d\n", (v & (v - 1)) == 0);
 }
 ```
@@ -98,7 +97,7 @@ Let's dust off our old pal [GDB] and inspect some memory addresses.  Make sure y
 
 And start the debugger:
 
-```
+```gdb
 $ gdb ./is_palindrome_permutation
 Reading symbols from ./is_palindrome_permutation...done.
 (gdb) l 1
@@ -113,7 +112,7 @@ Reading symbols from ./is_palindrome_permutation...done.
 9       }
 10
 (gdb)
-11      void load_up_vector(char* s, int* v) {
+11      void load_vector(char* s, int* v) {
 12          for (int i = 0; s[i] != '\0'; i++) {
 13              int j = translate(s[i]);
 14
@@ -135,7 +134,7 @@ Reading symbols from ./is_palindrome_permutation...done.
 29
 30          int v = 0;
 (gdb)
-31          load_up_vector(argv[1], &v);
+31          load_vector(argv[1], &v);
 32          printf("%d\n", (v & (v - 1)) == 0);
 33      }
 34
@@ -166,14 +165,14 @@ Let's print out the memory address of the `int` bit vector:
 
 Let's print out the bits:
 
-```
+```gdb
 (gdb) x/t &v
 0x7fffffffde54: 00010000
 ```
 
 And the decimal value:
 
-```
+```gdb
 (gdb) x/u &v
 0x7fffffffde54: 16
 ```
@@ -184,7 +183,7 @@ Let's look at another example where the string is not a permutation of a palindr
 
 I'll jump right to the point where the running program has hit the debugger and print out the value of the `int`:
 
-```
+```gdb
 (gdb) r foobar
 The program being debugged has been started already.
 Start it from the beginning? (y or n) y
@@ -209,7 +208,7 @@ Just as I thought, there are four bits set, one for each unique character in the
 
 Often, you'll see this in use when doing I/O, such as opening a file.  Here's an example from the [open(3) man page]:
 
-```
+```c
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -232,6 +231,10 @@ Each of those constants represent a power of two, and the logical OR is adding t
 Essentially, it's a really handy way to store multiple values rather than a slew of variables.  For example, it's much easier to check for the existence of a bit then to have a multi-block `if` or `switch` statement.
 
 I do something similar in one of my static code analysis tools, [rupert-fp] - (see the [visitor.js] script).
+
+## Summary
+
+Sadly, there's a fatal flaw in the example code above that doesn't allow for using a bit vector to check if a word is a palindrome.  Can you spot it?
 
 [bit vector]: https://en.wikipedia.org/wiki/Bit_array
 [bit field]: https://en.wikipedia.org/wiki/Bit_field

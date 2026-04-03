@@ -163,7 +163,7 @@ See [Go to definition](https://github.com/fatih/vim-go/wiki/Tutorial#go-to-defin
 
 Simply place the cursor over any identifier and call `:GoDoc`.  Any documentation for that particular symbol will open in a scratch window.
 
-There's also a handy shortcut, the letter `K`.  This is overrides the normal shortcut which usually opens a `man` page (`C` programmers will be familiar with this).
+There's also a handy shortcut, the letter `K`.  This overrides the normal shortcut which usually opens a `man` page (`C` programmers will be familiar with this).
 
 See [Documentation lookup](https://github.com/fatih/vim-go/wiki/Tutorial#documentation-lookup) in the [vim-go-tutorial].
 
