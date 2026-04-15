@@ -28,6 +28,7 @@ date = "2022-08-05T19:13:06Z"
     + [Debugging Methods](#debugging-methods)
     + [Troubleshooting Delve](#troubleshooting-delve)
     + [Dumping The Stack Trace](#dumping-the-stack-trace)
+    + [Watching Variables](#watching-variables)
 - [Vim Plugin](#vim-plugin)
 - [Troubleshooting](#troubleshooting)
 - [Programming](#programming)
@@ -742,13 +743,30 @@ As a bonus, here is a `gs` [Vim abbreviation](https://vimhelp.org/map.txt.html#a
 nnoremap <leader>gs obuf := make([]byte, 1<<16)<cr>stackSize := runtime.Stack(buf, false)<cr>fmt.Printf("\n%s\n", string(buf[:stackSize]))<esc>
 ```
 
+### Watching Variables
+
+Use the [`display`](https://github.com/go-delve/delve/tree/master/Documentation/cli#display) command:
+
+```
+(dlv) help display
+Print value of an expression every time the program stops.
+
+        display -a [%format] <expression>
+        display -d <number>
+
+The '-a' option adds an expression to the list of expression printed every time the program stops. The '-d' option removes the specified expression from the list.
+
+If display is called without arguments it will print the value of all expression in the list.
+(dlv)
+```
+
 ## Vim Plugin
 
 You're going to want to use [`vim-go`].  Here is how to install using [`vim-plug`]:
 
 1. Add the following to `.vimrc`:
 
-    - Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+    - `Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }`
         + This will update the binaries every time Vim is opened.
 
 1. In `.vimrc` (or any file loaded into Vim), run the following editor commands in order:
