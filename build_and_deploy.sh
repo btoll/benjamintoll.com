@@ -2,6 +2,11 @@
 #shellcheck disable=1087
 
 # Example: ./build_and_deploy.sh --tagname latest --deploy
+#
+# podman login
+# sudo podman run --rm -it -e USER="$(id -u "$USER")" -v "$(pwd)":/src btoll/hugo:0.80.0
+# podman build -t btoll/benjamintoll.com:latest .
+# podman push btoll/benjamintoll.com:latest
 
 GREEN_FG=$(tput setaf 2 2>/dev/null)
 RED_FG=$(tput setaf 1 2>/dev/null)
