@@ -11,6 +11,7 @@ date = "2026-03-30T23:40:36-04:00"
 - [Singly Linked List](#singly-linked-list)
 - [Hash Table](#hash-table)
 - [Bit Array](#bit-array)
+- [Doubly Linked List](#doubly-linked-list)
 - [Summary](#summary)
 - [References](#references)
 
@@ -184,7 +185,7 @@ if err != nil && errors.Is(err, ErrRingBufferEmpty) {
 }
 ```
 
-Note that the `writeIndex` is where the next `enqueue` operation should place the element, and the `rightIndex` is where the next `dequeue` should happen.
+Note that the `writeIndex` is where the next `enqueue` operation should place the element, and the `readIndex` is where the next `dequeue` should happen.
 
 A drawback of the [ring buffer] is that it has a set length.  If this constraint doesn't work for your implementation, try a [Singly Linked List](#singly-linked-list).
 
@@ -646,6 +647,176 @@ func main() {
 }
 ```
 
+## Doubly Linked List
+
+This implementation is inspired by and relies heavily on Go's official [list implementation] in the standard libary.  It uses a [sentinel value] rather than the traditional `head` and `tail` nodes to create a ring and simplify edge cases (don't need to compare `head` and `tail` nodes, etc).
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+type Node[K comparable, V any] struct {
+	Key   K
+	Value V
+	Next  *Node[K, V]
+	Prev  *Node[K, V]
+}
+
+type DoublyLinkedList[K comparable, V any] struct {
+	root Node[K, V]
+	len  int
+}
+
+func New[K comparable, V any]() *DoublyLinkedList[K, V] {
+	l := new(DoublyLinkedList[K, V])
+	l.root.Next = &l.root
+	l.root.Prev = &l.root
+	l.len = 0
+	return l
+}
+
+// For debugging.
+func (l *DoublyLinkedList[K, V]) find(key K) *Node[K, V] {
+	c := &l.root
+	for c.Next != &l.root {
+		if c.Next.Key == key {
+			return c.Next
+		}
+		c = c.Next
+	}
+	return nil
+}
+
+// For debugging.
+func (l *DoublyLinkedList[K, V]) list() {
+	node := l.root.Next
+	fmt.Println(node.Key, node.Value)
+	for node.Next != &l.root {
+		node = node.Next
+		fmt.Println(node.Key, node.Value)
+	}
+}
+
+func (l *DoublyLinkedList[K, V]) move(node, at *Node[K, V]) {
+	if node == at {
+		return
+	}
+
+	// Unhook from previous position.
+	node.Prev.Next = node.Next
+	node.Next.Prev = node.Prev
+
+	// Insert after the `at` node.
+	node.Prev = at
+	node.Next = at.Next
+
+	// Point its new neighbors to itself.
+	node.Prev.Next = node
+	node.Next.Prev = node
+}
+
+func (l *DoublyLinkedList[K, V]) Add(k K, v V) *Node[K, V] {
+	newNode := &Node[K, V]{
+		Key:   k,
+		Value: v,
+		Next:  l.root.Next,
+		Prev:  &l.root,
+	}
+	// Point the neighbors to the new node.
+	newNode.Prev.Next = newNode
+	newNode.Next.Prev = newNode
+	l.len++
+	return newNode
+}
+
+func (l *DoublyLinkedList[K, V]) Back() *Node[K, V] {
+	return l.root.Prev
+}
+
+func (l *DoublyLinkedList[K, V]) Front() *Node[K, V] {
+	return l.root.Next
+}
+
+func (l *DoublyLinkedList[K, V]) Len() int {
+	return l.len
+}
+
+func (l *DoublyLinkedList[K, V]) MoveToFront(node *Node[K, V]) {
+	l.move(node, &l.root)
+}
+
+func (l *DoublyLinkedList[K, V]) Remove(node *Node[K, V]) {
+	node.Next.Prev = node.Prev
+	node.Prev.Next = node.Next
+	node.Next = nil
+	node.Prev = nil
+	l.len--
+}
+```
+
+## LRU Cache
+
+This LRU cache implementation is backed by the doubly linked list above.
+
+```go
+type LRUCache[K comparable, V any] struct {
+	data map[K]*Node[K, V]
+	list *DoublyLinkedList[K, V]
+	cap  int
+	mu   sync.Mutex
+}
+
+func NewLRUCache[K comparable, V any](capacity int) *LRUCache[K, V] {
+	return &LRUCache[K, V]{
+		data: make(map[K]*Node[K, V]),
+		list: New[K, V](),
+		cap:  capacity,
+		mu:   sync.Mutex{},
+	}
+}
+
+func (l *LRUCache[K, V]) Get(key K) (V, bool) {
+	defer l.mu.Unlock()
+	l.mu.Lock()
+	if node, found := l.data[key]; found {
+		l.list.MoveToFront(node)
+		return node.Value, found
+	}
+	var zero V
+	return zero, false
+}
+
+func (l *LRUCache[K, V]) Len() int {
+	defer l.mu.Unlock()
+	l.mu.Lock()
+	return l.list.len
+}
+
+// New entries return V, false.
+// Updated entries return V, true.
+func (l *LRUCache[K, V]) Put(k K, v V) (V, bool) {
+	defer l.mu.Unlock()
+	l.mu.Lock()
+	if node, found := l.data[k]; found {
+		node.Value = v
+		l.list.MoveToFront(node)
+		return node.Value, found
+	}
+	if l.list.len == l.cap {
+		toRemove := l.list.Back()
+		l.list.Remove(toRemove)
+		delete(l.data, toRemove.Key)
+	}
+	newNode := l.list.Add(k, v)
+	l.data[k] = newNode
+	return newNode.Value, false
+}
+```
+
 ## Summary
 
 This summary has been approved by your mom.
@@ -658,6 +829,8 @@ This summary has been approved by your mom.
 - [singly linked list]
 - [hash table]
 - [bit array]
+- [doubly linked list]
+- [LRU cache]
 - [List of data structures](https://en.wikipedia.org/wiki/List_of_data_structures)
 
 [generics]: https://go.dev/doc/tutorial/generics
@@ -670,6 +843,11 @@ This summary has been approved by your mom.
 [FIFO]: https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics)
 [randomize]: https://en.wikipedia.org/wiki/Randomized_algorithm
 [bit array]: https://en.wikipedia.org/wiki/Bit_array
+[doubly linked list]: https://en.wikipedia.org/wiki/Doubly_linked_list
+[LRU cache]: https://en.wikipedia.org/wiki/Cache_replacement_policies#LRU
 [On Ints as Bit Vectors]: /2019/03/16/on-ints-as-bit-vectors/
 [`hash/fnv` package]: https://pkg.go.dev/hash/fnv
 [Go standard library]: https://pkg.go.dev/std
+[list implementation]: https://pkg.go.dev/container/list
+[sentinel value]: https://en.wikipedia.org/wiki/Sentinel_value
+
