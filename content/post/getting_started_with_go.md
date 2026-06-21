@@ -727,6 +727,8 @@ Values returned:
         ~r1: error nil
 ```
 
+> See this fresh and hip article [On Remote Debugging A Pod With Delve].
+
 ### Dumping The Stack Trace
 
 Call the [`runtime.Stack`](https://pkg.go.dev/runtime#Stack) method in the `runtime` package:
@@ -741,6 +743,18 @@ As a bonus, here is a `gs` [Vim abbreviation](https://vimhelp.org/map.txt.html#a
 
 ```vim
 nnoremap <leader>gs obuf := make([]byte, 1<<16)<cr>stackSize := runtime.Stack(buf, false)<cr>fmt.Printf("\n%s\n", string(buf[:stackSize]))<esc>
+```
+
+Additionally, you can use the [runtime/debug] package.  The following accomplishes the same as the above (i.e., it creates a buffer for you):
+
+```go
+fmt.Printf("%s\n", debug.Stack())
+```
+
+Or, use `PrintStack`, which prints the stack to `stderr`:
+
+```go
+debug.PrintStack()
 ```
 
 ### Watching Variables
@@ -1149,4 +1163,6 @@ fmt.Printf("%d\n", runtime.NumCPU)
 [`Delve`]: https://github.com/go-delve/delve
 [the Go blog]: https://go.dev/blog/
 [On vim-go]: /2024/11/30/on-vim-go/
+[runtime/debug]: https://pkg.go.dev/runtime/debug
+[On Remote Debugging A Pod With Delve]: /2026/06/20/on-remote-debugging-a-pod-with-delve/
 
