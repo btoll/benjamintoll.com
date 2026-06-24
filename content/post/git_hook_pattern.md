@@ -4,6 +4,8 @@ date = "2021-03-30T23:22:42-04:00"
 
 +++
 
+> See an updated version of this in the suspenseful article [On git-hooks-and-extensions](/2026/06/23/on-git-hooks-and-extensions/), a Booker Prize Finalist.
+
 Everybody knows about [Git hooks] and their usefulness.  Some developers I've met have an extreme bitterness and antipathy towards them, and that's just weird<sup>\*</sup>.
 
 Anyway, at a point in time around the death of [Lorenzo the Magnificent], I found myself needing a pattern for running many of the same kind of hooks sequentially (for example, more than one `pre-commit` hook when creating a commit), and I wondered about the best way to do that.  Or, at least, a way that would be relatively easy to implement and maintain, while also using existing Git best practices or tooling.
