@@ -12,6 +12,7 @@ date = "2026-03-30T23:40:36-04:00"
 - [Hash Table](#hash-table)
 - [Bit Array](#bit-array)
 - [Doubly Linked List](#doubly-linked-list)
+- [LRU Cache](#lru-cache)
 - [Summary](#summary)
 - [References](#references)
 

@@ -236,7 +236,7 @@ Go to the unspiritual successor of this fine article, [On Creating an Encrypted 
 - [Creating the perfect GPG keypair](https://alexcabal.com/creating-the-perfect-gpg-keypair)
 
 [the trust tree]: https://www.youtube.com/watch?v=hV2om9YBADI
-[keygrip]: https://gnupg-users.gnupg.narkive.com/q5JtahdV/gpg-agent-what-is-a-keygrip
+[keygrip]: https://www.gnupg.org/documentation/manuals/gnupg/Agent-Protocol.html
 [the next article]: /2023/09/07/on-creating-an-encrypted-usb-drive/
 [On Creating an Encrypted USB Drive]: /2023/09/07/on-creating-an-encrypted-usb-drive/
 

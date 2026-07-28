@@ -1,6 +1,6 @@
 +++
 title = "On git-hooks-and-extensions"
-date = "2026-06-23T01:59:12-04:00"
+date = "2026-07-27T01:59:12-04:00"
 
 +++
 

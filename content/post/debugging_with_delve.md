@@ -68,3 +68,9 @@ After submitting the `next` command several times, we see that the watched varia
 3: a[minIndex] = 9
 (dlv)
 ```
+
+```
+(dlv) p seq
+(dlv) p %v seq
+```
+
