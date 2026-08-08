@@ -104,6 +104,11 @@ And, useful management commands:
 - `shutdown`
 - `start`
 - `undefine`
+- `pool-list`
+- `pool-destroy`
+- `pool-undefine`
+- `vol-list`
+- `vol-delete`
 
 There really are too many to list here.  See the [`virsh`] docs.
 

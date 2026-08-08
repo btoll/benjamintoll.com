@@ -6,7 +6,7 @@ date = "2021-04-18T23:33:04-04:00"
 
 This is the first article in a two-part series:
 
-1. Classful Networks
+1. **Classful Networks**
 1. [Classless Networks]
 
 > This article talks about the first architectural version of network addressing that was in use between 1981-1993.  Even though the subject of this post is outdated, I believe it's necessary to understand classful networks and their limitations to be able to fully appreciate and understand CIDR (Classless Inter-Domain Routing), which is covered in the [next article].
@@ -23,11 +23,11 @@ So, how does one know where the network prefix of the 32-bits ends and the host 
 
 The classful network strategy was first used in 1981 and was the one that I was first taught because I'm old.
 
-The total network address space was divided into five classes, which were delineated based upon the first three bits of the network prefix of the IP address (and the top four bits for the multicast and reserved classes, Class D and Class E, respectively).  The bits of the first octet of each address that are significant to determining the class will be <u>underlined</u> in the examples below.  It is in this way that one can determine the class from any given IP address.
+The total network address space was divided into five classes, which were delineated based upon the first three bits of the network prefix of the IP address (and the first four bits for the multicast and reserved classes, Class D and Class E, respectively).  The bits of the first octet of each address that are significant to determining the class will be <u>underlined</u> in the examples below.  It is in this way that one can determine the class from any given IP address.
 
 I'm not going to go much into the history here, other than to say that in the beginning, there was just the address space that would come to be known as Class A.  As more and more machines joined the Internet, it was observed that this network scheme wouldn't scale at all, and so the classful network addressing architecture was adopted in 1981.
 
-Unfortunately, this expansion of the address space was also quickly seen to be inadequate at scale.  For instance, the 16384 (2<sup>14</sup>) IP addresses for Class B were quickly being depleting because of the rapid growth of the Internet, leading to the [IPv4 address exhaustion] that prompted the need for a new addressing scheme, [CIDR] (although [NAT] - Network Address Translation - would help with this issue).
+Unfortunately, this expansion of the address space was also quickly seen to be inadequate at scale.  For instance, the 16384 (2<sup>14</sup>) IP addresses for Class B were quickly being depleted because of the rapid growth of the Internet, leading to the [IPv4 address exhaustion] that prompted the need for a new addressing scheme, [CIDR] (although [NAT] - Network Address Translation - would help with this issue).
 
 Here are the five classes of networks:
 
@@ -118,9 +118,9 @@ However, there are two big reasons that this scheme is a problem.
 
 #### It Doesn't Scale
 
-For instance, I use a private Class C network address space block at home.  My router is on `192.168.1.1` and my one or two machines are allocated addresses anywhere between the `192.168.1.{2,254}` range (`192.168.1.255` is used as the broadcast address).
+For instance, I use a private Class C network address space block at home.  My router is on `192.168.1.1` and my one or two machines are allocated addresses anywhere in the `192.168.1.{2,254}` range (`192.168.1.255` is used as the broadcast address).
 
-Conversely, a medium or large company will have many, many more machines than I, and so a Class C network is too small for them.  However, the next largest network, Class B, is probably way too large, with 65,536 available addresses.
+Conversely, a medium company will have many, many more machines than I, and so a Class C network is too small for it.  However, the next largest network, Class B, is probably way too large, with 65,536 available addresses.
 
 What is needed is a scheme that will allow to carve up a classful address block into more efficient sizes.
 
@@ -129,8 +129,6 @@ What is needed is a scheme that will allow to carve up a classful address block 
 Since there are fixed sizes of classes of network address blocks, there need to be many routes added to the Internet routing tables, and these tables will grow large and consume lots of memory.
 
 Rather, it would be good to be able to group, or aggregate, the routes together into a [supernetwork] that would only need to have one entry in the table to reference.
-
----
 
 Now let's have a bit of fun exploring the classful networks.
 
@@ -142,7 +140,7 @@ As mentioned previously, for each of the classes, the [subnet mask] is the same 
 
 Here's a nice little script to determine to which class belongs the given IP address or just the first octet:
 
-`get_classful_network.py`
+[`get_classful_network.py`](https://github.com/btoll/tools/blob/master/python3/classful-networks/get_classful_network.py)
 
 <pre class="math">
 import sys
@@ -181,13 +179,15 @@ if __name__ == "__main__":
 </pre>
 
 ```
-$ python get_classful_network.py 167.114.97.28
+$ python3 get_classful_network.py 167.114.97.28
 Class B
-$ python get_classful_network.py 167
+$ python3 get_classful_network.py 167
 Class B
 ```
 
 How does the script work?  The most important bit (haha) is the right shift [bitwise operation] on the octet (highlighted in <span style="color: purple;">purple</span>, since bitwise operations are the stuff of royalty), also known as an [arithmetic shift].  By bit shifting four times to the right, we're reducing the 8-bit octet to just the four bits that will help us calculate the network class.
+
+> You may have noticed that prior to this I had said that the classful networks were delineated by the first three bits and now I'm shifting four.  This is only to have a clean boundary so I can work with all five different classes, the last two of which are delineated by four bits (multicast and reserved).
 
 Let's take an example IP address that begins with `167`:
 
@@ -217,7 +217,7 @@ Let's test the script using the network class boundaries<b>*</b>:
 ```
 $ for n in {0,128,192,224,240}
 > do
-> python get_classful_network.py $n
+> python3 get_classful_network.py $n
 > done
 Class A
 Class B
@@ -230,9 +230,9 @@ Class E
 >
 > You can run the following from the command line to see the bit representation of the first four bits of the first octet in any range.
 >
->       Here is the Class B range:
+> For example, here is the Class B range:
 >
->       $ for n in {128..191}; do echo "($n)" $(asbits $n 1); done
+>       $ for n in {128..191}; do echo "($n)" $(asbits $n 2); done
 >       (128) 1000 0000
 >       (129) 1000 0001
 >       (130) 1000 0010
@@ -298,9 +298,45 @@ Class E
 >       (190) 1011 1110
 >       (191) 1011 1111
 >
->   Note that the first four bits range from `1000` to `1011` in binary (8 to 11 in decimal).
+>   Note that the first four bits (the first nibble) range from `1000` to `1011` in binary (8 to 11 in decimal).
 >
->       Here is the Class D range:
+> Here is the Class C range:
+>
+>       $ for n in {192..223}; do echo "($n)" $(asbits $n 2); done
+>       (192) 1100 0000
+>       (193) 1100 0001
+>       (194) 1100 0010
+>       (195) 1100 0011
+>       (196) 1100 0100
+>       (197) 1100 0101
+>       (198) 1100 0110
+>       (199) 1100 0111
+>       (200) 1100 1000
+>       (201) 1100 1001
+>       (202) 1100 1010
+>       (203) 1100 1011
+>       (204) 1100 1100
+>       (205) 1100 1101
+>       (206) 1100 1110
+>       (207) 1100 1111
+>       (208) 1101 0000
+>       (209) 1101 0001
+>       (210) 1101 0010
+>       (211) 1101 0011
+>       (212) 1101 0100
+>       (213) 1101 0101
+>       (214) 1101 0110
+>       (215) 1101 0111
+>       (216) 1101 1000
+>       (217) 1101 1001
+>       (218) 1101 1010
+>       (219) 1101 1011
+>       (220) 1101 1100
+>       (221) 1101 1101
+>       (222) 1101 1110
+>       (223) 1101 1111
+>
+> And, Class D:
 >
 >       $ for n in {224..239}; do echo "($n)" $(asbits $n 2); done
 >       (224) 1110 0000
@@ -333,7 +369,7 @@ In the [next thrilling episode], we'll see how the [IETF] attempted to solve the
 
 ---
 
-<b>*</b> What do I mean by network class boundaries?  Specifically, the first octet of the first IP address in the range for each network class.  The first octet is underlined below:
+<b>*</b> What do I mean by network class boundaries?  Specifically, the first octet of the first IP address in the range for each network class, which contains all of the information needed to determine to which class the IP address belongs.  The first octet is underlined below:
 
 - Class A <u>`0`</u>`.0.0.0`
 - Class B <u>`128`</u>`.0.0.0`
@@ -354,7 +390,7 @@ This isn't something I've read of in the literature, it's just what I've been ca
 [multicast]: https://en.wikipedia.org/wiki/Multicast
 [route aggregation]: https://en.wikipedia.org/wiki/Supernetwork
 [supernetwork]: https://en.wikipedia.org/wiki/Supernetwork
-[`asbits`]: https://github.com/btoll/tools/tree/master/c/asbits
+[`asbits`]: https://github.com/btoll/asbits
 [subnet mask]: https://en.wikipedia.org/wiki/Subnetwork
 [bitwise operation]: https://en.wikipedia.org/wiki/Bitwise_operation#Bit_shifts
 [arithmetic shift]: https://en.wikipedia.org/wiki/Arithmetic_shift

@@ -4,20 +4,7 @@ date = "2022-08-12T22:24:29Z"
 
 +++
 
-I remember the first time I heard of [virtual machines] and [hypervisors].  It was way back in the naughties around 2003 or 2004, and I remember thinking something along the lines of: "What kind of magic is this?"
-
-At that time and even now, I feel that virtual machines and [virtualization] in general are technologies that people use all the time without having to know the slightest thing about what it is and how it's done.  In fact, many times we don't even know that we're operating in a virtualized environment.
-
-And I think that's peachy.  There's nothing wrong with that.  It's impossible to know everything about every layer of technology.  It's easy to build a mental model around what a virtual machine is and the benefits it provides, and that's usually enough.
-
-However, once you start doing anything serious with [containers] and [OS-level virtualization] that all changes.  At least, that has been my experience.
-
-Why?  In a containerized world, it's extremely helpful, necessary even, to know what the differences are and the security implications of running a process in a container versus a virtual machine.  (There are other reasons to want to dig into how virtual machines work, of course, but this was the impetus for me.)
-
-That's a big subject, and in order to be able to speak cogently and confidently about it, you have to know a fair bit about the Linux kernel.
-
----
-
+- [Introduction](#introduction)
 - [Glossary](#glossary)
     + [CPU Modes](#cpu-modes)
     + [Privilege Rings](#privilege-rings)
@@ -33,9 +20,21 @@ That's a big subject, and in order to be able to speak cogently and confidently 
 - [Summary](#summary)
 - [References](#references)
 
----
+## Introduction
 
-There are a lot of similarities between these concepts, and many of them overlap.  I'm going to briefly (superficially) define these terms so that we have proper working definitions in order to construct the necessary mental model for the how a virtual machine works.
+I remember the first time I heard of [virtual machines] and [hypervisors].  It was way back in the naughties around 2003 or 2004, and I remember thinking something along the lines of: "What kind of magic is this?"
+
+At that time and even now, I feel that virtual machines and [virtualization] in general are technologies that people use all the time without having to know the slightest thing about what it is and how it's done.  In fact, many times we don't even know that we're operating in a virtualized environment.
+
+And I think that's peachy.  There's nothing wrong with that.  It's impossible to know everything about every layer of technology.  It's easy to build a mental model around what a virtual machine is and the benefits it provides, and that's usually enough.
+
+However, once you start doing anything serious with [containers] and [OS-level virtualization] that all changes.  At least, that has been my experience.
+
+Why?  In a containerized world, it's extremely helpful, necessary even, to know what the differences are and the security implications of running a process in a container versus a virtual machine.  (There are other reasons to want to dig into how virtual machines work, of course, but this was the impetus for me.)
+
+That's a big subject, and in order to be able to speak cogently and confidently about it, you have to know a fair bit about the Linux kernel.  However, for this article, I'm only going to briefly (and superficially) define these terms so that we have proper working definitions in order to construct the necessary mental model for the how a virtual machine works.
+
+So, let's begin with some definitions and then move into the main topic.
 
 ## Glossary
 
@@ -45,7 +44,7 @@ There are a lot of similarities between these concepts, and many of them overlap
 
 The most common two modes are kernel mode and user mode.  User mode requests the kernel to perform privileged operations on its behalf via [system calls].
 
-> There is also a third mode that is effectuated when running one or more virtual machines managed by a [virtual machine monitor] (`VMM`) or hypervisor.  For instance, when a hypervisor is present, a processor that supports [hardware-assisted virtualization] can run at ring level -1 (more privileged than level 0) and the guest kernel(s) run at 0.  This allows the `VMM` to run one or many guest operating systems beneath it (more on that later).
+> There is also a third mode that is effectuated when running one or more virtual machines managed by a [virtual machine monitor] (`VMM`) or hypervisor.  For instance, when a hypervisor is present, a processor that supports [hardware-assisted virtualization] can run at ring level -1 (more privileged than level 0) and then the guest kernel(s) run at 0.  This allows the `VMM` to run one or many guest operating systems beneath it (more on that later).
 
 Kernel mode is also referred to as privileged mode or supervisor mode and user mode as restricted mode, et al.
 
@@ -65,7 +64,7 @@ Interestingly, modern `x86` CPUs support [hardware-assisted virtualization], whi
 
 ![VMM](/images/vmm_protection_ring.jpeg)
 
-The privilege rings are hardware enforced by a CPU [status register].
+The privilege rings are hardware enforced by a CPU [status register].  In other words, the idea of a ring is only a conceptual model to help understand the nested levels of trust, with inner-most ring being the most trusted.  The enforcement are bits stored in a CPU register, checked by the CPU whenever an instruction is issued by a process and blocks if the instruction requires a higher privilege level than the current CPU privilege mode.
 
 ### User Space and Kernel Space
 
@@ -73,19 +72,19 @@ Conceptually, [user space and kernel space] is a way for an operation system to 
 
 Importantly, the separation of kernel space from user space allows for [memory protection].
 
-How does user space interface with kernel space?  Through the [system call API](#system-calls).
+> How does user space interface with kernel space?  Through the [system call API](#system-calls).
 
 ### System Calls
 
-User space processes programmatically request services on behalf of the kernel through [system calls] (syscalls).  These are requests for file management, process control, communication, et al.
+User space processes programmatically request services from the kernel through [system calls] (syscalls).  These are requests for file management, process control, communication, et al, and the kernel does the work on behalf of the user space process.
 
 > For most operating systems, syscalls are only made from user space processes.
 
-The userland process, restricted to its own virtual address space, cannot access or modify other processes or the kernel itself.  In addition, anything running in user mode is prevented from directly accessing the machine hardware and must rely on this system call interface to ask the kernel to perform the task.
+The userland process, restricted and isolated to its own virtual address space, cannot access or modify other processes or the kernel itself.  In addition, anything running in user mode is prevented from directly accessing the machine hardware and must rely on this system call interface to ask the kernel to perform the task.
 
-A lot of things happen that is outside the scope of this brief definition, but the end result is a mode switch from restricted (user) to unrestricted (kernel) mode.  Control is passed to the kernel which, running at the highest privilege (ring 0), checks to ensure that the process is allowed to make the syscall, and then directly accesses the hardware and performs the operation on behalf of the userland process.  Control is then returned to the calling program.
+A lot of things happen that are outside the scope of this brief definition, but the end result is a mode switch from restricted (user) to unrestricted (kernel) mode.  Control is passed to the kernel which, running at the highest privilege (ring 0), checks to ensure that the process is allowed to make the syscall, and then directly accesses the hardware and performs the operation on behalf of the userland process.  Control is then returned to the calling program.
 
-> As noted, system calls necessitate a mode context switch, but it is **not** a [process context switch].  Instead, it's a *privilege* context switch.  The appropriate bits are set in the processor status register, and the mode is changed from user mode to kernel mode.
+> As noted, system calls necessitate a mode switch, but it is **not** a process [context switch].  Instead, it's a *privilege* mode switch.  The appropriate bits are set in the processor status register when the syscall is initiated, and the mode is changed from user mode to kernel mode.
 
 Most programming languages have libraries that hide the details of system calls from the developer.  For instance, a higher-level programming language like Python or Go would have APIs that wrap the actual lower-level call through to the underlying C library.
 
@@ -95,17 +94,15 @@ For example, a common way in Go to open a file on the filesystem is with the [`o
 > Examples of common syscalls are `open`, `read`, `write`, `close`, `wait`, `exec`, `fork`, `exit`, and `kill`.  View the man page for more information about each one:
 >
 > ```bash
-> $ man 2 open
+> $ man 2 exec
+> $ man 2 fork
 > ```
->
 
-In my opinion, the key thing to understand about how system calls work is that it generates a software interrupt, or trap, that initiates the privilege context switch.  The trap tells the processor to jump to a well-known address based on the trap's parameter, which is an interrupt number.  This number is a lookup into the [interrupt vector table], which is a data structure that maps these well-known interrupt numbers with a location in memory to a callback that will handle the trap.
+In my opinion, the key thing to understand about how system calls work is that it triggers a software interrupt, i.e. it executes a trap instruction, that initiates the privilege mode switch.  The trap tells the processor to jump to a well-known address based on the trap's parameter, which is an interrupt number.  This number is a lookup into the [interrupt vector table], which is a data structure that maps these well-known interrupt numbers with a location in memory to a callback that will handle the trap.
 
-> Making a system call uses the trap mechanism to (mode) switch to a well-defined point in the kernel, which then runs all the instructions in kernel mode.
+Making a system call uses the trap mechanism to switch modes to a well-defined point in the kernel, which then runs all the instructions in kernel mode.
 
----
-
-Now, at long last, we can move on to the point of this fantastic article.
+Now, at long last, armed with solid definitions of the crucial operating system functionality that facilites a solid understanding of virtual machines, we can move on to the point of this fantastic article.
 
 ## Virtual Machines
 
@@ -208,7 +205,7 @@ Hopefully, these brief overview has gone a bit more in-depth than most introduct
 [eBPF programs]: /2022/07/28/on-ebpf/
 [`libc`]: https://en.wikipedia.org/wiki/C_standard_library
 [memory protection]: https://en.wikipedia.org/wiki/Memory_protection
-[process context switch]: https://en.wikipedia.org/wiki/Context_switch
+[context switch]: https://en.wikipedia.org/wiki/Context_switch
 [`os.Open`]: https://pkg.go.dev/syscall#Open
 [`RawSyscall6`]: https://github.com/golang/go/blob/master/src/syscall/syscall_linux.go
 [`runtime/internal/syscall`]: https://github.com/golang/go/blob/master/src/runtime/internal/syscall/syscall_linux.go

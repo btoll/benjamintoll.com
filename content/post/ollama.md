@@ -150,7 +150,7 @@ This is unfortunate, but I'm sure pleasing to the infinitesimal amount of people
 
 ---
 
-If this world made any sense at all, AI would be a public utility with all of its data centers on Mars, staffed only by Elon Musk and [that nitwit Kevin O'Something](https://www.youtube.com/watch?v=eLWbhGY-DXY).  Kev would be in Elon's grill every night, mangling the blues and cooing "yeah, baby".
+If this world made any sense at all, AI would be a public utility with all of its data centers on Mars, staffed only by Elon Musk and that nitwit Kevin O'Something.  Kev would be in Elon's grill every night, mangling the blues and cooing ["yeah, baby"](https://www.youtube.com/watch?v=eLWbhGY-DXY&t=72s).
 
 ---
 
