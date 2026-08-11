@@ -199,7 +199,7 @@ Addressable range:
     + 2<sup>32</sup> - <sup>12</sup> = 2<sup>20</sup> = 1048576
 - There are 1,048,574 addressable hosts.
 - Range:
-    + `167.192.0.1` - `167.208.255.254`
+    + `167.192.0.1` - `167.207.255.254`
 
 <pre class="math">
 2<sup>32 − 12</sup>
@@ -222,10 +222,10 @@ The last two octets are all 0s, of course, so this will be 255.  But, don't forg
 to subtract 1 for the number of addressable hosts!
 
 Network range:
-<b>167.192.0.0</b> - <b>167.208.255.255</b>
+<b>167.192.0.0</b> - <b>167.207.255.255</b>
 
 Addressable range:
-<b>167.192.0.1</b> - <b>167.208.255.254</b>
+<b>167.192.0.1</b> - <b>167.207.255.254</b>
 </pre>
 
 ### Example 4

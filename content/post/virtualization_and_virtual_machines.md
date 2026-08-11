@@ -1,8 +1,10 @@
 +++
-title = "On Virtual Machines"
-date = "2022-08-12T22:24:29Z"
+title = "On Virtualization And Virtual Machines"
+date = "2026-08-10T12:24:29Z"
 
 +++
+
+> This article was originally published on August 12, 2022 and was called "On Virtual Machines".
 
 - [Introduction](#introduction)
 - [Glossary](#glossary)
@@ -10,6 +12,7 @@ date = "2022-08-12T22:24:29Z"
     + [Privilege Rings](#privilege-rings)
     + [User Space and Kernel Space](#user-space-and-kernel-space)
     + [System Calls](#system-calls)
+- [Mental Model](#mental-model)
 - [Virtual Machines](#virtual-machines)
     + [Virtual Machine Monitors](#virtual-machine-monitors)
     + [Trap-and-Emulate](#trap-and-emulate)
@@ -22,7 +25,7 @@ date = "2022-08-12T22:24:29Z"
 
 ## Introduction
 
-I remember the first time I heard of [virtual machines] and [hypervisors].  It was way back in the naughties around 2003 or 2004, and I remember thinking something along the lines of: "What kind of magic is this?"
+I remember the first time I heard of [virtual machines] and [hypervisors].  It was way back in 1856, not long after my retaliatory caning of [Preston Brooks] and [Laurence M. Keitt], and I remember thinking something along the lines of: "What kind of strange magic is this?"
 
 At that time and even now, I feel that virtual machines and [virtualization] in general are technologies that people use all the time without having to know the slightest thing about what it is and how it's done.  In fact, many times we don't even know that we're operating in a virtualized environment.
 
@@ -100,23 +103,69 @@ For example, a common way in Go to open a file on the filesystem is with the [`o
 
 In my opinion, the key thing to understand about how system calls work is that it triggers a software interrupt, i.e. it executes a trap instruction, that initiates the privilege mode switch.  The trap tells the processor to jump to a well-known address based on the trap's parameter, which is an interrupt number.  This number is a lookup into the [interrupt vector table], which is a data structure that maps these well-known interrupt numbers with a location in memory to a callback that will handle the trap.
 
+> let's start with trapping.  my understanding is that the host CPU must see every instruction, unprivileged or not, b/c it has to check a status register to determine if the instruction has the correct privileges.  if it's a privileged instruction this must be trapped by the CPU and passed to the VMM, which then determines what happens to it.  but i am unclear on the details.  i'd like to know more.
+
 Making a system call uses the trap mechanism to switch modes to a well-defined point in the kernel, which then runs all the instructions in kernel mode.
 
 Now, at long last, armed with solid definitions of the crucial operating system functionality that facilites a solid understanding of virtual machines, we can move on to the point of this fantastic article.
 
+> It's very important to state explicity that everything just described is normal operating system behavior and has nothing to do with virtualization.  Virtualization is an additional abstraction on top of these OS-level protections.
+
+## Mental Model
+
+I'd been confused about how virtualization works for a long time.  The barrier to understanding this topic was steep, in my view, and a lot of technical documentation that I have read hasn't helped.  Perhaps it was just me, but a brief description of resource allocation followed by the introduction of user modes and privilege rings didn't elucidate anything.  Unfortunately, it was just getting started.  Then, there were the topics of trapping and scary words and phrases like binary translation, paravirtualization and hardware-assisted virtualization.  It was enough to make anyone piddle in their corduroys.
+
+This section is my attempt to break through that fog and have a reader come away thinking, "oh, is that all that it is?".
+
+> The mass adoption of virtual machines and containers (OS-level virtualization) speaks to the brilliance of the implementations.  Virtualization is a great example of a domain in computing where you don't need to know shit about what's happening under the sheets to be able to use it.
+>
+> Of course, that ignorance has let to many security breaches, but who cares about that as long as you can "stand" something up?  I'm looking at you, "devops".
+
+---
+
+A hypervisor, whether type 1 or type 2, will allocate hardware resources for each guest OS.  Each allocation can be thought of as a partition, and these allocations are completely isolated from one another.  The allocations are from real hardware on the host, of course.
+
+- **Disk Space**
+
+    Importantly, the disk space is usually just a virtual hard disk drive on the host OS.  In other words, it's just a file that the VMM will index into when the guest OS is reading or writing to its allocated disk space.  An example of this are the `qcow2` (QEMU Copy-On-Write version 2) files that [`QEMU`] creates when I use [`libvirt`] as a frontend and [`KVM`] as a hypervisor.
+
+    You've probably heard for millennia that untrusted software should be downloaded and installed in a virtual machine.  Why is this good advice?  Let's assume that the download was something malicious or something horrible, like anything from OpenAI or Anthropic.  This download and installation would *only* affect the guest operating system's allocated disk resource, as it would be saved in a file image on the disk (for example, in a `qcow2` disk image file.  There it would be trapped and could not escape to the host filesystem, unless, of course, you did something incredibly stupid, like then mounting that image on the host and running an executable.  Any disk I/O request is intercepted by the VMM and indexes into the image file that it's been allocated, so no read/writes occur on the host fileystem.
+
+    Incidentally, this is (mostly) the same as the disk resource isolation of a container (VMs add an additional layer of privilege-level isolation that containers lack).
+
+- **Memory**
+
+    Memory is virtually allocated and maps to different memory locations in physical RAM on the host.  Every allocation is isolated from all others.  The virtual memory pages are mapped to the physical memory pages by the [memory management unit] (MMU).  The CPUs in the guest are virtual and instructions from the guest are either run directly by the host CPU (for unprivileged instructions) or trapped and sent to the VMM (for privileged instructions).
+
+    Continuing the scenario where malware is installed in the guest OS, the malware instructions could be in the VM's virtual memory, and since it's mapped to host memory, also in the physical RAM.  This is not a problem, however, because if there are any privileged instructions, as there surely would be in malware, they will not be executed by the host CPU because they will be trapped and then rejected by the VMM.
+
+- **CPU**
+
+    So, guest A could be writing to memory address `x6000` and guest B could be writing to memory address `x6000`, but those are only the views that they "see" (have access to) in their virtual memory allocation and are **not** the same address on the host.  On the host, they would be translated to completely different memory address in its physical RAM.
+
+    No privileged instructions are ran by the host CPU, so no malicious instructions in memory will be executed.
+
+- **Network I/O**
+
+Note that any escape to the host could only be facilitated by a bug in the hypervisor code.
+
+We'll now turn to one of the most well-known and used implementations of virtualization.
+
 ## Virtual Machines
 
-Virtual machines have been around a long time.  IBM built research mainframes in the 1960's that allowed for full virtualization, and once Intel and AMD introduced the hardware extensions into their chips in 2005 and 2006, respectively, that they really took off as a prolific tool in every developer's toolbox.
+Virtual machines have been around a long time.  IBM built research mainframes in the 1960s that allowed for full virtualization, and once Intel and AMD introduced the hardware extensions into their chips in 2005 and 2006, respectively, virtual machines really took off as a prolific tool in every developer's toolbox.
 
-> For early examples of computers capable of running virtual machine the IBM [CP-40] and the IBM [SIMMON] hypervisor.
+> Early examples of computers capable of running virtual machines are the IBM [CP-40] and the IBM [SIMMON] hypervisor.
 
 In order to run, virtual machines need to have a piece of hardware or software installed to manage them.  Let's take a look at a software example.
 
+---
+
 ### Virtual Machine Monitors
 
-To run a virtual machine, there needs to be a [virtual machine monitor] (`VMM`) (perhaps better known as a hypervisor), installed that manages the guest operating systems.  It will partition the hardware resources to each virtual machine.
+To run a virtual machine, there needs to be a [virtual machine monitor] (`VMM`) (probably better known as a hypervisor), installed that manages the guest operating systems.  It will allocate the hardware resources (CPU, disk space, memory, etc.) to each virtual machine.
 
-The guest machines all have virtual access to the host machine's hardware provided by the `VMM`, and most of their instructions (i.e., unprivileged instructions) are run directly by the real processor (as opposed to full [emulation]).  We'll soon take a look at how the guest machines, running at a ring level higher than 0, are able to have its privileged instructions emulated by the `VMM`.
+The guest machines all have virtual access to the host machine's hardware provided by the `VMM`, and most of their instructions (i.e., unprivileged instructions) are run directly by the real processor (as opposed to full [emulation]).  We'll soon take a look at how the guest machines, running at a ring level equal to or higher than 0, are able to have its privileged instructions emulated by the `VMM`.
 
 The machine on which the hypervisor runs is called the host machine, and all of the virtual machines are the guest machines.
 
@@ -130,7 +179,7 @@ There are two types:
 
 - Type 2
 
-    Runs in user space as a process on top of the host (or native) operating system, and its guest operating systems are above it, conceptually.  The host machine has direct control of the hardware.
+    Runs in user space as a process of the host (or native) operating system, and its guest operating systems are above it, conceptually.  The host machine has direct control of the hardware.
 
 ![Hypervisor Types](/images/hypervisor_types.png)
 
@@ -140,7 +189,7 @@ Of course, there is a type that doesn't fit neatly into either of these conceptu
 
 Ok, so far, so good.  But since the virtual machine isn't a real machine and only has proxied access to the real hardware, how can it possibly run privileged instructions in kernel mode?   In other words, if the entire virtual machine, which includes its kernel, runs in a privilege ring higher than ring 0 (kernel/privileged mode), how can it possibly have a way to have its privileged instructions executed?
 
-Let's look at one answer weeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Let's now look at one answer.
 
 ### Trap-and-Emulate
 
@@ -150,7 +199,7 @@ The fundamental idea behind trap-and-emulate is that the `VMM` will allow as man
 
 However, there were problems.  The dominant `x86` processor platforms, Intel and AMD, didn't support the trapping of privileged instructions.  So, nothing would happen if a processor was running in user mode and attempted to execute a privileged instruction.
 
-This was a huge obstacle and made full virtualization on these platforms impossible.  After all, if a privileged instruction is ignored, the trap never happens, and the `VMM` would have no way of knowing about it.  The end result was there was no emulation and full virtualization was out-of-reach, at least for this platforms.
+This was a huge obstacle and made full virtualization on these platforms impossible.  After all, if a privileged instruction is ignored, the trap never happens, and the `VMM` would have no way of knowing about it.  The end result was there was no emulation and full virtualization was out-of-reach, at least for these platforms.
 
 There were two prevalent hacks to work around this issue.  Let's take a look at them now.
 
@@ -160,7 +209,7 @@ There were two prevalent hacks to work around this issue.  Let's take a look at 
 
 With [binary translation], the `VMM` pre-scans the input instruction stream for privileged instructions (i.e., instructions that are to only be run in kernel mode) and replaces them with traps that the `VMM` can intercept.
 
-Of course, the non-privileged instructions are executed by the processor as usual.
+The non-privileged instructions are still executed by the processor as usual.
 
 #### Paravirtualization
 
@@ -215,10 +264,15 @@ Hopefully, these brief overview has gone a bit more in-depth than most introduct
 [SIMMON]: https://en.wikipedia.org/wiki/SIMMON
 [emulation]: https://en.wikipedia.org/wiki/Emulator
 [`KVM`]: https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine
+[`QEMU`]: https://en.wikipedia.org/wiki/QEMU
+[`libvirt`]: https://libvirt.org/
 [trap-and-emulate]: https://stackoverflow.com/questions/20388156/what-is-meant-by-trap-and-emulate-virtualization
 [the classical style of virtualization]: https://www.vmware.com/pdf/asplos235_adams.pdf
 [binary translation]: https://en.wikipedia.org/wiki/Binary_translation
 [Paravirtualization]: https://en.wikipedia.org/wiki/Paravirtualization
 [Intel]: https://en.wikipedia.org/wiki/X86_virtualization#Intel-VT-x
 [AMD]: https://en.wikipedia.org/wiki/X86_virtualization#AMD_virtualization_(AMD-V)
+[memory management unit]: https://en.wikipedia.org/wiki/Memory_management_unit
+[Preston Brooks]: https://en.wikipedia.org/wiki/Preston_Brooks
+[Laurence M. Keitt]: https://en.wikipedia.org/wiki/Laurence_M._Keitt
 
