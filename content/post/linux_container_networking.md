@@ -8,6 +8,8 @@ date = "2026-08-12T21:29:22-05:00"
 
 This little article is about the [network namespaces] utilities that exist in Linux which lie at the heart of container networking and can be found in container orchestration tools and service meshes.
 
+> Check out the project [`linux-networking`] for scripts found in this article and other goodies!
+
 ---
 
 <!--- [Listing the `ARP` Table](#listing-the-arp-table)-->
@@ -845,6 +847,14 @@ $ sudo bridge link show
 
 > The [`bridge`] command is part of the [`iproute2`] suite of tools.
 
+You can also list the devices by checking the [`sysfs`] pseudo-filesystem:
+
+```bash
+$ ls -1 /sys/class/net/br0/brif
+veth0
+veth1
+```
+
 That's it.  We should now be able to ping both interfaces:
 
 ```bash
@@ -1018,7 +1028,9 @@ Happy now?
 - [Tracing the path of network traffic in Kubernetes](https://learnk8s.io/kubernetes-network-packets)
 - [`ip`]
 - [Linux list all network namespaces](https://serverfault.com/questions/1074982/linux-list-all-network-namespaces)
+- [`linux-networking`]
 
+[`linux-networking`]: https://github.com/btoll/linux-networking
 [network namespaces]: https://man7.org/linux/man-pages/man7/network_namespaces.7.html
 [`ip`]: https://www.man7.org/linux/man-pages/man8/ip.8.html
 [`iproute2`]: https://en.wikipedia.org/wiki/Iproute2

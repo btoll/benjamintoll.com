@@ -14,33 +14,27 @@ I don't know about you, but I'm really *chompin'* at the bit and *hungry* to get
 
 Before I describe how zombie processes are created, it's necessary to understand how [forking a process] works.
 
-Processes need a way to create new processes, thereby running new programs.  In Unix and its derivatives, this is accomplished by invoking the [`fork`] system call to make a copy of itself, that is, *forking* the process.  Importantly, this creates a separate address space for the new child process with exact copies of the parent's memory segments. The child process then overlays/replaces itself with a new program by a call to one of the [`exec`] family of system calls, ceasing execution of the former program (the [`fork-exec`] technique).
+Processes need a way to create new processes, thereby running new programs.  In Unix and its derivatives, this is accomplished by invoking the [`fork`] system call to make a copy of itself, known as *forking* a process.  Importantly, this creates a separate virtual address space for the new child process that initially still contains the same data as that of the parent due to the copy-on-write mechanism performed by the kernel.  This means that the two independent processes will share the same physical memory pages until one of them modifies those pages.  The child process can then overlay/replace its process image with a new program by calling one of the [`exec`] family of system calls.  This process is known as the [`fork-exec`] technique.
 
-> The return value of the new child process will have a [process identifier] (PID) of 0 (zero).  See the code samples below to see the branching in action.
+> In the child process, return value of the `fork` system call will be 0, but in the parent process the return value from `fork` will be the non-zero child [process identifier] (PID) and can be accessed with the [`getpid`] function (if the child process is the caller, that is).  See the code samples below to see the branching in action.
 
-The parent process should then [`wait`] on its child process(es) to finish execution.  In other words, the parent process is halted and is waiting for a change in state of the child process.  When this occurs, the parent process is notified by returning the value of the child process' [exit status] (which indicates how the child process returned, i.e., successfully or not) as a reference, and then its own execution continues.
+The parent process should then [`wait`] on its child process(es) to finish execution.  So, [`wait`] blocks the calling thread until one of the parent's child process is terminated.  On success, [`wait`] returns the process ID of the terminated child, and, on failure -1 is returned.
+
+When this occurs, the parent process can access the value of the child process' [exit status] (which indicates how the child process returned, i.e., successfully or not), and then its own execution continues.
 
 The signature looks like this:
 
 ```c
-int child_pid = wait(&exit_status);
+pid_t child_pid = wait(&exit_status);
 ```
 
 > In addition to `wait`, there are also related `waitpid` and `waitid` system calls.  See the [`wait` man page] for more information.
 
-Incidentally, as soon as the child process terminates it is a zombie process with its entry still in the [system process table].  Under normal circumstances, it is immediately waited on by its parent and reaped by the OS and its resource removed from the system process table.
+Incidentally, as soon as the child process terminates it is a zombie process with its entry still in the [system process table].  Under normal circumstances, it is immediately waited on by its parent it reaps the child by calling one of the `wait` functions listed above.  Its resource is then removed from the system process table.
 
-So, in summation, a zombie process is a child process that wasn't waited on.  As a result, there is still an entry for it in the system process table, thereby introducing a [resource leak].  It's then necessary for a special OS reaper process to locate these zombie processes and deallocate their resources.
+So, in summation, a zombie process is a child process that wasn't waited on.  As a result, there is still an entry for it in the system process table, thereby introducing a [resource leak].  It's then necessary for a parent or re-parented process to reap these processes by deallocating their resources.
 
-> On my system, the zombie processes are being reaped by the OS reaper process almost immediately.
->
->		$ hostnamectl
->          Static hostname: kilgore-trout
->         Operating System: Ubuntu 18.04.5 LTS
->                   Kernel: Linux 5.4.0-66-generic
->             Architecture: x86-64
-
-Lastly, it's important to differentiate between zombie process and [orphan process].  The latter is a child process whose parent process has terminated and has been adopted or re-parented to the [`init`] process.
+Lastly, it's important to differentiate between a zombie process and an [orphan process].  The latter is a child process whose parent process has terminated and has been adopted or re-parented to the [`init`] process.
 
 # How Are They Created?
 
@@ -54,122 +48,126 @@ In this article, I'll be illustrating three different examples:
 
 Let's take a look at a simple program in C.  The first version shows the normal case where the parent process waits on the child.
 
-In brief, the program will suspend execution in the parent process when it hits the `wait` function.  Meanwhile, the child process sleeps for ten seconds.  When the program resumes after the child exits, the parent will continue executing since the state of the child process changed, capturing the PID of the child and then printing both it and the `exit status` before exiting.
+In brief, the program will suspend execution in the parent process when it hits the `wait` function.  Meanwhile, the child process sleeps for ten seconds.  When the program resumes after the child exits, the parent will continue executing (since the state of the child process changed), capturing the PID of the child and then printing both it and the `exit status` before exiting.
 
 This is the proper way of handling (waiting) for a child process and ensuring that its resources are cleaned up, i.e., the entry for the child process is removed from the system process table.
 
 Easy peasy.
 
 `normal.c`
-<pre>
-<code>
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;sys/wait.h&gt;
-#include &lt;unistd.h&gt;
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int main() {
     pid_t pid;
     int status;
 
-    if ((pid = fork()) < 0) {
-        printf("Something went terribly wrong\n");
+    if ((pid = fork()) == -1) {
+        perror("fork");
+        return EXIT_FAILURE;
     }
-
-    printf("PID = %d\n", pid);
 
     // Child process.
     if (pid == 0) {
-        <span style="color: green;">sleep(10);</span>
-        exit(0);
+        sleep(2);
+        _exit(0);
     }
 
-    if (pid > 0) {
-        wait(&status);
-        printf("Child status = %d\n", (unsigned int) status);
+    if (waitpid(pid, &status, 0) == -1) {
+        perror("waitpid");
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    if (WIFEXITED(status)) {
+        printf("Waited for child PID %ld.  Its exit status is %d.\n", (long)pid, WEXITSTATUS(status));
+    } else if (WIFSIGNALED(status)) {
+        printf("Child PID %ld terminated by signal %d\n", (long)pid, WTERMSIG(status));
+    }
+
+    return EXIT_SUCCESS;
 }
-</code>
-</pre>
+```
 
 Just compile and run:
 
-```
+```bash
 $ gcc -o normal normal.c
 $ ./normal
-PID = 18743
-PID = 0
+Waited for child PID 1765368.  Its exit status is 0.
 ```
 
 ### Zombied
 
-Now, let's create a zombie process.  To do that, we'll exit the child process without waiting for it.  In order to see the child process appear as a zombie, we'll pause the program for ten seconds before the parent process calls its `wait` function.
+Now, let's create a zombie process.  To do that, we'll exit the child process without waiting for it.  In order to see the child process appear as a zombie, we'll pause the program for thirty seconds before the parent process calls its `wait` function.
 
 Note that the only change was to move the `sleep` statement out of the child process block.
 
 `zombie.c`
-<pre>
-<code>
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;sys/wait.h&gt;
-#include &lt;unistd.h&gt;
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int main() {
     pid_t pid;
     int status;
 
-    if ((pid = fork()) < 0) {
-        printf("Something went terribly wrong\n");
+    if ((pid = fork()) == -1) {
+        perror("fork");
+        return EXIT_FAILURE;
     }
-
-    printf("PID = %d\n", pid);
 
     // Child process.
     if (pid == 0) {
-        exit(0);
+        _exit(0);
     }
 
-    <span style="color: green;">sleep(30);</span>
+    sleep(30);
 
-    if (pid > 0) {
-        wait(&status);
-        printf("Child status = %d\n", (unsigned int) status);
+    if (waitpid(pid, &status, 0) == -1) {
+        perror("waitpid");
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    if (WIFEXITED(status)) {
+        printf("Waited for child PID %ld.  Its exit status is %d.\n", (long)pid, WEXITSTATUS(status));
+    } else if (WIFSIGNALED(status)) {
+        printf("Child PID %ld terminated by signal %d\n", (long)pid, WTERMSIG(status));
+    }
+
+    return EXIT_SUCCESS;
 }
-</code>
-</pre>
-
-Just compile and run:
-
-```bash
-$ gcc -o zombie zombie.c
-$ ./zombie
-PID = 9174
-PID = 0
 ```
 
-To see that it is indeed a zombie process, let's use our old friend [`ps`]:
+Why is the sleep needed?  It will give us time to call the [`ps`] tool and check for current zombie processes.
+
+Here is the sequence:
+
+1. Child exits.
+1. Child becomes zombie (parent sleeps).
+1. Parent calls `waitpid`.
+1. Zombie is reaped and disappears.
+
+Just compile and run.  Note that we run execute the binary in the background so we can check for zombie processes as it sleeps:
 
 ```bash
-$ ps ax | grep Z
-9174 pts/3    Z+     0:00 [zombie] <defunct>
+$ ./a.out &
+[1] 9198
+$ ps ax | ag Z
+9174 pts/2    Z      0:00 [a.out] <defunct>
 ```
 
-To further illustrate, running `ps` with the child PID, it's clear that it is still shows the `./zombie` process as its parent and **not** PID 1, which is what it would be if the process was an orphan that had been adopted by `init`.
-
-```bash
-$ ps -o ppid= -p 9174
-9173
-```
+We can see that it is indeed a zombie.  The parent process will then reap it.
 
 In addition, since you're of course using a [terminal multiplexer] like [`tmux`] or [`GNU Screen`], you can open our old friend [`top`] in another shell before running the binary and observe the zombie process count increment.
 
-Moreover, you can see the process tree when using our old friend [`pstree`]:
+Moreover, you can see the process tree when using our other old friend [`pstree`]:
 
 <pre class="math">
 $ pstree -p 1
@@ -186,49 +184,44 @@ Note the location of the `zombie` process with PID 9174 in the running process t
 
 ### Orphaned
 
-Lastly, let's take a look an example of the child process being re-parented (is that even a word?).  This situation occurs when the parent process exits before the child.  When this happens, the orphaned child becomes a child of the [`init`] process, which is PID 1, and it is then reaped by the OS.
+Lastly, let's take a look an example of the child process being re-parented.  This situation occurs when the parent process exits before the child.  When this happens, the orphaned child becomes a child of the [`init`] process, which is PID 1 and is then reaped by that PID.
 
 `orphan.c`
-<pre>
-<code>
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;sys/wait.h&gt;
-#include &lt;unistd.h&gt;
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int main() {
     pid_t pid;
-    int status;
 
-    if ((pid = fork()) < 0) {
-        printf("Something went terribly wrong\n");
+    if ((pid = fork()) == -1) {
+        perror("fork");
+        return EXIT_FAILURE;
     }
 
     // Child process.
     if (pid == 0) {
-        <span style="color: green;">sleep(30);</span>
-        exit(0);
+        sleep(60);
+        _exit(0);
     }
 
-    if (pid > 0) {
-        exit(0);
-    }
-
-    return 0;
+    _exit(0);
 }
-</code>
-</pre>
+```
+
+> Note that while the child process sleeps for sixty seconds that the parent process exits immediately.  This is the condition that creates the orphaned process.  Poor fella!
 
 Just compile and run:
 
 ```bash
 $ gcc -o orphan orphan.c
-$ ./orphan
-PID = 19257
-PID = 0
+$ ./orphan &
 ```
 
-If we inspect the process tree, we'll see that the orphaned process has indeed been re-parented to the init process (on this particular Linux distribution - Ubuntu - the init process is [`systemd`]).
+If we inspect the process tree, we'll see that the orphaned process has indeed been re-parented to the init process (on my Debian distro the init process is [`systemd`]).
 
 <pre class="math">
 $ pstree -p 1
@@ -243,7 +236,7 @@ As we'd expect, the orphaned process is directly below the root process.
 Also, running `ps` with the child PID, it's clear that it has indeed been re-parented to PID 1.
 
 ```bash
-$ ps -o ppid= -p 19257
+$ ps -o ppid -p 19257
   1
 ```
 
@@ -268,4 +261,5 @@ $ ps -o ppid= -p 19257
 [`top`]: https://www.man7.org/linux/man-pages/man1/top.1.html
 [`pstree`]: https://man7.org/linux/man-pages/man1/pstree.1.html
 [`systemd`]: https://systemd.io/
+[`getpid`]: https://www.man7.org/linux/man-pages/man2/getpid.2.html
 

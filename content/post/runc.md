@@ -4,16 +4,17 @@ date = "2022-01-18T04:43:29Z"
 
 +++
 
-This article intends to introduce [`runc`] as a tool that ultimately creates and runs containers at a lower-level than container engine tools like [`podman`] and [`docker`], which most developers are familiar with and use.
+This article intends to introduce [`runc`] as a tool that ultimately creates and runs containers at a lower-level than container engine tools like [`podman`] and [`docker`], which most developers are familiar with and use.  It is a widely used tool (even if you're not aware it's being used by your favorite container engine) and is maintained by the [Open Container Initiative].
 
 It's not meant to be a thorough dissection of its features and capabilities, and this article only uses a very small subset of what it can do.
 
 ---
 
+<!--- [Creating a container](#creating-a-container)-->
 - [What is runc?](#what-is-runc)
 - [The filesystem bundle](#the-filesystem-bundle)
-- [Installing runc](#installing-runc)
-- [Creating a container](#creating-a-container)
+- [Installing `runc`](#installing-runc)
+- [So what?](#so-what)
 - [Getting the bundle](#getting-the-bundle)
     - [The OCI config](#the-oci-config)
     - [The `rootfs`](#the-rootfs)
@@ -57,46 +58,66 @@ How about some sweet ASCII art to give everyone a mental model before we begin!
      +-----------+    +-----------+     +-----------+
      | container |    | container |     | container |
      +-----------+    +-----------+     +-----------+
+           |                |                 |
+           |                |                 |
+     +----------------------------------------------+
+     |                 linux kernel                 |
+     +----------------------------------------------+
 </pre>
 
 ## What is runc?
 
-[`runc`] is a command-line tool to create and run containers.  It is low-level, at least as viewed in the context of the software "stack" that developers use to create containers, and seen as one of the last pieces of software running in userspace that interacts with the kernel to create namespaces and cgroups that have are the kernel primitives used to create what we think of as a container.
+[`runc`] is a command-line tool to create and run containers.  It is low-level, at least as viewed in the context of the software "stack" that developers usually use to create containers (i.e, podman, docker, etc.), and is one of the last levels of that software stack running in userspace that interacts with the kernel.  `runc` defines, among other things, the namespaces and cgroups that the kernel will create (of course, these are the kernel primitives used to create what we think of as a container).
 
-`runc` is the reference implementation of the [Open Container Initiative] (OCI)  runtime specification, which defines what it means to "run" a container.  It is a wrapper around [`libcontainer`].
+`runc` is the runtime implementation of the [Open Container Initiative] (OCI)  runtime specification, which defines what it means to "run" a container.  It is a wrapper around [`libcontainer`].
 
-Since it is a cli and not a library, you can install it as a binary on your system and interact with it to create and spawn your containers.  Interestingly, it is also used by higher-level tools such as [`containerd`] and [`CRI-O`], and by tools such as `docker` and others.
+Since it is a cli and not a library, you can install it as a binary on your system and interact with it to create and spawn your containers.  As implied by the artwork above, it is also used by higher-level tools such as [`containerd`] and [`CRI-O`], and by tools used directly by users, such as `podman` and others.
 
-To avoid having different runtimes at this level creating disparate APIs, the OCI stepped in and created a [runtime spec].  Now, as long as a runtime implements this specification, in theory one can be seemlessly swapped for another compliant runtime, and any software running on top of it will just carry on.
+To avoid having different runtimes at this level creating disparate APIs, the OCI stepped in and created a [runtime spec].  Now, as long as a runtime implements this specification, in theory one can be seamlessly swapped for another compliant implementation, and any software running on top of it *should* be able to just keep calm and carry on.
 
 So, what does the OCI runtime spec define?
 
+TODO: Mention that it doesn't pull images or otherwise manage them.
+
 ## The filesystem bundle
 
-In order for a compliant reference implementation such as `runc` to be able to create and run containers, the spec defined a [filesystem bundle].  This bundle is composed of two things:
+In order for a compliant runtime implementation such as `runc` to be able to create and run containers, the spec defined a [filesystem bundle].  This bundle is composed of two things:
 
 - an [OCI configuration file] (`config.json`)
+    + This is a `json`-formatted file and defines the entrypoint, environment variables, [namespaces], [cgroups], [capabilities], mounts, and other configuration that will define container.
 - a [root filesystem] (`rootfs`)
+    + A root filesystem is a hierarchy of directories, typically as defined by the [Filesystem Hierarchy Standard] (FHS).  It has been popularized by Linux distributions, and it is intended to be mounted, not simply changed into.
 
-The config is `json`-formatted and defines the entrypoint, environment variables, [namespaces], [cgroups], [capabilities], mounts, et. al. that make up the container.
+> For those who know `docker`, the command-line arguments passed to `docker run` are inserted into `config.json` (but not by `runc`).
 
-For those who know `docker`, the command-line arguments passed to `docker run` are inserted into `config.json`, but not by `runc`.  Again, `runc` knows how to run a container by expecting a bundle to be present.  It doesn't care where the config file or `rootfs` came from, it just needs it to be there.
+`runc` knows how to run a container by expecting a filesystem bundle to be present.  Importantly, it doesn't care where the config file or `rootfs` came from, since those are higher-level concerns.  It just needs it to be there.
 
-## Installing runc
+## Installing `runc`
 
-There is more than one way to get `runc`.  For Debian-based distributions, here are three packages to get it:
+See the [`Building`](https://github.com/opencontainers/runc#building) section in the official docs.
 
-- `runc`
-- `containerd.io`
-- `docker-ce`
+## So what?
 
-```bash
-$ sudo apt-get install runc
-```
+Let's take a brief pause and consider why knowing this stuff is important.
 
+First, containers, and by extension container orchestration platforms like Kubernetes, have a considerable amount of mystery to them.  This is not good and has led to their misuse (and abuse), which has resulted in security breaches and a loss of trust by users (and customers, if you care about that sort of thing).
+
+Unfortunately, many developers still cannot confidently explain the difference between a container and a [virtual machine], and whether your ace scrum master thinks so or not, this is a problem.
+
+So, peeling away the layers and getting closer to the Linux primitives themselves is the best thing we can do for ourselves and our customers (again, if that is something you care about).
+
+Once you get down to a reasonable level (like running commands in the shell), you start to understand how containers are built, and that demystification helps all the way back up the stack to whatever container engine you're using.  Being able to better reason about each layer of the stack will make you a giant among men.
+
+> Note that there isn't one well-defined container software "stack".  I'm using the term loosely to illustrate that different tools are responsible for creating and managing containers.
+
+Now, let's get back to the task at hand.
+
+> I recommend starting with [Linux container networking](/2026/08/12/on-linux-container-networking/) and getting comfortable with the command-line tools that are used to build underlay and overlay technologies that are used by modern container engines.
+
+<!--
 ## Creating a container
 
-As long as you have the bundle on your filesystem, it is easy as pie to create and start a container.  Here is an example from [the `runc` README]:
+As long as you have the bundle on your filesystem, it is easy as pie to create and start a container.  Here is an example from [the `runc` README](https://github.com/opencontainers/runc/blob/main/README.md#rootless-containers):
 
 ```bash
 # create the top most bundle directory
@@ -121,6 +142,7 @@ $ runc spec
 I'll get more into the details later in the article, but first I want to address the main question I had when first working with `runc`:
 
 How do I get the bundle?
+-->
 
 ## Getting the bundle
 
@@ -180,7 +202,7 @@ The first two can be used if Docker has already been installed on your system, w
 
     Although no longer maintained, I've found this tool by [Jess Frazelle] to be the best way to get the config file for users that already have Docker installed.
 
-    In order for this to work, you'll need to first create a container.  It doesn't matter if it's state is running or stopped, as long as `docker container ls` can list it then `riddler` will be able to extract the OCI config.
+    In order for this to work, you'll need to first create a container.  It doesn't matter if its state is running or stopped, as long as `docker container ls` can list it then `riddler` will be able to extract the OCI config.
 
     For example:
 
@@ -238,7 +260,7 @@ bin boot dev etc home lib lib32 lib64 libx32 media mnt opt proc root run sbin sr
 
 So, you may be thinking, why do I need a root filesystem?  Can't I just change into a new directory?
 
-Well, no.  In essence, the latter is a `chroot`, where just the root of the filesystem is being changed.  This wouldn't allow for any of the kernel features, in particular namespaces and cgroups, to be applied to the new location.
+Well, no.  In essence, the latter could be a `chroot` if it changed the process' view of the filesystem to that new directory being the filesystem root.  This wouldn't allow for any of the kernel features, in particular namespaces and cgroups, to be applied to the new location.
 
 > Unlike namespaces, cgroups are not necessary for a container.  This is because cgroups control what you can **do**, whereas namespaces control what you can **see**.
 >
@@ -269,14 +291,14 @@ Let's take a gander at three different ways to access an image's root filesystem
     $ sudo debootstrap \
         --arch=amd64 \
         --variant=minbase \
-        bullseye \
+        trixie \
         rootfs \
-        http://deb.debian.org/debian
+        https://deb.debian.org/debian
     $ ls rootfs/
     bin  boot  dev  etc  home  lib  lib32  lib64  libx32  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
     ```
 
-    > Here at `benjamintoll.com` we make heavy use of `debooststrap`, including as a core dependency in our wildly populare [`chroot` wrapper tool].
+    > Here at `benjamintoll.com` we make heavy use of `debootstrap`, including as a core dependency in our wildly popular [`chroot` wrapper tool].
 
 1. `skopeo` and `umoci`
 
@@ -594,7 +616,7 @@ Weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 
 ## Conclusion
 
-This is only a brief introduction to `runc` and how it can create and run containers at a low level.  It's certainly not as convenient and easy to work with containers at this level than at higher levels that tools like `podman` and `Docker` provide, but it is important to understand that those tools will use either `runc` or another OCI runtime reference implementation "under the hood".
+This is only a brief introduction to `runc` and how it can create and run containers at a low level.  It's certainly not as convenient and easy to work with containers at this level than at higher levels that tools like `podman` and `Docker` provide, but it is important to understand that those tools will use either `runc` or another OCI runtime runtime implementation "under the hood".
 
 There are other container runtimes that implement the OCI runtime spec, but I have not looked into them as I have `runc`.  One that looks interesting is the [`crun`], written in C.
 
@@ -608,7 +630,7 @@ There are other container runtimes that implement the OCI runtime spec, but I ha
 [`docker`]: https://www.docker.com/
 [Yes, yes, oh god yes!]: https://www.youtube.com/watch?v=gFhQ49qsfIQ
 [Open Container Initiative]: https://opencontainers.org/
-[`libcontainer`]: https://github.com/opencontainers/runc/tree/master/libcontainer
+[`libcontainer`]: https://github.com/opencontainers/runc/blob/main/libcontainer/README.md
 [`containerd`]: https://containerd.io/
 [`CRI-O`]: https://cri-o.io/
 [runtime spec]: https://github.com/opencontainers/runtime-spec
@@ -618,7 +640,6 @@ There are other container runtimes that implement the OCI runtime spec, but I ha
 [namespaces]: https://en.wikipedia.org/wiki/Linux_namespaces
 [cgroups]: https://en.wikipedia.org/wiki/Cgroups
 [capabilities]: https://wiki.archlinux.org/title/Capabilities
-[the `runc` README]: https://github.com/opencontainers/runc/blob/master/README.md
 [rootless container]: https://rootlesscontaine.rs/
 [`riddler`]: https://github.com/genuinetools/riddler
 [`skopeo`]: https://github.com/containers/skopeo
@@ -633,4 +654,6 @@ There are other container runtimes that implement the OCI runtime spec, but I ha
 [`tmpfs]: https://en.wikipedia.org/wiki/Tmpfs
 [bind mount]: https://unix.stackexchange.com/questions/198590/what-is-a-bind-mount
 [`crun`]: https://github.com/containers/crun
+[Filesystem Hierarchy Standard]: https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
+[virtual machine]: /2026/08/10/on-virtualization-and-virtual-machines/
 

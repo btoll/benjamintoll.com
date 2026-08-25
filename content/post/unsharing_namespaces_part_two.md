@@ -6,7 +6,7 @@ date = "2022-12-14T00:06:29Z"
 
 "There is no such thing as a Docker container!"
 
--- "Stabby" Kilgore Trout to Gaias Julius Caesar, March 15, 44 B.C.E.
+-- "Stabby" Kilgore Trout to Gaius Julius Caesar, March 15, 44 B.C.E.
 
 ---
 
@@ -35,13 +35,17 @@ This is the second installment in a riveting series.  Be sure to have read the [
 
 ### Network
 
-Unsharing the `net` [network namespace] allows for the process to have its own IPv4 and IPv6 stacks, network links, firewall rules and IP routing tables (among others).
+Unsharing the [`net`] network namespace allows for the process to have its own IPv4 and IPv6 stacks, network links, firewall rules and IP routing tables (among others).
 
 Let's look at the difference between sharing, or inheriting, the `net` namespace from the parent process and unsharing it.
 
+> See [On Linux Container Networking] for an in-depth look at creating `net` namespaces using the [`ip-netns`] tool.
+
 #### Sharing
 
-In the absence of the `--net` option to `unshare`, the `bash` program running in the forked process below will inherit the `--net` namespace from its parent, and we can see this by listing out the processes `ns` directory in `/proc`:
+In the absence of the `net` option to `unshare`, the `bash` program running in the process below will inherit the `net` namespace from its parent, and we can see this in any number of ways.
+
+List out the process' `ns` directory in `procfs`:
 
 ```bash
 # On the host.
@@ -52,7 +56,7 @@ $ ls -l /proc/$$/ns | ag net
 lrwxrwxrwx 1 btoll btoll 0 Aug  9 17:52 net -> net:[4026532008]
 ```
 
-Then, on the host, we demonstrate that `pid` 1 (`systemd` on my Debian `bullseye` distro) indeed has the same `net` namespace, which the containing process inherited:
+Then, on the host, we demonstrate that PID 1 (`systemd` on my Debian `bullseye` distro) indeed has the same `net` namespace, which the containing process inherited:
 
 ```bash
 # On the host, where PID 1 is `systemd`.
@@ -62,31 +66,9 @@ $ sudo ls -l /proc/1/ns | ag net
 lrwxrwxrwx 1 root root 0 Aug  7 20:19 net -> net:[4026532008]
 ```
 
-Further, back in the container process, since it inherited the same `net` namespace we can show that the new process can see all of the same namespaced network interfaces as the host and accesses the same routing table:
+> The bracketed numbers are [inodes].
 
-```bash
-$ ip a
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: enp2s0f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc fq_codel state DOWN group default qlen 1000
-    link/ether 80:fa:5b:53:fb:82 brd ff:ff:ff:ff:ff:ff
-3: wlp3s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-    link/ether e4:70:b8:b4:22:a6 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.1.10/24 brd 192.168.1.255 scope global dynamic noprefixroute wlp3s0
-       valid_lft 196879sec preferred_lft 196879sec
-    inet6 fe80::2308:ab5:dc8:cdae/64 scope link noprefixroute
-       valid_lft forever preferred_lft forever
-$
-$ ip r
-default via 192.168.1.1 dev wlp3s0 proto dhcp metric 600
-169.254.0.0/16 dev wlp3s0 scope link metric 1000
-172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
-192.168.1.0/24 dev wlp3s0 proto kernel scope link src 192.168.1.10 metric 600
-```
+Another way to see this is to run [`ip-address`] and [`ip-route`] in the "container" and the host.  You'll see that they list the same information.
 
 #### Unsharing
 
@@ -143,7 +125,7 @@ Here are some characteristics of `veth` devices (from the manpage):
 - packets transmitted on one device in the pair are immediately received on the other device
 - when either device is down the link state of the pair is down
 
-> Anyone with an interest in container networking should pay particular attention to these little fellas.
+> Anyone with an interest in [container networking] should pay particular attention to these little fellas.
 >
 > `veth` devices have a particularly interesting use case: placing one end of a `veth` pair in one network namespace and the other end in another network namespace allows for communicating between network namespaces.
 >
@@ -152,6 +134,7 @@ Here are some characteristics of `veth` devices (from the manpage):
 > ```bash
 > $ sudo ip link add p1-name netns p1-ns type veth peer p2-name netns p2-ns
 > ```
+> That's a mouthful.
 
 We'll start by creating the new process with its own unshared `net` network namespace:
 
@@ -261,7 +244,7 @@ $ ip a
 
 > Bringing an interface `UP` means to enable it.  What does `LOWER_UP` mean, then?
 >
-> It signals that it is a physical layer link flag.  `LOWER_UP` indicates that an `Ethernet` cable was plugged in and that the device is connected to the network, that is, it can send and receive encoded and decoded information from its physical medium source, be it electricity, light or radio waves.
+> It signals that it is a physical layer link flag.  `LOWER_UP` indicates that an `Ethernet` cable was plugged in and that the device is connected to the network, that is, it can send and receive encoded and decoded information from its physical medium source, be it electricity, light, radio waves or The Force.
 
 Of course, in order to be able to send traffic to the devices, both need to be assigned an IP address on the same network.
 
@@ -280,7 +263,7 @@ First, in the container:
        valid_lft forever preferred_lft forever
 ```
 
-As soon as the IP is associated, a route has been added to the container's routing table (since its using [`CIDR`] notation, the kernel automatically adds a routing entry):
+As soon as the IP is associated, a route has been added to the container's routing table (since it's using [`CIDR`] notation, the kernel automatically adds a routing entry):
 
 ```bash
 # ip route
@@ -354,7 +337,7 @@ If the two processes can't communicate, i.e., the `ping`s don't work, make sure 
 Check out the following two resources for more information:
 
 - [On Linux Container Networking]
-- [Linux Networking GitHub Repository]
+- [`linux-networking`]
 
 ### User
 
@@ -617,7 +600,7 @@ Um.
 
 [first part]: /2022/08/08/on-unsharing-namespaces-part-one/
 [namespaces]: https://www.man7.org/linux/man-pages/man7/namespaces.7.html
-[network namespace]: https://www.man7.org/linux/man-pages/man7/network_namespaces.7.html
+[`net`]: https://www.man7.org/linux/man-pages/man7/network_namespaces.7.html
 [On Unsharing Namespaces, Part One]: /2022/08/08/on-unsharing-namespaces-part-one/
 [`loopback`]: /2019/09/23/on-loopback/
 [`lsns`]: https://www.man7.org/linux/man-pages/man8/lsns.8.html
@@ -635,7 +618,12 @@ Um.
 [subuid(5) man page]: https://www.man7.org/linux/man-pages/man5/subuid.5.html
 [`veth`]: https://man7.org/linux/man-pages/man4/veth.4.html
 [`CIDR`]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
-[On Linux Container Networking]: /2023/11/28/on-linux-container-networking/
-[Linux Networking GitHub Repository]: https://github.com/btoll/linux-networking
+[`linux-networking`]: https://github.com/btoll/linux-networking
 [`podman`]: https://podman.io/
+[On Linux Container Networking]: /2026/08/12/on-linux-container-networking/
+[container networking]: /2026/08/12/on-linux-container-networking/
+[`ip-netns`]: https://www.man7.org/linux/man-pages/man8/ip-netns.8.html
+[inodes]: /2019/11/19/on-inodes/
+[`ip-address`]: https://www.man7.org/linux/man-pages/man8/ip-address.8.html
+[`ip-route`]: https://man7.org/linux/man-pages/man8/ip-route.8.html
 

@@ -12,15 +12,47 @@ date = "2022-08-08T03:26:29Z"
 
 This is the first part in a two part series that will be looking at [Linux namespaces] and the [`unshare`] command which is used to create them.  Using this new knowledge, we'll create a container by hand, piece by piece.
 
-The `unshare` tool is used to run a program in a process with some namespaces unshared from its parent, meaning that it doesn't share the namespaces with the parent, instead having its own.  The namespaces to be unshared are listed as options to the `unshare` command.
+The `unshare` tool is used to run a process with one or more namespaces unshared from its parent, meaning that it would no longer share those namespaces with the parent.  This creates new namespaces that isolates the process from the rest of the system, with the amount of isolation directly tied to the number of namespaces unshared.
+
+Unsharing namespaces and isolating processes is how we begin to create what are commonly known today as containers.
+
+The namespaces to be unshared are listed as options to the `unshare` command:
+
+```bash
+$ unshare -h
+
+Usage:
+ unshare [options] [<program> [<argument>...]]
+
+Run a program with some namespaces unshared from the parent.
+
+Options:
+ -m, --mount[=<file>]      unshare mounts namespace
+ -u, --uts[=<file>]        unshare UTS namespace (hostname etc)
+ -i, --ipc[=<file>]        unshare System V IPC namespace
+ -n, --net[=<file>]        unshare network namespace
+ -p, --pid[=<file>]        unshare pid namespace
+ -U, --user[=<file>]       unshare user namespace
+ -C, --cgroup[=<file>]     unshare cgroup namespace
+ -T, --time[=<file>]       unshare time namespace
+
+ ...
+```
 
 So, what's the big deal about this?  Why learn about it?  Can't I just use Docker?
 
 Well, you could, if you want to be just like everyone else.  But you don't, do you?  You want to be unique, your own person.
 
-We'll be learning how to create a container from scratch using some foundational knowledge that we probably already have.  It's just a matter of putting all of the pieces together.  And, no matter your container technology of choice (Docker, Podman, `systemd-nspawn`, et al.), doing this exercise will improve and enhance your understanding of how these higher-level abstractions create Linux containers under the hood.  That's always a good thing.
+We'll be learning how to create a container from scratch using some foundational knowledge that we probably already have.  It's just a matter of putting all of the pieces together.  And, no matter your container technology of choice (Podman, [`systemd-nspawn`], Docker, et al.), doing this exercise will improve and enhance your understanding of how these higher-level abstractions create Linux containers under the hood.  That's always a good thing.
 
-Back to the task at hand.  Again, we're going to be primarily looking at the `unshare` command and creating new, unshared namespaces.
+> See the following articles on `systemd-nspawn`:
+>
+> - [On systemd-nspawn](/2018/08/20/on-systemd-nspawn/)
+> - [On Running systemd-nspawn Containers](/2022/02/04/on-running-systemd-nspawn-containers/)
+>
+> They will make you a better person **and** help save the environment.  Promise.
+
+Back to the task at hand.  Again, we're going to be primarily looking at the [`unshare`] command and creating new, unshared namespaces.
 
 As for the name, the child process inherits all of its parent namespaces, but sometimes the child shouldn't **share** those inherited namespaces, instead opting to create new namespaces that are not **shared** (or, if you will, *unshared*) with the parent.
 
@@ -47,25 +79,40 @@ Before we start, here is the syntax of the command:
 unshare [options] [program [arguments]]
 ```
 
----
-
 ## Namespaces
 
-You can get a sense of all of the defined [namespaces] for all users on your system by listing them:
+You can get a sense of all of the currently accessible [namespaces] for all users on your system by listing them:
 
 ```bash
 $ sudo lsns
 ```
 
+[`lsns`] will list processes and the namespaces they are using.
 Running the command as an unprivileged user will only get your own namespaces:
 
 ```bash
 $ lsns
 ```
 
-> Always run [`lsns`] as a privileged user, because it reads its information from the [`/proc`] pseudo-filesystem!
+> [`lsns`] reads its information from the [`procfs`] pseudo-filesystem.
 
 On mine, there are a whole bunch, mostly Firefox web browser tabs that I have open.  After all, modern browsers use namespacing and cgroups to create a sandboxed environment!
+
+For example, I can list namespaces by held by the process with a specific `pid`:
+
+```bash
+$ lsns -p 7761
+        NS TYPE   NPROCS   PID USER  COMMAND
+4026531834 time      125  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+4026531835 cgroup    125  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+4026531836 pid       125  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+4026531838 uts       125  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+4026531841 mnt       124  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+4026535517 user        1  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+4026535518 ipc         1  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+4026535519 net         1  7761 btoll /usr/lib/firefox-esr/firefox-esr -contentproc -isForBrowser -prefsHandle 0:42309 -prefMapHandle 1:273884 -jsInitHandle 2:242716 -parentBuildID 20260403140708 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {8e4d044f-0096-40ef-b0f6-fcb5c8706454} -parentPid 4183083 -crashReporter 6 -crashHelper 7 -greomni /usr/lib/firefox-esr/omni.ja -appomni /usr/lib/firefox-esr/browser/omni.ja -appDir /usr/lib/firefox-esr/browser 52 tab
+
+```
 
 ### Unix Timesharing System
 
@@ -77,9 +124,11 @@ As a simple example, observe the following:
 # On host, the following command puts us in a new Bourne shell.
 $ sudo unshare --uts sh
 
-# So, now we're inside the "container" process.
+# So, now we're running the program in the new `uts` namespace
+# (in sloppy terminology, we're "inside" the "container" process).
 $ hostname
 kilgore-trout
+# We can change the hostname, and it won't affect the host `uts` namespace.
 $ hostname doody
 $ hostname
 doody
@@ -90,39 +139,46 @@ $ hostname
 kilgore-trout
 ```
 
-First, we launched a Bourne shell with its own `uts` namespace.  We then list out the hostname inherited from the parent, and then change it to "doody", because I'm a child.  Then, we verify that it took and exited the shell (and the namespace).  Lastly, we verify that the hostname on the host has not been changed.
+First, we launched a Bourne shell with its own `uts` namespace.  We then list out the hostname inherited from the parent, and then change it to "doody", because I'm a child.  Then, we verify that it took and exited the shell (the process) and the namespace.  Lastly, we verify that the hostname on the host has not been changed.
 
-Ok, pretty simple stuff.  Let's move on to a more interesting example.
+Ok, pretty simple stuff, but it gives a taste of how a process can be unshared/isolated/encapsulated.  Let's move on to a more interesting example.
 
 > Note that not giving a command to `unshare` will result in it opening a shell by default (determined by the value of the `SHELL` environment variable).
 
 ### Process IDs
 
-The [`pid` namespace] is interesting because we first have to know something about [`chroot`]s and the [`/proc`] filesystem.  Let's talk about `/proc` first.
+The [`pid` namespace] is interesting because we first have to know something about [`chroot`]s and the `/proc` filesystem ([`procfs`]).  Let's talk about [`procfs`] first.
 
-`/proc` is a pseudo-filesystem that is created by the kernel and is an interface to kernel data structures.  Essentially, this means that user space can get information from the kernel and set properties that are read from the kernel by reading from and writing to these files.
+`procfs` is a pseudo-filesystem that is created by the kernel and is an interface to kernel data structures.  Essentially, this means that user space can **get** information from the kernel and **set** properties by reading from and writing to these files.  It's a convenient way to interface with the kernel.
 
-We're interested in the `/proc` filesystem because of its detailed information about all of the running processes.  When, for example, the [`ps`] command is executed, it reads its information from `/proc`.  So, when creating an unshared `pid` namespace, it's not enough to simply specify the option as part of the `unshare` command (i.e., `unshare --pid`); we also need to tell the kernel to create a new `/proc` filesystem, in which it will write **only** process information for the new namespace.
+We're interested in the `procfs` filesystem because of its detailed information about all of the running processes.  When, for example, the [`ps`] command is executed, it reads its information from `procfs`.  So, when creating an unshared `pid` namespace, it's not enough to simply specify the option as part of the `unshare` command (i.e., `unshare --pid`); we also need to tell the kernel to create a new `procfs` filesystem, in which it will **only** write process information for the new namespace.
 
 > This is crucially important because we don't want a child namespace to have a view of its parents `pid` namespace and all of its running processes.  Allowing this would be giving away a lot of unintended information that could perhaps be used for nefarious purposes.
 
-But, wait, there is *already* a `/proc` filesystem!  Won't a new `/proc` filesystem interfere or conflict with this older one?  Indeed it would, observant grasshopper.
+But, wait, there is *already* a `procfs` filesystem!  Won't a new `procfs` filesystem interfere or conflict with this older one?  Indeed it would, observant grasshopper.
 
-What we need is to create another, different view of the filesystem for the new process.  Perhaps we could install another [`rootfs`] within this filesystem, and then **change the root** of the filesystem to this new `rootfs`.
+What we need is to create another, different *view* of the filesystem for the new process.  Perhaps we could install another [`rootfs`] within this filesystem, and then **change the root** of the filesystem to this new `rootfs`.
 
-This will change the root of what the process can see, essentially restricting its access and what it can do (for example, the new root filesystem may only have a small fraction of the binaries that are available in the main root filesystem).  There are many upsides to this (for example, greater security), as evidenced by the fact that `chroot`s have been used in the Unix world for decades.
+In effect, this will change the root of what the process can "see", essentially restricting its access and what it can do (for example, the new root filesystem may only have a small fraction of the binaries that are available in the main root filesystem).  There are many upsides to this (for example, greater security), as evidenced by the fact that [`chroot`]s have been used in the Unix world for decades.
 
-Let's download a `rootfs` from Alpine.  Let's get the latest as of this writing, [version 3.9]:
+> See the wonderful article [On Escaping a Chroot] which will cause you to laugh out loud like a loon.
+
+There are several ways to create a [`chroot`].  The easiest is to download a pre-built `rootfs` like [Alpine Linux] or install using [`debootstrap`] to create a Debian base install.  The hardest is to build one from scratch, and is, of course, the easiest way to not get it right and create a (giant) security hole(s).
+
+Since containers use `rootfs`, so will we.  Let's download a `rootfs` using `debootstrap`:
 
 ```bash
-$ sudo su -
-# mkdir rootfs
-# curl http://dl-cdn.alpinelinux.org/alpine/v3.9/releases/x86_64/alpine-minirootfs-3.9.0-x86_64.tar.gz | tar -xz -C rootfs/
+$ sudo debootstrap --arch=amd64 --variant=minbase --include=procps trixie rootfs http://deb.debian.org/debian
 ```
 
-> We're running as a privileged user for all commands simply out of convenience.
+This will download the `trixie` release using the `minbase` script variant, which only includes required packages and [`apt`].  In addition, I'm having it include the [`procps`] package so I can use the `ip` tool.  It will download it into a `rootfs` directory.
 
-And `unshare` the `pid` namespace and change the root in the same fell command:
+Now, we need a way to show that not only is the `pid` namespace isolated from the host, but that we are also in an isolated filesystem (the `rootfs`).  We'lll do this in a couple ways:
+
+- Run a process in the child process and demonstrate that it is in its own process tree structure.  If it is, then `pid` one will be the shell **not** `systemd` (or `init`, depending on the host).
+- Using the `procfs`, show that the process has a different view of the world than that of its host.
+
+First, `unshare` the `pid` namespace and change the root.  This can be done in one command:
 
 ```bash
 # unshare --pid --fork chroot rootfs sh
@@ -141,16 +197,24 @@ This is doing the following:
 
 > Why `--fork`?  From the `unshare` man page:
 >
->   > Fork the specified program as a child process of `unshare` rather than running it directly.  This is useful when creating a new PID namespace.
+>   > Fork the specified program as a child process of `unshare` rather than running it directly.  This is useful when creating a new `pid` namespace.
 >
 > Every time you unshare the `pid` namespace, you should use the `--fork` option.
 
-Let's [`sleep`] in the container process and then inspect the process ID from the host.
+To accomplish our goals outlined above, let's [`sleep`] in the container process and then inspect the process ID from the host.  We expect that the `pid` will be a high number in the host but a low one in the `rootfs`.  The reason for the latter is because it will have its own process table.
 
-In the container process:
+In the container process, we'll call `sleep`, send it to the background and then get its `pid`:
 
 ```bash
-/ # sleep 1000
+# sleep 10000 &
+# ps
+Error, do this: mount -t proc proc /proc
+# mount -t proc proc /proc
+# ps
+    PID TTY          TIME CMD
+      1 ?        00:00:00 sh
+      3 ?        00:00:00 sleep
+      6 ?        00:00:00 ps
 ```
 
 In another terminal on the host:
@@ -161,69 +225,112 @@ $ ps -C sleep
 2290330 pts/1    00:00:00 sleep
 ```
 
-Now, using its `pid`, let's see what the kernel tells us about its `root`, that is, its view of the filesystem:
+There you go, same process, different `pid`s because of the different `pid` namespace.
+
+If you need more convincing, check out the [inodes] of the `pid` namespaces.  On the host:
 
 ```bash
-$ sudo ls -l /proc/2290330/root
-lrwxrwxrwx 1 root root 0 Aug  8 01:52 /proc/2290330/root -> /root/rootfs
+$ sudo lsns -p $(pgrep sleep) | grep pid
+4026532440 pid         2 2290330 root sh
+$ sudo lsns -p 1 | grep pid
+4026531836 pid       139   1 root /sbin/init
 ```
 
-From the host, we can see that the `sleep` process indeed has a different view of the filesystem (that is, the kernel is informing us that the `root` of process ID 2290330 is `/root/rootfs`).  Its `root` is the new `rootfs` in the `rootfs` directory, and the process only sees this subsystem of the entire host filesystem.  In other words, its world is very limited, and this is a good thing.
+It's definitive: the inodes of the `sleep` and `systemd` (or `init`) `pid` namespaces are different.
 
-For fun, let's see what a host process reports as its `root`:
+Now, using the `pid` of `sleep`, let's see what the kernel tells us about its `root`, that is, its view of the filesystem:
+
+```bash
+$ sudo ls -l /proc/$(pgrep sleep)/root
+lrwxrwxrwx 1 root root 0 Aug 16 00:44 /proc/2290330/root -> /home/btoll/rootfs
+```
+
+From the host, we can see that the `sleep` process indeed has a different view of the filesystem (that is, the kernel is informing us that the `root` of process ID 2290330 is `/home/btoll/rootfs`).  Its `root` is the new `rootfs` in the `rootfs` directory (the `chroot`), and the process only sees this limited part of the entire host filesystem.  In other words, its world is very limited, and this is A Good Thing.
+
+For fun, let's see what a process on the host reports as its `root`:
 
 ```bash
 $ sudo ls -l /proc/$$/root
 lrwxrwxrwx 1 btoll btoll 0 Apr 21 13:40 /proc/574264/root -> /
 ```
 
-This is another way we can fortify our learning by actively demonstrating that a host process **not** running in a `chroot` has a very different view of the filesystem than a "container" process running in a `chroot`.
-
-If you're unfamiliar with `bash` internal variable [`$$`], it is the `pid` of the current shell.
-
-> Note that the process only has a high number from the perspective of the host.  In the chroot (the "container"), it would have a different and lower number.
-
-However, `ps` still isn't working in the container process.  You may receive an error or it may just return the column headers with no running processes listed:
+And, PID 1:
 
 ```bash
-/ # ps
+$ sudo ls -l /proc/1/root
+lrwxrwxrwx 1 root root 0 Aug 15 19:30 /proc/1/root -> /
+```
+
+> If you're unfamiliar with `bash` internal variable [`$$`], it is the `pid` of the current shell.
+
+So, there you go, we've successfully achieved our two goals.  We demonstrated that each `pid` namespace has its own independent and isolated process tables, and we've established that what the processes in each `pid` namespace view as the root of the filesystem is greatly different.
+
+You may have noticed that we needed to mount the `procfs` in the `pid` namespace.  I had glossed over that, but you noticed, didn't you?  Yes, yes you did.
+
+Here it is again:
+
+```bash
+# sleep 10000 &
+# ps
 Error, do this: mount -t proc proc /proc
+# mount -t proc proc /proc
+# ps
+    PID TTY          TIME CMD
+      1 ?        00:00:00 sh
+      3 ?        00:00:00 sleep
+      6 ?        00:00:00 ps
 ```
 
-Or:
+> Depending on the distribution, I've seen different behavior.  For example, using an Alpine `rootfs`, I just got an empty process table:
+>
+> ```bash
+> # ps
+> PID   USER     TIME  COMMAND
+> ```
+> And, listing `procfs` would be empty:
+>
+> ```bash
+> # ls /proc
+> #
+> ```
+
+Why isn't it reporting on any running processes?  We know that it should have at least one in the container process, `pid` 1, which will be `/bin/sh` in this case, since we launched the process with the `sh` shell command.
+
+Listing out the `procfs` directory doesn't show any process ID directories (it could also be empty depending on the distro):
 
 ```bash
-/ # ps
-PID   USER     TIME  COMMAND
+# ls /proc
+acpi       dma            irq          locks         schedstat      timer_list
+buddyinfo  driver         kallsyms     meminfo       self           tty
+bus        dynamic_debug  kcore        misc          slabinfo       uptime
+cgroups    execdomains    key-users    modules       softirqs       version
+cmdline    fb             keys         mounts        stat           vmallocinfo
+consoles   filesystems    kmsg         mtrr          swaps          vmstat
+cpuinfo    fs             kpagecgroup  net           sys            zoneinfo
+crypto     interrupts     kpagecount   pagetypeinfo  sysrq-trigger
+devices    iomem          kpageflags   partitions    sysvipc
+diskstats  ioports        loadavg      pressure      thread-self
 ```
 
-Why isn't it reporting on any running processes?  We know that it should have at least one in the container process, PID 1, which will be `/bin/sh` in this case, since we launched the process with the `sh` shell command.
-
-Listing out the `/proc` directory tells us why.  It's empty, of course.
+Regardless of the distribution and what is reported to `stdout`, we need to mount the `procfs` pseudo-filesystem.  When we do, just as with the main `procfs` filesystem in the `/` root, it will contain information written to it by the kernel about the running processes, but, importantly, **only** those running in this `chroot`:
 
 ```bash
-/ # ls /proc
-/ #
-```
-
-Either way, we need to mount the `/proc` pseudo-filesystem before we're able to see anything.  Just as with the main `/proc` filesystem in the `/` root, it will contain information written to it by the kernel about the running processes, but, importantly, **only** those running in this `chroot`:
-
-```bash
-/ # mount -t proc proc /proc
+# mount -t proc proc /proc
 ```
 
 Now, `ps` should be able to list the running processes:
 
 ```bash
-/ # ps
+# ps
     PID TTY          TIME CMD
       1 ?        00:00:00 sh
-     46 ?        00:00:00 ps
+      3 ?        00:00:00 sleep
+      6 ?        00:00:00 ps
 ```
 
 Sweet, that worked!  And, as expected, the `sh` process is `pid` 1.  With one simple command and an easily downloaded `rootfs`, we've gone a fair way toward making a running container!
 
-> Note that we'll get a similar error when executing the `mount` command in the container process before the `/proc` filesystem is mounted:
+> Note that we'll get a similar error when executing the `mount` command in the container process before the `procfs` filesystem is mounted:
 >
 >     / # mount
 >     mount: failed to read mtab: No such file or directory
@@ -239,13 +346,11 @@ Sweet, that worked!  And, as expected, the `sh` process is `pid` 1.  With one si
 > **Note** that I've also received the following, so your mileage may vary:
 >
 > ```bash
-> / # mount
+> # mount
 > mount: no /proc/mounts
 > ```
 >
 > Either ways, the result is the same:  the `chroot` isn't reporting any `mount` points.
-
-Weeeeeeeeeeeeeeeeeeeeeeee
 
 ### Mount points
 
@@ -255,7 +360,7 @@ Creating a `mnt` namespace is important so the parent `mnt` namespace isn't shar
 
 Since the `mnt` namespace is otherwise inherited and shared, any `mount` created in the "container" will be seen from the host and will appear in its mount table.
 
-Imagine having a host that continually spawns hundreds, if not thousands, of containers whose needs include bind mounting directories from the host and/or mounting (pseudo-)filesystems in the container, like `/proc`.  Of course, if the container process remembers to clean up after itself by umounting any mount points before exiting (or in a [`trap`]), then the mount entries are removed, but who remembers to do that?  Well, I do, of course, but other people that aren't me?  No way.
+Imagine having a host that continually spawns hundreds, if not thousands, of containers whose needs include bind mounting directories from the host and/or mounting (pseudo-)filesystems in the container, like `procfs`.  Of course, if the container process remembers to clean up after itself by [`umount`]ing any mount points before exiting (or in a [`trap`]), then the mount entries are removed, but who remembers to do that?  Well, I do, of course, but other people that aren't me?  No way.
 
 Also, and more importantly, sharing the same `mnt` namespace with the host is a huge security risk.  Remember, once the host is compromised by a process breaking out of a container, which is bad enough, then the attacker has access to every container running on the kernel.  Depending on the shared hosting and its infrastructure, this could be really bad (although I assume, and hope, that cloud providers run the containers in virtual machines, but that only partly mitigates it.  For example, if there are multiple containers running in the same VM, that would be the same problem).  So, not only do you have to worry about your own security, you have to worry about your neighbor's.
 
@@ -281,11 +386,11 @@ $ mount | ag target
 
 This is unfortunate but easily fixed.
 
-You'll notice that in the example below that we don't need to recreate the `source` and `target` directories.  This is because the `bash` process has the same root filesystem (`/`) as that of the host, and so the directories created in the "container" were created on the host's root filesystem (which, of course, persist when exiting the subprocess (the "container")).
+> You'll notice that in the example below that we don't need to recreate the `source` and `target` directories.  This is because the `bash` process has the same root filesystem (`/`) as that of the host, and so the directories created in the "container" were created on the host's root filesystem (which, of course, will persist when exiting the child process (the "container")).
+>
+> This would be a different story if the the new process had `chroot`ed to a subdirectory on the host filesystem.  In that scenario, the `rootfs` used as the subprocess' filesystem in the `chroot` would be entirely separate from the host, and any files and directories created in the `chroot` will not be on the host.
 
-This would be a different story if the the new process had `chroot`ed to a subdirectory on the host filesystem.  In that scenario, the `rootfs` used as the subprocess' filesystem in the `chroot` would be entirely separate from the host, and any files and directories created in the `chroot` will not be on the host.
-
-Back to our story, to remove the `mount` point entry from the host's list of `mount` points, simply run the same command as before and unmount the bind mount:
+To remove the `mount` point entry from the host's list of `mount` points, simply run the same command as before and unmount the bind mount:
 
 ```bash
 $ sudo unshare bash
@@ -299,7 +404,7 @@ $ mount | ag target
 $
 ```
 
-> Of course, you can always remote the `mount` point from the host:
+> Of course, you can always unmount the mount point from the host:
 >
 > ```bash
 > $ sudo umount /path/to/target
@@ -327,11 +432,13 @@ Even though the container process didn't tidy up by unmounting the mount point b
 
 Weeeeeeeeeeeeeeeeeeeeeee
 
+> If you're wondering why you can still see all of the host's mount points when running `mount` in the "container", read on.
+
 ---
 
-Before moving on to the last section of this very generous article, let's take a look at some information made available to us by the kernel in `/proc` that is interesting and instructive.
+Before moving on to the last section of this very generous article, let's take a look at some information made available to us by the kernel in `procfs` that is interesting and instructive.
 
-Each process in `/proc` has a `mounts` file that informs us what mounts, if any, were created by any process.  For example, to see the mount points for PID 1 (on my system that is `systemd`), you can do:
+Each process in `procfs` has a `mounts` file that informs us what mounts, if any, were created by any process.  For example, to see the mount points for PID 1 (on my system that is `systemd`), you can do:
 
 ```bash
 $ sudo cat /proc/1/mounts
@@ -351,14 +458,14 @@ $ sudo unshare --mount bash
 HELLO
 ```
 
-So far, so good.  We need to look at the process information on the host in `/proc`, so let's get the PID number from the container environment:
+So far, so good.  We need to look at the process information on the host in `procfs`, so let's get the `pid` number from the container environment:
 
 ```bash
 # echo $$
 2521485
 ```
 
-> As aforementioned, the [Bash and Bourne special parameter] `$$` expands to the process ID of the shell (in a subshell, it's always the PID of the invoking shell).
+> As aforementioned, the [Bash and Bourne special parameter] `$$` expands to the process ID of the shell (in a subshell, it's always the `pid` of the invoking shell).
 
 As expected, it's a high number because the process has inherited the `pid` namespace of its parent.  We can use `ps` to confirm that:
 
@@ -370,7 +477,7 @@ As expected, it's a high number because the process has inherited the `pid` name
 2521847 pts/1    00:00:00 ps
 ```
 
-Armed with the PID of the [Bourne-Again SHell] process, we can now see its mount points.
+Armed with the `pid` of the [Bourne-Again SHell] process, we can now see its mount points.
 
 > Since the container process has unshared its `mnt` namespace from its parent, the mount point entry won't show by running `mount` on the host, so the following method is the only way to see from the host what is in a container process' `mnt` namespace.
 
@@ -403,7 +510,7 @@ securityfs on /sys/kernel/security type securityfs (rw,nosuid,nodev,noexec,relat
 
 Wait, what?!?  In addition to the mount point created by the process that we expected to see (the last one listed), we also see all of the other of the host's mount points.  What is going on here?
 
-Well, it's because the mount information for each process is contained in `/proc` within each PID's directory entry, as we've seen above.  And, because we haven't unshared the `pid` namespace **and** (most importantly) created the process in its own `chroot`, its view of the world will still be that of its parent, and it will get all of its mount information from `/proc` on the host.
+Well, it's because the mount information for each process is contained in `procfs` within each `pid`'s directory entry, as we've seen above.  And, because we haven't unshared the `pid` namespace **and** (most importantly) created the process in its own `chroot`, its view of the world will still be that of its parent, and it will get all of its mount information from `procfs` on the host.
 
 > Of course, running the `mount` command in the "container" will also list all of the host's mounts for the same reason.
 
@@ -476,10 +583,9 @@ I hope you have found this article scintillating and that you've been titillated
 [Unix Timesharing System namespace]: https://www.man7.org/linux/man-pages/man7/uts_namespaces.7.html
 [`pid` namespace]: https://www.man7.org/linux/man-pages/man7/pid_namespaces.7.html
 [`chroot`]: https://man7.org/linux/man-pages/man2/chroot.2.html
-[`/proc`]: https://man7.org/linux/man-pages/man5/proc.5.html
+[`procfs`]: https://man7.org/linux/man-pages/man5/proc.5.html
 [`mnt` namespaces]: https://www.man7.org/linux/man-pages/man7/mount_namespaces.7.html
 [`rootfs`]: https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
-[version 3.9]: http://dl-cdn.alpinelinux.org/alpine/v3.9/releases/x86_64/alpine-minirootfs-3.9.0-x86_64.tar.gz
 [`sleep`]: https://www.man7.org/linux/man-pages/man1/sleep.1.html
 [Bash and Bourne special parameter]: https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html
 [On Unsharing Namespaces, Part Two]: /2022/12/14/on-unsharing-namespaces-part-two/
@@ -487,4 +593,12 @@ I hope you have found this article scintillating and that you've been titillated
 [`$$`]: https://codefather.tech/blog/bash-dollar-dollar-variable/
 [`trap`]: https://linuxhandbook.com/bash-trap-command/
 [Bourne-Again SHell]: https://en.wikipedia.org/wiki/Bash_(Unix_shell)
+[`systemd-nspawn`]: https://www.man7.org/linux/man-pages/man1/systemd-nspawn.1.html
+[On Escaping a Chroot]: /2019/05/18/on-escaping-a-chroot/
+[Alpine Linux]: https://www.alpinelinux.org/
+[`debootstrap`]: https://manpages.debian.org/trixie/debootstrap/debootstrap.8.en.html
+[`apt`]: https://manpages.debian.org/trixie/apt/apt.8.en.html
+[`procps`]: https://www.man7.org/linux/man-pages/man1/procps.1.html
+[inodes]: /2019/11/19/on-inodes/
+[`umount`]: https://www.man7.org/linux/man-pages/man8/umount.8.html
 
