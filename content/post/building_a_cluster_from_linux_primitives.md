@@ -497,7 +497,9 @@ $ sudo ip netns exec node1-pod1 dig @10.96.64.10 +short SRV _dns._udp.service.lo
 
 ## Conclusion
 
-There will be another article about applying [`cgroups`] to the nodes and podes in the demo for resource control.  Once a `cgroups` hierarchy is applied to the cluster, it will largely be a working demo of a container orchestrator, albeit on a smaller scale and certainly not ready for production.
+Check out the next article about applying [`cgroups`] to the nodes and pods in the demo for resource control, aptly entitled [On cgroups].  Once a `cgroups` hierarchy is applied to the cluster, it will largely be a working demo of a container orchestrator, albeit on a smaller scale and certainly not ready for production.
+
+See you there, pal.
 
 ## References
 
@@ -546,4 +548,5 @@ There will be another article about applying [`cgroups`] to the nodes and podes 
 [`VXLAN`]: https://en.wikipedia.org/wiki/VXLAN
 [`cluster`]: https://github.com/btoll/cluster
 [`VLAN`]: https://en.wikipedia.org/wiki/VLAN
+[On cgroups]: /2026/10/09/on-cgroups/
 
