@@ -287,6 +287,56 @@ Initialized empty Git repository in /home/btoll/limmy/.git/
 
 The hooks are grouped by language.  I found that was a natural boundary.  For instance, whenever I create a new project I'll install all of the hooks for Go, as well as [ShellCheck] and some other security tools like [Trivy].
 
+For a project written in Go, here is what the pre-commit activity looks like when making a commit:
+
+```bash
+$ git commit -m 'Concurrency improvements'
+[INFO] Running go build ./...
+[SUCCESS] Completed successfully.
+[INFO] Running go fmt
+[SUCCESS] Completed successfully.
+[INFO] Running go mod tidy
+[SUCCESS] Completed successfully.
+[INFO] Running go mod verify
+all modules verified
+[SUCCESS] Completed successfully.
+[INFO] Running go test -race ./...
+ok      github.com/btoll/link-scanner   1.011s
+?       github.com/btoll/link-scanner/cmd/link-scanner  [no test files]
+[SUCCESS] Completed successfully.
+[INFO] Running go vet ./...
+[SUCCESS] Completed successfully.
+[INFO] Running trivy fs . --format cyclonedx --scanners misconfig,license,secret,vuln --output sbom.json --severity CRITICAL --exit-code 1
+2026-10-11T01:04:08-04:00       INFO    [vulndb] Need to update DB
+2026-10-11T01:04:08-04:00       INFO    [vulndb] Downloading vulnerability DB...
+2026-10-11T01:04:08-04:00       INFO    [vulndb] Downloading artifact...        repo="mirror.gcr.io/aquasec/trivy-db:2"
+120.97 MiB / 120.97 MiB [-------------------------------------------------------------------------------------------------------------] 100.00% 8.24 MiB p/s 15s
+2026-10-11T01:04:24-04:00       INFO    [vulndb] Artifact successfully downloaded       repo="mirror.gcr.io/aquasec/trivy-db:2"
+2026-10-11T01:04:24-04:00       INFO    [vuln] Vulnerability scanning is enabled
+2026-10-11T01:04:24-04:00       INFO    [misconfig] Misconfiguration scanning is enabled
+2026-10-11T01:04:24-04:00       INFO    [checks-client] Using existing checks from cache        path="/home/btoll/.cache/trivy/policy/content"
+2026-10-11T01:04:25-04:00       INFO    [secret] Secret scanning is enabled
+2026-10-11T01:04:25-04:00       INFO    [secret] If your scanning is slow, please try '--scanners misconfig,license,vuln' to disable secret scanning
+2026-10-11T01:04:25-04:00       INFO    [secret] Please see https://trivy.dev/docs/v0.75/guide/scanner/secret#recommendation for faster secret detection
+2026-10-11T01:04:25-04:00       INFO    [license] License scanning is enabled
+2026-10-11T01:04:26-04:00       INFO    Number of language-specific files       num=1
+2026-10-11T01:04:26-04:00       INFO    [gomod] Detecting vulnerabilities...
+2026-10-11T01:04:26-04:00       INFO    Detected config files   num=1
+2026-10-11T01:04:26-04:00       WARN    Using severities from other vendors for some vulnerabilities. Read https://trivy.dev/docs/v0.75/guide/scanner/vulnerability#severity-selection for details.
+[SUCCESS] Completed successfully.
+[INFO] Running trivy sbom sbom.json -o vuln.table --severity CRITICAL --exit-code 1
+2026-10-11T01:04:26-04:00       INFO    [vuln] Vulnerability scanning is enabled
+2026-10-11T01:04:26-04:00       INFO    Detected SBOM format    format="cyclonedx-json"
+2026-10-11T01:04:26-04:00       INFO    Number of language-specific files       num=1
+2026-10-11T01:04:26-04:00       INFO    [gomod] Detecting vulnerabilities...
+2026-10-11T01:04:26-04:00       WARN    Using severities from other vendors for some vulnerabilities. Read https://trivy.dev/docs/v0.75/guide/scanner/vulnerability#severity-selection for details.
+[SUCCESS] Completed successfully.
+[main a356cda] Concurrency improvements
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+```
+
+Pretty sweet!
+
 ## More Git Extensions!
 
 Besides the three Git extensions already covered above, the project also install two other valuable Git extensions (at the time of this writing):
