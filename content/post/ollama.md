@@ -15,7 +15,7 @@ I have a neighbor that stopped mowing his lawn.  Unprompted, he explained to me 
 
 ---
 
-I wanted to become more familiar with the technology behind AI and AI agents.  What to do, where to turn?  I don't want to just foolishly dive in and start paying money like a simp.  Fortunately, I heard [Cory Doctorow] mention on some podcast episode that he uses a local tool that runs offline called [Ollama] and doesn't require a subscription, and that seemed right up my street.  On the upside, there's a way to play with models so my prompts aren't logged by [Sam Altman].  On the downside, how will he know when I call him a cunt?  Trade-offs.
+I wanted to become more familiar with the technology behind AI and AI agents.  What to do, where to turn?  I don't want to just foolishly dive in and start paying money like a simp.  Fortunately, I heard [Cory Doctorow] mention on some podcast episode that he uses a local tool that runs offline called [Ollama] and doesn't require a subscription, and that seemed right up my street.  On the upside, there's a way to play with models so my prompts aren't logged by [Sam Altman].  On the downside, how will he know when I call him an asshole?  Trade-offs.
 
 Most importantly, if I'm going to get more familiar with AI, it's going to be by writing code and doing things myself.  That's not going to happen by just downloading something idiotic like Codex, which doesn't support Vim as far as I can tell, or something else where I'm just clicking buttons like a monkey / Windows user.
 
