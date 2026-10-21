@@ -7,7 +7,6 @@ date = "2026-10-20T17:29:25-04:00"
 - [Introduction](#introduction)
 - [Example](#example)
 - [Conclusion](#conclusion)
-- [References](#references)
 
 ---
 
@@ -106,8 +105,6 @@ $ exit
 ## Conclusion
 
 That is all.
-
-## References
 
 [`exec`]: https://man7.org/linux/man-pages/man1/exec.1p.html
 [`tee`]: https://www.man7.org/linux/man-pages/man1/tee.1.html
